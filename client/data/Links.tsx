@@ -1,6 +1,6 @@
 export const MainLinks = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services" },
-  { name: "Contact", href: "/contact" },
+  { name: "Contests", href: "/contests" },
+  { name: "Problem set", href: "/problemset" },
+  { name: "Ranking", href: "/ranking" },
 ];
