@@ -23,7 +23,7 @@ const Content = [
 ];
 const Suggested_problem = () => {
   return (
-    <section className="max-w-xl flex flex-col gap-5 my-5">
+    <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
       <h4 className="flex items-center gap-2">
         <Radical size={30} strokeWidth={3} className="text-primary" />
         Suggested problem sets

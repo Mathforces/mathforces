@@ -11,7 +11,7 @@ const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   return (
-    <nav className="flex justify-between md:justify-evenly items-center gap-5 p-5">
+    <nav className="flex justify-between md:justify-evenly items-center gap-5 p-5 z-50">
       <Link href="/">
         <Image
           src={"/Logo.png"}
