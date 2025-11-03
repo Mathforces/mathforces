@@ -3,11 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-main {
-  @apply min-h-screen;
-}
-
 @layer base {
+  main {
+    @apply min-h-screen max-w-7xl mx-auto px-5 lg:px-10;
+  }
   h1 {
     @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
   }
@@ -30,6 +29,9 @@ main {
 
   h6 {
     @apply text-base md:text-lg lg:text-xl font-medium;
+  }
+  p{
+    @apply text-base md:text-lg lg:text-xl text-black/70;
   }
 }
 
