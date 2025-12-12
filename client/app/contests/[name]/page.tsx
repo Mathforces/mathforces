@@ -7,8 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gauge } from "lucide-react";
+import { BookOpen, Gauge, MessageSquare, ThumbsUp } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import Image from "next/image";
 
 const Content = [
   {
@@ -75,180 +81,262 @@ export default function Page() {
   }
 
   return (
-    <main>
+    <main className="h-screen! max-h-screen! max-w-full!">
       {/* Progress Section */}
-      <div className="mb-5 mx-auto w-fit p-4 rounded-2xl border border-primary/20 flex flex-col md:flex-row justify-between items-center gap-5">
-        <p>Maths isn’t mathing due to your brilliance! {progress}%</p>
-        <Slider
-          max={100}
-          step={1}
-          value={[progress]}
-          onValueChange={handleChange}
-          className="w-52 -z-10"
-          disabled
-        />
+      <div className="h-1/12 mb-5 w-full p-4 rounded-2xl border border-primary/20 flex flex-row justify-between items-center gap-5">
+        <Link href={"/"} className="flex items-center gap-2 text-xs">
+          {" "}
+          <Image
+            src={"/Logo.png"}
+            alt="Logo"
+            width={200}
+            height={200}
+            className="h-full w-20 object-contain"
+          />
+          <div className="hidden md:inline">Contest List</div>
+        </Link>
+        <Button> Submit! </Button>
+
+        <div className="flex items-center gap-2 text-xs">
+          <div className="hidden md:inline">userName</div>
+          <Image
+            src={"/Logo.png"}
+            alt="Logo"
+            width={200}
+            height={200}
+            className="h-10 w-10 rounded-full object-contain overflow-hidden bg-primary"
+          />
+        </div>
       </div>
 
-      {/* Tabs Section */}
-      <Tabs
-        defaultValue="problems"
-        className="w-full flex flex-col items-center"
-      >
-        <TabsList className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-2 border border-primary/20 p-2 rounded-2xl w-fit h-fit">
-          <TabsTrigger value="problems">Problems</TabsTrigger>
-          <TabsTrigger value="standing">Standing</TabsTrigger>
-          <TabsTrigger value="editorial">Editorial</TabsTrigger>
-          <TabsTrigger value="support">Support</TabsTrigger>
-        </TabsList>
-
-        {/* Problems Tab */}
-        <TabsContent
-          value="problems"
-          className="flex justify-center items-start gap-5 w-full"
-        >
-          {/* LEFT SIDE (hidden on mobile unless toggled) */}
-          {!isMobile && (
-            <aside className="w-2/5 space-y-5">
-              <div className="border border-primary/20 p-4 rounded-2xl flex-1 max-w-3xl">
-                <h4 className="mb-2 font-semibold">
-                  Problems will be listed here
-                </h4>
-                <p className="text-gray-700">
-                  Select a level from the left to view its problems.
-                </p>
-              </div>
-              <div className="border border-primary/20 p-4 rounded-2xl w-full flex flex-col gap-3">
-                <h4 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
-                  <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
-                  Levels
-                </h4>
-                <div className="flex flex-wrap">
-                  {[
-                    "A1",
-                    "A2",
-                    "A3",
-                    "A4",
-                    "A5",
-                    "A6",
-                    "B1",
-                    "B2",
-                    "B3",
-                    "B4",
-                    "B5",
-                    "B6",
-                  ].map((item) => (
-                    <Button
-                      key={item}
-                      variant={item === level ? "default" : "ghost"}
-                      onClick={() => setLevel(item)}
-                      className="justify-start text-lg hover:bg-primary/10 transition"
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          )}
-
-          {/* Mobile: Button to toggle Levels */}
-          {isMobile && (
-            <div className="fixed top-20 left-4 w-fit flex justify-center mb-3">
-              <Button
-                variant="default"
-                onClick={() => setShowLevels((prev) => !prev)}
-                className="rounded-xl"
-              >
-                Levels
-                <Gauge size={35} strokeWidth={3} />
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile: levels dropdown */}
-
-          <div
-            className={`fixed top-0 left-0 bg-background  px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
-              isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
-            }`}
+      {/* Mobile: Button to toggle Levels */}
+      {isMobile && (
+        <div className="fixed top-32 left-4 w-fit flex justify-center mb-3 z-50">
+          <Button
+            variant="default"
+            onClick={() => setShowLevels((prev) => !prev)}
+            className="rounded-xl"
           >
-            <h2 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
-              <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
-              Levels
-            </h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              {[
-                "A1",
-                "A2",
-                "A3",
-                "A4",
-                "A5",
-                "A6",
-                "B1",
-                "B2",
-                "B3",
-                "B4",
-                "B5",
-                "B6",
-              ].map((item) => (
-                <Button
-                  key={item}
-                  variant={item === level ? "default" : "ghost"}
-                  onClick={() => {
-                    setLevel(item);
-                    setShowLevels(false);
-                  }}
-                  className="justify-start text-2xl hover:bg-primary/10 transition"
+            Levels
+            <Gauge size={35} strokeWidth={3} />
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile: levels dropdown */}
+
+      <div
+        className={`fixed top-0 left-0 bg-background  px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
+          isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
+        }`}
+      >
+        <h2 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
+          <Gauge size={25} strokeWidth={3} className="text-primary" /> Levels
+        </h2>
+        <div className="flex flex-wrap justify-center gap-4">
+          {[
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6",
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B6",
+          ].map((item) => (
+            <Button
+              key={item}
+              variant={item === level ? "default" : "ghost"}
+              onClick={() => {
+                setLevel(item);
+                setShowLevels(false);
+              }}
+              className="justify-start text-2xl hover:bg-primary/10 transition"
+            >
+              {item}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <ResizablePanelGroup direction="horizontal" className="h-10/12! flex">
+        {!isMobile && (
+          <>
+            <ResizablePanel defaultSize={30} maxSize={35} minSize={25}>
+              <section className="hidden md:inline w-2/5 space-y-5 rounded-2xl bg-accent">
+                <div className="h-9/12 p-4 rounded-2xl w-full flex flex-col ">
+                  <h6 className="font-semibold text-center mb-2 flex items-center gap-2">
+                    <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
+                    {ContestInfo.title} Levels
+                  </h6>
+                  <div className="flex flex-col items-center gap-2 w-full overflow-y-scroll h-full py-2 pr-2 ">
+                    {[
+                      "A1",
+                      "A2",
+                      "A3",
+                      "A4",
+                      "A5",
+                      "A6",
+                      "B1",
+                      "B2",
+                      "B3",
+                      "B4",
+                      "B5",
+                      "B6",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        onClick={() => setLevel(item)}
+                        className="w-full flex justify-between items-center gap-4 rounded-2xl text-xs hover:bg-primary/30 bg-primary/10 transition p-3 cursor-default"
+                      >
+                        <div className="flex flex-col justify-between gap-2 ">
+                          <div>
+                            Problem <span className="mark">{item}</span>
+                          </div>
+                          <div className="pl-2 flex justify-between items-center gap-5">
+                            <div className="flex items-start justify-center gap-0.5 text-[10px]">
+                              <ThumbsUp size={10} className="text-primary" />{" "}
+                              166
+                            </div>
+                            <div className="flex items-start justify-center gap-0.5 text-[10px]">
+                              <MessageSquare
+                                size={10}
+                                className="text-primary"
+                              />{" "}
+                              166
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant={"outline"} className="text-[10px]">
+                          Try Out
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <section className="flex flex-col justify-center items-center gap-2">
+                  <div className="flex items-center  text-xs">
+                    <Image
+                      src={"/Logo.png"}
+                      alt="Logo"
+                      width={200}
+                      height={200}
+                      className="h-3 w-10 object-contain"
+                    />
+                    2026
+                  </div>
+                  <div className="flex flex-wrap justify-center items-center gap-3 text-xs">
+                    <button
+                      title="Im not a Link :>"
+                      className=" text-primary border-b border-primary"
+                    >
+                      Terms of use
+                    </button>
+                    <button
+                      title="Im not a Link :>"
+                      className=" text-primary border-b border-primary"
+                    >
+                      Cookie notice
+                    </button>
+                    <button
+                      title="Im not a Link :>"
+                      className=" text-primary border-b border-primary"
+                    >
+                      Privacy policy
+                    </button>
+                  </div>
+                </section>
+              </section>
+            </ResizablePanel>
+            <ResizableHandle />
+          </>
+        )}
+
+        {/* Right side (split vertically) */}
+        <ResizablePanel defaultSize={isMobile ? 100 : 70}>
+          <ResizablePanelGroup direction="vertical" className="flex flex-col">
+            <ResizablePanel defaultSize={70} maxSize={70} minSize={50}>
+              <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 border-l border-b border-primary/20 p-4 rounded-2xl overflow-hidden">
+                <Tabs
+                  defaultValue="problems"
+                  className="w-full flex flex-col items-center"
                 >
-                  {item}
-                </Button>
-              ))}
-            </div>
-          </div>
+                  <TabsList className="absolute top-0 left-0 flex justify-start items-start  p-2 w-full bg-transparent">
+                    <TabsTrigger value="problems" className="py-3">
+                      Problems
+                    </TabsTrigger>
+                    <TabsTrigger value="standing" className="py-3">
+                      Standing
+                    </TabsTrigger>
+                    <TabsTrigger value="editorial" className="py-3">
+                      Editorial
+                    </TabsTrigger>
+                    <TabsTrigger value="support" className="py-3">
+                      Support
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="problems">
+                    <p>
+                      Problem :{" "}
+                      <span className="text-primary font-bold"> {level} </span>
+                    </p>
+                    <h5 className="mb-2">{ContestInfo.description}</h5>
+                    <div className="w-full max-w-2xl flex items-end gap-2">
+                      <Textarea
+                        className="mt-4 h-32 max-h-40 resize-y"
+                        placeholder="Answer here..."
+                      />
+                      <Button className="mt-4" variant="primary">
+                        Submit
+                      </Button>
+                    </div>
+                  </TabsContent>
 
-          {/* RIGHT SIDE */}
-          <section className="border border-primary/20 p-4 rounded-2xl max-w-2xl w-full">
-            <p>
-              Problem :{" "}
-              <span className="text-primary font-bold"> {level} </span>
-            </p>
-            <h5 className="mb-2">{ContestInfo.description}</h5>
-            <div className="flex items-end gap-2">
-              <Textarea
-                className="mt-4 max-h-40 resize-y"
-                placeholder="Answer here..."
-              />
-              <Button className="mt-4" variant="primary">
-                Submit
-              </Button>
-            </div>
-          </section>
-        </TabsContent>
+                  {/* Standing */}
+                  <TabsContent value="standing">
+                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
+                      <h4 className="font-semibold mb-2">Standing</h4>
+                      <p>Leaderboard and results will appear here soon.</p>
+                    </div>
+                  </TabsContent>
 
-        {/* Standing */}
-        <TabsContent value="standing">
-          <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-            <h4 className="font-semibold mb-2">Standing</h4>
-            <p>Leaderboard and results will appear here soon.</p>
-          </div>
-        </TabsContent>
+                  {/* Editorial */}
+                  <TabsContent value="editorial">
+                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
+                      <h4 className="font-semibold mb-2">Editorial</h4>
+                      <p>
+                        Solution explanations will be posted here after the
+                        contest.
+                      </p>
+                    </div>
+                  </TabsContent>
 
-        {/* Editorial */}
-        <TabsContent value="editorial">
-          <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-            <h4 className="font-semibold mb-2">Editorial</h4>
-            <p>Solution explanations will be posted here after the contest.</p>
-          </div>
-        </TabsContent>
-
-        {/* Support */}
-        <TabsContent value="support">
-          <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-            <h4 className="font-semibold mb-2">Support</h4>
-            <p>Need help? Contact the contest organizers here.</p>
-          </div>
-        </TabsContent>
-      </Tabs>
+                  {/* Support */}
+                  <TabsContent value="support">
+                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
+                      <h4 className="font-semibold mb-2">Support</h4>
+                      <p>Need help? Contact the contest organizers here.</p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </section>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={30}>
+              <section className="relative w-full h-full space-y-5 rounded-2xl border-l border-t border-primary/20 p-5 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full p-4 bg-accent flex items-center gap-2 text-sm">
+                  <BookOpen className="text-primary" />
+                  Submissions
+                </div>
+              </section>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </main>
   );
 }

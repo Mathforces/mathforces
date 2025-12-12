@@ -10,6 +10,7 @@ import { useState } from "react";
 const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
+  if (pathName.slice(0, 10) === "/contests/") return;
   return (
     <nav className="flex justify-between md:justify-evenly items-center gap-5 p-5 z-50">
       <Link href="/">
@@ -18,7 +19,7 @@ const Navbar = () => {
           alt="logo"
           width={100}
           height={100}
-          className="bg-black object-contain h-10 px-2 rounded-2xl"
+          className="object-contain h-10 px-2 rounded-2xl"
         />
       </Link>
       <div className="hidden md:flex">

@@ -30,9 +30,25 @@
   h6 {
     @apply text-base md:text-lg lg:text-xl font-medium;
   }
-  p{
+  p {
     @apply text-base md:text-lg lg:text-xl text-black/70;
   }
+}
+
+.mark{
+  @apply text-primary
+}
+
+.gutter {
+  background: transparent;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
 }
 
 @theme inline {
