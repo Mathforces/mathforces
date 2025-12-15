@@ -6,19 +6,18 @@ export async function GET(
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    const contestId = (await params).id;
-    const { data: contest, error } = await supabase
-      .from("contests")
+    const problemId = (await params).id;
+    const { data: submissions, error } = await supabase
+      .from("submissions")
       .select("*")
-      .eq("id", contestId)
-      .single();
+      .eq("problem_id", parseInt(problemId));
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify(contest), {
+    return new Response(JSON.stringify(submissions), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -29,5 +28,3 @@ export async function GET(
     });
   }
 }
-
-export async function POST(request: Request) {}

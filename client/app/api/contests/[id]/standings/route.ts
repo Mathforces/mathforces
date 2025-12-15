@@ -7,18 +7,18 @@ export async function GET(
   try {
     const supabase = await createSupabaseServerClient();
     const contestId = (await params).id;
-    const { data: contest, error } = await supabase
-      .from("contests")
+    // TODO: ADD User Information in the select when profile table is created
+    const { data: standings, error } = await supabase
+      .from("standings")
       .select("*")
-      .eq("id", contestId)
-      .single();
+      .eq("contest_id", contestId);
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify(contest), {
+    return new Response(JSON.stringify(standings), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -29,5 +29,3 @@ export async function GET(
     });
   }
 }
-
-export async function POST(request: Request) {}
