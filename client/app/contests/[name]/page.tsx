@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Gauge, MessageSquare, ThumbsUp } from "lucide-react";
+import { BookOpen, Gauge, MessageSquare, Plus, ThumbsUp } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
 import {
   ResizableHandle,
@@ -15,6 +14,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import Image from "next/image";
+import { ThemeButton } from "@/components/Theme-button";
 
 const Content = [
   {
@@ -83,29 +83,30 @@ export default function Page() {
   return (
     <main className="h-screen! max-h-screen! max-w-full!">
       {/* Progress Section */}
-      <div className="h-1/12 mb-5 w-full p-4 rounded-2xl border border-primary/20 flex flex-row justify-between items-center gap-5">
+      <div className="h-1/12 mb-4 w-full p-4 rounded-2xl bg-card flex flex-row justify-between items-center gap-5">
         <Link href={"/"} className="flex items-center gap-2 text-xs">
           {" "}
-          <Image
-            src={"/Logo.png"}
-            alt="Logo"
-            width={200}
-            height={200}
-            className="h-full w-20 object-contain"
-          />
-          <div className="hidden md:inline">Contest List</div>
+          <h5 className="font-bold! flex items-end justify-end z-50">
+            <div className="flex justify-end items-end">
+              <h4 className="font-bold!">N</h4>UM
+            </div>
+
+            <div className="flex items-start gap-px">
+              <div className="flex flex-col justify-center items-center gap-0.5">
+                <Plus strokeWidth={6} size={10} className="text-primary" />
+                <div className="w-1 h-4 bg-foreground" />
+              </div>
+              TZ
+            </div>
+          </h5>
         </Link>
         <Button> Submit! </Button>
 
         <div className="flex items-center gap-2 text-xs">
-          <div className="hidden md:inline">userName</div>
-          <Image
-            src={"/Logo.png"}
-            alt="Logo"
-            width={200}
-            height={200}
-            className="h-10 w-10 rounded-full object-contain overflow-hidden bg-primary"
-          />
+          <ThemeButton />
+          <div className="flex justify-center items-center text-xl font-semibold h-10 w-10 rounded-full overflow-hidden bg-primary text-white">
+            A
+          </div>
         </div>
       </div>
 
@@ -163,12 +164,15 @@ export default function Page() {
         </div>
       </div>
 
-      <ResizablePanelGroup direction="horizontal" className="h-10/12! flex">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-10/12! flex gap-2"
+      >
         {!isMobile && (
           <>
-            <ResizablePanel defaultSize={30} maxSize={35} minSize={25}>
-              <section className="hidden md:inline w-2/5 space-y-5 rounded-2xl bg-accent">
-                <div className="h-9/12 p-4 rounded-2xl w-full flex flex-col ">
+            <ResizablePanel defaultSize={30} maxSize={35}>
+              <section className="w-full h-full space-y-5 rounded-2xl  bg-card">
+                <section className="h-9/12 p-4 rounded-2xl w-full flex flex-col ">
                   <h6 className="font-semibold text-center mb-2 flex items-center gap-2">
                     <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
                     {ContestInfo.title} Levels
@@ -191,21 +195,27 @@ export default function Page() {
                       <div
                         key={item}
                         onClick={() => setLevel(item)}
-                        className="w-full flex justify-between items-center gap-4 rounded-2xl text-xs hover:bg-primary/30 bg-primary/10 transition p-3 cursor-default"
+                        className="group w-full flex justify-between items-center gap-4 rounded-2xl text-xs border border-primary/30 hover:bg-primary transition duration-200 p-3 cursor-default"
                       >
                         <div className="flex flex-col justify-between gap-2 ">
                           <div>
-                            Problem <span className="mark">{item}</span>
+                            Problem{" "}
+                            <span className="mark group-hover:text-white! duration-150">
+                              {item}
+                            </span>
                           </div>
                           <div className="pl-2 flex justify-between items-center gap-5">
                             <div className="flex items-start justify-center gap-0.5 text-[10px]">
-                              <ThumbsUp size={10} className="text-primary" />{" "}
+                              <ThumbsUp
+                                size={10}
+                                className="text-primary group-hover:text-white duration-150"
+                              />{" "}
                               166
                             </div>
                             <div className="flex items-start justify-center gap-0.5 text-[10px]">
                               <MessageSquare
                                 size={10}
-                                className="text-primary"
+                                className="text-primary group-hover:text-white duration-150"
                               />{" "}
                               166
                             </div>
@@ -217,7 +227,7 @@ export default function Page() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
                 <section className="flex flex-col justify-center items-center gap-2">
                   <div className="flex items-center  text-xs">
                     <Image
@@ -258,14 +268,17 @@ export default function Page() {
 
         {/* Right side (split vertically) */}
         <ResizablePanel defaultSize={isMobile ? 100 : 70}>
-          <ResizablePanelGroup direction="vertical" className="flex flex-col">
-            <ResizablePanel defaultSize={70} maxSize={70} minSize={50}>
-              <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 border-l border-b border-primary/20 p-4 rounded-2xl overflow-hidden">
+          <ResizablePanelGroup
+            direction="vertical"
+            className="flex flex-col gap-2"
+          >
+            <ResizablePanel defaultSize={70}>
+              <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 bg-card p-4 rounded-2xl overflow-hidden">
                 <Tabs
                   defaultValue="problems"
                   className="w-full flex flex-col items-center"
                 >
-                  <TabsList className="absolute top-0 left-0 flex justify-start items-start  p-2 w-full bg-transparent">
+                  <TabsList className="absolute top-0 left-0 flex justify-start items-start  p-2 w-full bg-card">
                     <TabsTrigger value="problems" className="py-3">
                       Problems
                     </TabsTrigger>
@@ -327,7 +340,7 @@ export default function Page() {
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={30}>
-              <section className="relative w-full h-full space-y-5 rounded-2xl border-l border-t border-primary/20 p-5 overflow-hidden">
+              <section className="relative w-full h-full space-y-5 rounded-2xl bg-card p-5 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full p-4 bg-accent flex items-center gap-2 text-sm">
                   <BookOpen className="text-primary" />
                   Submissions

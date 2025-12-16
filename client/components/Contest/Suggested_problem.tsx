@@ -33,14 +33,12 @@ const Suggested_problem = () => {
           <Link
             key={item.title + i}
             href={item.link}
-            className="p-6 bg-primary rounded-2xl border border-primary group hover:-translate-y-0.5 hover:bg-transparent duration-100 cursor-pointer"
+            className="p-6 rounded-2xl bg-card hover:-translate-y-0.5 duration-100 cursor-pointer"
           >
-            <h4 className="text-white group-hover:text-primary text-xl font-semibold mb-2">
+            <h4 className="text-primary text-xl font-semibold mb-2">
               {item.title}
             </h4>
-            <p className="text-white/70 group-hover:text-primary/70">
-              {item.description}
-            </p>
+            <p>{item.description}</p>
           </Link>
         ))}
       </div>

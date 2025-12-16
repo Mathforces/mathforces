@@ -34,13 +34,13 @@ const Right_Side = () => {
 
       <section
         className={`
-          bg-background min-h-screen w-full md:w-2/4 flex flex-col items-center gap-10 py-20 px-5
+          bg-background w-full md:w-2/4 flex flex-col items-center gap-10 py-20 px-5
           transition-all duration-300 ease-in-out
           ${
             isMobile
               ? menuOpen
-                ? "fixed top-0 left-0 translate-x-0 opacity-100"
-                : "fixed top-0 left-0 translate-x-full opacity-0 pointer-events-none"
+                ? "fixed top-0 left-0 translate-x-0 opacity-100 h-full"
+                : "fixed top-0 left-0 translate-x-full opacity-0 pointer-events-none h-full"
               : "translate-x-0 opacity-100"
           }
         `}

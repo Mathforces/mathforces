@@ -1,8 +1,9 @@
+import Hero from "@/components/Hero";
 
 export default function Page() {
   return (
-    <main className=" flex flex-col items-center justify-center">
-      <h1 className="text-5xl "> Hello World !</h1>
+    <main className="max-w-full! px-0 relative overflow-hidden">
+      <Hero />
     </main>
   );
 }

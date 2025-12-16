@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Google, FaceBook } from "@/components/ui/Custom_Icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MathNoise } from "@/components/ui/MathNoise";
+import MathNoise from "@/components/ui/MathNoise";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 

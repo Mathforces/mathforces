@@ -31,7 +31,7 @@
     @apply text-base md:text-lg lg:text-xl font-medium;
   }
   p {
-    @apply text-base md:text-lg text-black/50;
+    @apply text-base md:text-lg text-black/50 dark:text-white/50;
   }
   .Link{
     @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300
@@ -133,11 +133,11 @@
 
   --foreground: #0c0b11;
 
-  --card: oklch(1 0 0);
+  --card: oklch(100% 0.00011 271.152 / 0.377);
 
   --card-foreground: oklch(0.145 0 0);
 
-  --popover: oklch(1 0 0);
+  --popover: oklch(100% 0.00011 271.152 / 0.377);
 
   --popover-foreground: oklch(0.145 0 0);
 
@@ -205,9 +205,9 @@
 
   --popover-foreground: oklch(0.985 0 0);
 
-  --primary: oklch(0.922 0 0);
+  --primary: #324eec;
 
-  --primary-foreground: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.922 0 0);
 
   --secondary: oklch(0.269 0 0);
 

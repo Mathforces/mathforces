@@ -38,7 +38,7 @@ const chartConfig = {
 
 export function Next_Rank() {
   return (
-    <Card className="w-full md:w-80 lg:w-96 bg-transparent border border-primary">
+    <Card className="w-full md:w-80 lg:w-96 bg-card ">
       <CardHeader>
         <CardTitle className="text-lg flex justify-between items-center gap-2">
           Next Ranking{" "}
