@@ -1,0 +1,103 @@
+import { Button } from "@/components/ui/button";
+import { Google, FaceBook } from "@/components/ui/Custom_Icons";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { MathNoise } from "@/components/ui/MathNoise";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+
+export default function Page() {
+  return (
+    <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
+      {/* Left section */}
+      <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl">
+        <div>
+          <h3>Welcome Back</h3>
+          <p>Enter your credentials to access your account</p>
+        </div>
+
+        {/* Sign in with Google or Facebook */}
+        <section className="grid grid-cols-2 gap-6 px-5 mt-5 max-w-2xl mx-auto">
+          <Button
+            variant="outline"
+            className="flex justify-center items-center gap-3 bg-card"
+          >
+            <Google className="w-12 h-12" />
+            Google
+          </Button>
+
+          <Button
+            variant="outline"
+            className="flex justify-center items-center gap-3 bg-card"
+          >
+            <FaceBook className="w-12 h-12" />
+            FaceBook
+          </Button>
+        </section>
+
+        {/* Or */}
+        <div className="relative w-full max-w-lg mx-auto h-0.5 bg-black my-10 opacity-30">
+          <span className="absolute top-2/4 left-2/4 -translate-2/4 bg-background p-2 uppercase">
+            Or
+          </span>
+        </div>
+
+        {/* Sign in with Email */}
+        <form className="max-w-2xl mx-auto bg-card rounded-2xl p-4 flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <Label>Email</Label>
+            <Input placeholder="example@gmail.com" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Password</Label>
+            <Input type="password" placeholder="*********" />
+          </div>
+
+          <div className="flex justify-end text-xs">
+            <Link href="/forgot_password" className="Link">
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button type="submit">Sign In</Button>
+        </form>
+
+        <div className="text-center text-xs my-4">
+          Don&apos;t have an account?{" "}
+          <Link href="/sign_up" className="Link">
+            Sign Up
+          </Link>
+        </div>
+      </section>
+
+      {/* Right section */}
+      <section className="h-full w-2/4 hidden lg:flex justify-center items-center relative overflow-hidden select-none">
+        {/* Glow shadow */}
+        <h1 className="absolute text-[150px] font-bold text-primary opacity-30 blur-3xl scale-110 flex flex-col items-center pointer-events-none">
+          <span>
+            <span className="text-[170px]">N</span>UM
+          </span>
+          <span>ITZ</span>
+        </h1>
+
+        {/* Main logo */}
+        <h1 className="text-[150px] font-bold flex flex-col items-center z-50">
+          <div>
+            <span className="text-[190px]">N</span>UM
+          </div>
+
+          <div className="flex justify-center items-center">
+            <div className="flex flex-col justify-center items-center gap-2">
+              <Plus strokeWidth={6} size={50} className="text-primary" />
+              <div className="w-6 h-20 bg-foreground" />
+            </div>
+            TZ
+          </div>
+        </h1>
+
+        <MathNoise />
+      </section>
+    </main>
+  );
+}

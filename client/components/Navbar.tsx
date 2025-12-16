@@ -12,7 +12,7 @@ const Navbar = () => {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   if (pathName.slice(0, 10) === "/contests/") return;
   return (
-    <nav className="flex justify-between md:justify-evenly items-center gap-5 p-5 z-50">
+    <nav className="fixed top-0 left-2/4 -translate-x-2/4 w-full max-w-6xl flex justify-between md:justify-evenly items-center gap-5 p-5 z-50 bg-white rounded-b-2xl">
       <Link href="/">
         <Image
           src={"/Logo.png"}
@@ -37,7 +37,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant={"primary"}>Sign In</Button>
+        <Button variant={"primary"} link="/sign_up">Sign Up</Button>
         <Button
           variant={"outline"}
           onClick={() => setOpenMenu(!openMenu)}
