@@ -2,13 +2,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ problem_id: string }> }
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    const problemId = (await params).id;
-    const { data: submissions, error } = await supabase
-      .from("submissions")
+    const problemId = (await params).problem_id;
+    const { data: discussions, error } = await supabase
+      .from("discussions")
       .select("*")
       .eq("problem_id", parseInt(problemId));
     if (error) {
@@ -17,7 +17,7 @@ export async function GET(
         headers: { "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify(submissions), {
+    return new Response(JSON.stringify(discussions), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

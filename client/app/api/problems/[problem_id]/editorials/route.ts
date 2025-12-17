@@ -2,23 +2,22 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ problem_id: string }> }
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    const contestId = (await params).id;
-    const { data: contest, error } = await supabase
-      .from("contests")
+    const problemId = (await params).problem_id;
+    const { data: editorials, error } = await supabase
+      .from("editorials")
       .select("*")
-      .eq("id", contestId)
-      .single();
+      .eq("problem_id", parseInt(problemId));
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify(contest), {
+    return new Response(JSON.stringify(editorials), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -29,5 +28,3 @@ export async function GET(
     });
   }
 }
-
-export async function POST(request: Request) {}

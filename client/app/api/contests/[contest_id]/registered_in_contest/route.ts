@@ -2,22 +2,23 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ contest_id: string }> }
 ) {
   try {
     const supabase = await createSupabaseServerClient();
-    const problemId = (await params).id;
-    const { data: discussions, error } = await supabase
-      .from("discussions")
+    const contestId = (await params).contest_id;
+    // TODO: ADD User Information in the select when profile table is created
+    const { data: registeredIncontest, error } = await supabase
+      .from("registered_in_contest")
       .select("*")
-      .eq("problem_id", parseInt(problemId));
+      .eq("contest_id", contestId);
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify(discussions), {
+    return new Response(JSON.stringify(registeredIncontest), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
