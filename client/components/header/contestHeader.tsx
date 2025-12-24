@@ -6,6 +6,10 @@ import LogoIcon from "../ui/logo-mini";
 import { Separator } from "../ui/separator";
 import { ChevronLeft, ChevronRight, Logs } from "lucide-react";
 import { TfiMenu } from "react-icons/tfi";
+import { FaRegNoteSticky } from "react-icons/fa6";
+import { FaHourglassHalf } from "react-icons/fa";
+import { IoCloudUploadOutline } from "react-icons/io5";
+import { FiHelpCircle } from "react-icons/fi";
 interface IHeaderProps {}
 
 const Header: React.FunctionComponent<IHeaderProps> = (props) => {
@@ -34,7 +38,29 @@ const Header: React.FunctionComponent<IHeaderProps> = (props) => {
         </div>
       </div>
 
-      <Button> Submit! </Button>
+      <div className="flex gap-1">
+        {/* Take notes */}
+        <div className="w-8 h-8 bg-card rounded-md flex items-center justify-center p-2">
+          <FaRegNoteSticky className="text-muted-foreground"/>          
+        </div>
+
+        {/* Take notes */}
+        <div className="w-26 h-8 bg-card rounded-l-md flex items-center gap-2 p-2">
+          <FaHourglassHalf className="text-primary"/>          
+          <p className="text-foreground/80">1:30:23</p>
+        </div>
+
+        {/* Take notes */}
+        <button className="w-25 h-8 bg-card rounded-r-md flex items-center justify-center gap-2 p-2">
+          <IoCloudUploadOutline className="text-success"/>          
+          <p className="text-base text-success font-mono">Submit</p>
+        </button>
+
+        {/* Take notes */}
+        <div className="w-8 h-8 bg-card rounded-md flex items-center justify-center p-2">
+          <FiHelpCircle className="text-muted-foreground"/>          
+        </div>
+      </div>
 
       {/* Right nav */}
       <div className="flex items-center gap-2 text-xs">
