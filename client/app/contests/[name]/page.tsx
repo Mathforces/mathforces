@@ -83,7 +83,7 @@ export default function Page() {
   }
 
   return (
-    <main className="h-screen! max-h-screen! max-w-full!">
+    <main className="h-screen! max-h-screen! max-w-full! px-3">
       {/* Progress Section */}
       <Header />
 

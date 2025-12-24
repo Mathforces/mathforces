@@ -5,28 +5,30 @@ import { ThemeButton } from "../Theme-button";
 import LogoIcon from "../ui/logo-mini";
 import { Separator } from "../ui/separator";
 import { ChevronLeft, ChevronRight, Logs } from "lucide-react";
-
+import { TfiMenu } from "react-icons/tfi";
 interface IHeaderProps {}
 
 const Header: React.FunctionComponent<IHeaderProps> = (props) => {
   return (
-    <div className="h-12 bg-transparent mb-2 w-full p-4 bg-card flex justify-between items-center gap-5">
+    <div className="h-10 bg-transparent mb-2 w-full bg-card flex justify-between items-center gap-5 px-4">
       {/* Left section */}
       <div className="">
-        <div className="flex items-end gap-2 ">
-          <LogoIcon />
-          <Separator
-            orientation="vertical"
-            className="!h-4 bg-foreground/20 "
-          />
-          <div className="flex items-end gap-1">
-            <Logs className="w-5 h-5 "/>
-            <h6 className="text-lg font-normal self-end leading-none">
+        <div className="flex items-end gap-5 ">
+          <div className="flex items-end gap-3">
+            <LogoIcon />
+            <Separator
+              orientation="vertical"
+              className="!h-4 bg-foreground/20 "
+            />
+          </div>
+          <div className="flex items-end gap-2">
+            <TfiMenu className="w-4.5 h-4.5 text-muted-foreground" />
+            <h6 className="text-base font-normal self-end leading-none">
               Contest List
             </h6>
-            <div className="flex gap-2">
-              <ChevronLeft className="w-5 h-5" />
-              <ChevronRight className="w-5 h-5"/>
+            <div className="flex gap-3">
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </div>
         </div>
