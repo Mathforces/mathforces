@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/resizable";
 import Image from "next/image";
 import { ThemeButton } from "@/components/Theme-button";
+import Logo from "@/components/ui/logo";
+import Header from "@/components/header/contestHeader";
 
 const Content = [
   {
@@ -83,32 +85,7 @@ export default function Page() {
   return (
     <main className="h-screen! max-h-screen! max-w-full!">
       {/* Progress Section */}
-      <div className="h-1/12 mb-4 w-full p-4 rounded-2xl bg-card flex flex-row justify-between items-center gap-5">
-        <Link href={"/"} className="flex items-center gap-2 text-xs">
-          {" "}
-          <h5 className="font-bold! flex items-end justify-end z-50">
-            <div className="flex justify-end items-end">
-              <h4 className="font-bold!">N</h4>UM
-            </div>
-
-            <div className="flex items-start gap-px">
-              <div className="flex flex-col justify-center items-center gap-0.5">
-                <Plus strokeWidth={6} size={10} className="text-primary" />
-                <div className="w-1 h-4 bg-foreground" />
-              </div>
-              TZ
-            </div>
-          </h5>
-        </Link>
-        <Button> Submit! </Button>
-
-        <div className="flex items-center gap-2 text-xs">
-          <ThemeButton />
-          <div className="flex justify-center items-center text-xl font-semibold h-10 w-10 rounded-full overflow-hidden bg-primary text-white">
-            A
-          </div>
-        </div>
-      </div>
+      <Header />
 
       {/* Mobile: Button to toggle Levels */}
       {isMobile && (
