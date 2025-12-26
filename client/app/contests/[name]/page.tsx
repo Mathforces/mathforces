@@ -17,6 +17,7 @@ import Image from "next/image";
 import { ThemeButton } from "@/components/Theme-button";
 import Logo from "@/components/ui/logo";
 import ContestHeader from "@/components/header/contestHeader";
+import { Progress } from "@/components/ui/progress";
 
 const Content = [
   {
@@ -45,11 +46,24 @@ export default function Page() {
 
   const [showLevels, setShowLevels] = useState(false);
   const [progress, setProgress] = useState<number>(45);
-  const [level, setLevel] = useState<string>("A1");
+  const [shownProblem, setShownProblem] = useState<number>();
   const ContestInfo = Content.find(
     (item) => item.link === `/contests/${params.name}`
   );
-
+  const problems = [
+    { title: "A1", id: 1, like: 111, comments: 11 },
+    { title: "A2", id: 2, like: 222, comments: 22 },
+    { title: "A3", id: 3, like: 333, comments: 33 },
+    { title: "A4", id: 4, like: 333, comments: 33 },
+    { title: "A5", id: 5, like: 555, comments: 55 },
+    { title: "A6", id: 6, like: 333, comments: 33 },
+    { title: "B1", id: 1, like: 111, comments: 11 },
+    { title: "B2", id: 2, like: 111, comments: 11 },
+    { title: "B3", id: 3, like: 333, comments: 33 },
+    { title: "B4", id: 4, like: 555, comments: 55 },
+    { title: "B5", id: 5, like: 555, comments: 55 },
+    { title: "B6", id: 6, like: 222, comments: 22 },
+  ];
   useEffect(() => {
     if (showLevels) {
       document.body.style.overflow = "hidden";
@@ -83,7 +97,7 @@ export default function Page() {
   }
 
   return (
-    <main className="h-screen! max-h-screen! max-w-full! px-3">
+    <main className="h-screen! max-h-screen! max-w-full! px-3 flex flex-col py-1">
       {/* Progress Section */}
       <ContestHeader />
 
@@ -111,30 +125,17 @@ export default function Page() {
           <Gauge size={25} strokeWidth={3} className="text-primary" /> Levels
         </h2>
         <div className="flex flex-wrap justify-center gap-4">
-          {[
-            "A1",
-            "A2",
-            "A3",
-            "A4",
-            "A5",
-            "A6",
-            "B1",
-            "B2",
-            "B3",
-            "B4",
-            "B5",
-            "B6",
-          ].map((item) => (
+          {problems.map((problem) => (
             <Button
-              key={item}
-              variant={item === level ? "default" : "ghost"}
+              key={problem.id}
+              variant={problem.id === shownProblem ? "default" : "ghost"}
               onClick={() => {
-                setLevel(item);
+                setShownProblem(problem.id);
                 setShowLevels(false);
               }}
               className="justify-start text-2xl hover:bg-primary/10 transition"
             >
-              {item}
+              {problem.title}
             </Button>
           ))}
         </div>
@@ -142,68 +143,81 @@ export default function Page() {
 
       <ResizablePanelGroup
         direction="horizontal"
-        className="h-10/12! flex gap-2"
+        className="flex flex-1 gap-1 "
       >
         {!isMobile && (
           <>
             <ResizablePanel defaultSize={30} maxSize={35}>
-              <section className="w-full h-full space-y-5 rounded-2xl  bg-card">
-                <section className="h-9/12 p-4 rounded-2xl w-full flex flex-col ">
-                  <h6 className="font-semibold text-center mb-2 flex items-center gap-2">
+              <section className="w-full h-full rounded-sm bg-card">
+                {/* Main section */}
+                <section className="h-full p-4 rounded-2xl w-full flex flex-col ">
+                  {/* Header */}
+                  <h2 className="font-semibold text-lg text-center mb-2 flex items-center gap-2">
                     <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
                     {ContestInfo.title} Levels
-                  </h6>
-                  <div className="flex flex-col items-center gap-2 w-full overflow-y-scroll h-full py-2 pr-2 ">
-                    {[
-                      "A1",
-                      "A2",
-                      "A3",
-                      "A4",
-                      "A5",
-                      "A6",
-                      "B1",
-                      "B2",
-                      "B3",
-                      "B4",
-                      "B5",
-                      "B6",
-                    ].map((item) => (
+                  </h2>
+
+                  {/* Problems */}
+                  <div className="flex flex-col items-center gap-3 w-full overflow-y-scroll h-full py-2 pr-2 ">
+                    {problems.map((problem) => (
                       <div
-                        key={item}
-                        onClick={() => setLevel(item)}
-                        className="group w-full flex justify-between items-center gap-4 rounded-2xl text-xs border border-primary/30 hover:bg-primary transition duration-200 p-3 cursor-default"
+                        key={`${problem.title}-${problem.id}`}
+                        onClick={() => setShownProblem(problem.id)}
+                        className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
                       >
+                        {/* Left section of problem */}
                         <div className="flex flex-col justify-between gap-2 ">
-                          <div>
-                            Problem{" "}
-                            <span className="mark group-hover:text-white! duration-150">
-                              {item}
-                            </span>
-                          </div>
-                          <div className="pl-2 flex justify-between items-center gap-5">
-                            <div className="flex items-start justify-center gap-0.5 text-[10px]">
-                              <ThumbsUp
-                                size={10}
-                                className="text-primary group-hover:text-white duration-150"
-                              />{" "}
-                              166
+                          {/* Problem title */}
+                          <h3 className="text-lg font-semibold">
+                            Problem {problem.title}
+                          </h3>
+
+                          {/* Lower part */}
+                          <div className="pl-1 flex items-center gap-3">
+                            {/* Likes & commentss */}
+                            <div className="flex justify-between items-center gap-2">
+                              {/* Like */}
+                              <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                <ThumbsUp className="w-4 h-4" />{" "}
+                                <span className="text-sm font-medium">
+                                  {problem.like}
+                                </span>
+                              </div>
+
+                              {/* comments */}
+                              <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                <MessageSquare className="w-4 h-4" />{" "}
+                                <span className="text-sm font-medium">
+                                  {problem.like}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-start justify-center gap-0.5 text-[10px]">
-                              <MessageSquare
-                                size={10}
-                                className="text-primary group-hover:text-white duration-150"
-                              />{" "}
-                              166
+
+                            {/* People answered */}
+                            <div className="flex items-center">
+                              {/* TODO: change to people answered */}
+                              <Progress
+                                value={71}
+                                className="bg-background w-24 h-[3px] *:bg-success/50"
+                              />
+                              <div className="flex gap-1 items-center text-xs">                                
+                                <span>71%</span>
+                                <span className="text-muted-foreground/70">(1200 submissions)</span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <Button variant={"outline"} className="text-[10px]">
+
+                        {/* Submit button */}
+                        <Button variant={"secondary"} className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60">
                           Try Out
                         </Button>
                       </div>
                     ))}
                   </div>
                 </section>
+
+                {/* Legal & Copyright section */}
                 <section className="flex flex-col justify-center items-center gap-2">
                   <div className="flex items-center  text-xs">
                     <Image
@@ -246,7 +260,7 @@ export default function Page() {
         <ResizablePanel defaultSize={isMobile ? 100 : 70}>
           <ResizablePanelGroup
             direction="vertical"
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-1"
           >
             <ResizablePanel defaultSize={70}>
               <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 bg-card p-4 rounded-2xl overflow-hidden">
@@ -271,7 +285,10 @@ export default function Page() {
                   <TabsContent value="problems">
                     <p>
                       Problem :{" "}
-                      <span className="text-primary font-bold"> {level} </span>
+                      <span className="text-primary font-bold">
+                        {" "}
+                        {shownProblem}{" "}
+                      </span>
                     </p>
                     <h5 className="mb-2">{ContestInfo.description}</h5>
                     <div className="w-full max-w-2xl flex items-end gap-2">
@@ -314,7 +331,7 @@ export default function Page() {
                 </Tabs>
               </section>
             </ResizablePanel>
-            <ResizableHandle />
+            <ResizableHandle className="bg-transparent border-2 border-transparent hover:border-sidebar-border" />
             <ResizablePanel defaultSize={30}>
               <section className="relative w-full h-full space-y-5 rounded-2xl bg-card p-5 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full p-4 bg-accent flex items-center gap-2 text-sm">

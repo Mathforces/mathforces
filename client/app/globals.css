@@ -7,7 +7,7 @@
   main {
     @apply min-h-screen max-w-7xl mx-auto px-5 lg:px-10;
   }
-  h1 {
+  /* h1 {
     @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
   }
 
@@ -32,7 +32,7 @@
   }
   p {
     @apply text-base md:text-lg text-black/50 dark:text-white/50;
-  }
+  } */
   .Link{
     @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300
   }
@@ -208,7 +208,7 @@
   --secondary: oklch(82.83% 0.253 141.11);
   --danger: oklch(61.85% 0.219 19.04);
   --warning: oklch(79.495% 0.14952 81.663);
-  --success: oklch(55.90% 0.180 141.40);
+  --success: oklch(0.7667 0.2499 141.52);
   --info: oklch(0.7 0.05 260);
 
   /* Map to shadcn/ui variables for compatibility */
