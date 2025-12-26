@@ -18,28 +18,8 @@ import { ThemeButton } from "@/components/Theme-button";
 import Logo from "@/components/ui/logo";
 import ContestHeader from "@/components/header/contestHeader";
 import { Progress } from "@/components/ui/progress";
-
-const Content = [
-  {
-    title: "Beginner Problems",
-    link: "/contests/beginner-problems",
-    description:
-      "A collection of problems suitable for beginners to get started with competitive programming.",
-  },
-  {
-    title: "Math Contest",
-    link: "/contests/math-contest",
-    description:
-      "Sharpen your problem-solving skills with fun and challenging math problems.",
-  },
-  {
-    title: "Logic Challenge",
-    link: "/contests/logic-challenge",
-    description:
-      "Test your logic and reasoning with these carefully designed problems.",
-  },
-];
-
+import { BsTag } from "react-icons/bs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -47,9 +27,14 @@ export default function Page() {
   const [showLevels, setShowLevels] = useState(false);
   const [progress, setProgress] = useState<number>(45);
   const [shownProblem, setShownProblem] = useState<number>();
-  const ContestInfo = Content.find(
-    (item) => item.link === `/contests/${params.name}`
-  );
+  const ContestInfo = {
+    title: "Algebra Blitz 153",
+    link: "/contests/beginner-problems",
+    description:
+      "A collection of problems suitable for beginners to get started with competitive programming.",
+    difficulty: "Hard",
+  };
+
   const problems = [
     { title: "A1", id: 1, like: 111, comments: 11 },
     { title: "A2", id: 2, like: 222, comments: 22 },
@@ -134,6 +119,7 @@ export default function Page() {
                 setShowLevels(false);
               }}
               className="justify-start text-2xl hover:bg-primary/10 transition"
+
             >
               {problem.title}
             </Button>
@@ -147,75 +133,100 @@ export default function Page() {
       >
         {!isMobile && (
           <>
-            <ResizablePanel defaultSize={30} maxSize={35}>
+            <ResizablePanel defaultSize={30}>
               <section className="w-full h-full rounded-sm bg-card">
                 {/* Main section */}
-                <section className="h-full p-4 rounded-2xl w-full flex flex-col ">
-                  {/* Header */}
-                  <h2 className="font-semibold text-lg text-center mb-2 flex items-center gap-2">
-                    <Gauge size={25} strokeWidth={3} className="text-primary" />{" "}
-                    {ContestInfo.title} Levels
-                  </h2>
+                <ScrollArea className="h-full py-4" type="always">
+                  <section className="h-full px-4 rounded-2xl w-full flex flex-col gap-3">
+                    {/* Header */}
+                    <div className="flex flex-col gap-3">
+                      <h2 className="font-bold text-2xl">
+                        {ContestInfo.title}
+                      </h2>
 
-                  {/* Problems */}
-                  <div className="flex flex-col items-center gap-3 w-full overflow-y-scroll h-full py-2 pr-2 ">
-                    {problems.map((problem) => (
-                      <div
-                        key={`${problem.title}-${problem.id}`}
-                        onClick={() => setShownProblem(problem.id)}
-                        className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
-                      >
-                        {/* Left section of problem */}
-                        <div className="flex flex-col justify-between gap-2 ">
-                          {/* Problem title */}
-                          <h3 className="text-lg font-semibold">
-                            Problem {problem.title}
-                          </h3>
+                      {/* Tags */}
+                      <div className="flex gap-1">
+                        {/* Difficulty */}
+                        <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center ">
+                          <span className="text-destructive">
+                            {ContestInfo.difficulty}
+                          </span>
+                        </div>
 
-                          {/* Lower part */}
-                          <div className="pl-1 flex items-center gap-3">
-                            {/* Likes & commentss */}
-                            <div className="flex justify-between items-center gap-2">
-                              {/* Like */}
-                              <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                                <ThumbsUp className="w-4 h-4" />{" "}
-                                <span className="text-sm font-medium">
-                                  {problem.like}
-                                </span>
+                        {/* Topics */}
+                        <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center ">
+                          <BsTag />
+                          <span className="">Topics</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Problems */}
+                    <div className="flex flex-col items-center gap-3 w-full   py-2 pr-2 ">
+                      {problems.map((problem) => (
+                        <div
+                          key={`${problem.title}-${problem.id}`}
+                          onClick={() => setShownProblem(problem.id)}
+                          className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
+                        >
+                          {/* Left section of problem */}
+                          <div className="flex flex-col justify-between gap-2 ">
+                            {/* Problem title */}
+                            <h3 className="text-lg font-semibold">
+                              Problem {problem.title}
+                            </h3>
+
+                            {/* Lower part */}
+                            <div className="pl-1 flex items-center gap-3">
+                              {/* Likes & commentss */}
+                              <div className="flex justify-between items-center gap-2">
+                                {/* Like */}
+                                <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                  <ThumbsUp className="w-4 h-4" />{" "}
+                                  <span className="text-sm font-medium">
+                                    {problem.like}
+                                  </span>
+                                </div>
+
+                                {/* comments */}
+                                <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                  <MessageSquare className="w-4 h-4" />{" "}
+                                  <span className="text-sm font-medium">
+                                    {problem.like}
+                                  </span>
+                                </div>
                               </div>
 
-                              {/* comments */}
-                              <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                                <MessageSquare className="w-4 h-4" />{" "}
-                                <span className="text-sm font-medium">
-                                  {problem.like}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* People answered */}
-                            <div className="flex items-center">
-                              {/* TODO: change to people answered */}
-                              <Progress
-                                value={71}
-                                className="bg-background w-24 h-[3px] *:bg-success/50"
-                              />
-                              <div className="flex gap-1 items-center text-xs">                                
-                                <span>71%</span>
-                                <span className="text-muted-foreground/70">(1200 submissions)</span>
+                              {/* People answered */}
+                              <div className="flex items-center">
+                                {/* TODO: change to people answered */}
+                                <Progress
+                                  value={71}
+                                  className="bg-background w-24 h-[3px] *:bg-success/50"
+                                />
+                                <div className="flex gap-1 items-center text-xs">
+                                  <span>71%</span>
+                                  <span className="text-muted-foreground/70">
+                                    (1200 submissions)
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Submit button */}
-                        <Button variant={"secondary"} className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60">
-                          Try Out
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                          {/* Submit button */}
+                          <Button
+                            variant={"secondary"}
+                            className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+                          >
+                            Try Out
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                  <ScrollBar className="" />
+                </ScrollArea>
 
                 {/* Legal & Copyright section */}
                 <section className="flex flex-col justify-center items-center gap-2">
@@ -252,7 +263,8 @@ export default function Page() {
                 </section>
               </section>
             </ResizablePanel>
-            <ResizableHandle />
+            {/* TODO: Fix Handler here (hover only works on 1 px) */}
+            <ResizableHandle className="bg-transparent border-2 border-transparent hover:border-sidebar-border" />
           </>
         )}
 
@@ -331,6 +343,7 @@ export default function Page() {
                 </Tabs>
               </section>
             </ResizablePanel>
+            {/* TODO: Fix Handler here (hover only works on 1 px) */}
             <ResizableHandle className="bg-transparent border-2 border-transparent hover:border-sidebar-border" />
             <ResizablePanel defaultSize={30}>
               <section className="relative w-full h-full space-y-5 rounded-2xl bg-card p-5 overflow-hidden">
