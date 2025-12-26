@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import { ThemeButton } from "@/components/Theme-button";
 import Logo from "@/components/ui/logo";
-import Header from "@/components/header/contestHeader";
+import ContestHeader from "@/components/header/contestHeader";
 
 const Content = [
   {
@@ -85,7 +85,7 @@ export default function Page() {
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-3">
       {/* Progress Section */}
-      <Header />
+      <ContestHeader />
 
       {/* Mobile: Button to toggle Levels */}
       {isMobile && (
@@ -102,7 +102,6 @@ export default function Page() {
       )}
 
       {/* Mobile: levels dropdown */}
-
       <div
         className={`fixed top-0 left-0 bg-background  px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
           isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
