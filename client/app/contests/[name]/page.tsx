@@ -119,7 +119,6 @@ export default function Page() {
                 setShowLevels(false);
               }}
               className="justify-start text-2xl hover:bg-primary/10 transition"
-
             >
               {problem.title}
             </Button>
@@ -136,94 +135,105 @@ export default function Page() {
             <ResizablePanel defaultSize={30}>
               <section className="w-full h-full rounded-sm bg-card">
                 {/* Main section */}
-                <ScrollArea className="h-full py-4" type="always">
-                  <section className="h-full px-4 rounded-2xl w-full flex flex-col gap-3">
-                    {/* Header */}
-                    <div className="flex flex-col gap-3">
-                      <h2 className="font-bold text-2xl">
-                        {ContestInfo.title}
-                      </h2>
+                <ScrollArea className="h-full " type="always">
+                  <section className="h-full rounded-2xl w-full space-y-3">
+                    {/* Tabs */}
+                    <Tabs defaultValue="problems" className="w-full">
+                      <TabsList className="flex w-full bg-card">
+                        <TabsTrigger value="problems">Problems</TabsTrigger>
+                        <TabsTrigger value="standing">Standing</TabsTrigger>
+                        <TabsTrigger value="editorial">Editorial</TabsTrigger>
+                        <TabsTrigger value="support">Support</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="problems" className="p-4 flex flex-col gap-3 abso">
+                        {/* Header */}
+                        <div className="flex flex-col gap-3">
+                          <h2 className="font-bold text-2xl">
+                            {ContestInfo.title}
+                          </h2>
 
-                      {/* Tags */}
-                      <div className="flex gap-1">
-                        {/* Difficulty */}
-                        <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center ">
-                          <span className="text-destructive">
-                            {ContestInfo.difficulty}
-                          </span>
-                        </div>
+                          {/* Tags */}
+                          <div className="flex gap-1">
+                            {/* Difficulty */}
+                            <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center ">
+                              <span className="text-destructive">
+                                {ContestInfo.difficulty}
+                              </span>
+                            </div>
 
-                        {/* Topics */}
-                        <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center ">
-                          <BsTag />
-                          <span className="">Topics</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Problems */}
-                    <div className="flex flex-col items-center gap-3 w-full   py-2 pr-2 ">
-                      {problems.map((problem) => (
-                        <div
-                          key={`${problem.title}-${problem.id}`}
-                          onClick={() => setShownProblem(problem.id)}
-                          className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
-                        >
-                          {/* Left section of problem */}
-                          <div className="flex flex-col justify-between gap-2 ">
-                            {/* Problem title */}
-                            <h3 className="text-lg font-semibold">
-                              Problem {problem.title}
-                            </h3>
-
-                            {/* Lower part */}
-                            <div className="pl-1 flex items-center gap-3">
-                              {/* Likes & commentss */}
-                              <div className="flex justify-between items-center gap-2">
-                                {/* Like */}
-                                <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                                  <ThumbsUp className="w-4 h-4" />{" "}
-                                  <span className="text-sm font-medium">
-                                    {problem.like}
-                                  </span>
-                                </div>
-
-                                {/* comments */}
-                                <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                                  <MessageSquare className="w-4 h-4" />{" "}
-                                  <span className="text-sm font-medium">
-                                    {problem.like}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* People answered */}
-                              <div className="flex items-center">
-                                {/* TODO: change to people answered */}
-                                <Progress
-                                  value={71}
-                                  className="bg-background w-24 h-[3px] *:bg-success/50"
-                                />
-                                <div className="flex gap-1 items-center text-xs">
-                                  <span>71%</span>
-                                  <span className="text-muted-foreground/70">
-                                    (1200 submissions)
-                                  </span>
-                                </div>
-                              </div>
+                            {/* Topics */}
+                            <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center ">
+                              <BsTag />
+                              <span className="">Topics</span>
                             </div>
                           </div>
-
-                          {/* Submit button */}
-                          <Button
-                            variant={"secondary"}
-                            className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-                          >
-                            Try Out
-                          </Button>
                         </div>
-                      ))}
-                    </div>
+
+                        {/* Problems */}
+                        <div className="flex flex-col items-center gap-3 w-full   py-2 pr-2 ">
+                          {problems.map((problem) => (
+                            <div
+                              key={`${problem.title}-${problem.id}`}
+                              onClick={() => setShownProblem(problem.id)}
+                              className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
+                            >
+                              {/* Left section of problem */}
+                              <div className="flex flex-col justify-between gap-2 ">
+                                {/* Problem title */}
+                                <h3 className="text-lg font-semibold">
+                                  Problem {problem.title}
+                                </h3>
+
+                                {/* Lower part */}
+                                <div className="pl-1 flex items-center gap-3">
+                                  {/* Likes & commentss */}
+                                  <div className="flex justify-between items-center gap-2">
+                                    {/* Like */}
+                                    <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                      <ThumbsUp className="w-4 h-4" />{" "}
+                                      <span className="text-sm font-medium">
+                                        {problem.like}
+                                      </span>
+                                    </div>
+
+                                    {/* comments */}
+                                    <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                                      <MessageSquare className="w-4 h-4" />{" "}
+                                      <span className="text-sm font-medium">
+                                        {problem.like}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* People answered */}
+                                  <div className="flex items-center">
+                                    {/* TODO: change to people answered */}
+                                    <Progress
+                                      value={71}
+                                      className="bg-background w-24 h-[3px] *:bg-success/50"
+                                    />
+                                    <div className="flex gap-1 items-center text-xs">
+                                      <span>71%</span>
+                                      <span className="text-muted-foreground/70">
+                                        (1200 submissions)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Submit button */}
+                              <Button
+                                variant={"secondary"}
+                                className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+                              >
+                                Try Out
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </section>
                   <ScrollBar className="" />
                 </ScrollArea>
@@ -277,11 +287,11 @@ export default function Page() {
             <ResizablePanel defaultSize={70}>
               <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 bg-card p-4 rounded-2xl overflow-hidden">
                 <Tabs
-                  defaultValue="problems"
+                  defaultValue="problemStatement"
                   className="w-full flex flex-col items-center"
                 >
                   <TabsList className="absolute top-0 left-0 flex justify-start items-start  p-2 w-full bg-card">
-                    <TabsTrigger value="problems" className="py-3">
+                    <TabsTrigger value="problemStatement" className="py-3">
                       Problems
                     </TabsTrigger>
                     <TabsTrigger value="standing" className="py-3">
@@ -294,7 +304,7 @@ export default function Page() {
                       Support
                     </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="problems">
+                  <TabsContent value="problemStatement">
                     <p>
                       Problem :{" "}
                       <span className="text-primary font-bold">
