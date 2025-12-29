@@ -38,6 +38,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { GoGraph } from "react-icons/go";
+import { LuCalculator } from "react-icons/lu";
+import { LuFileText } from "react-icons/lu";
+import { LuBookOpenText } from "react-icons/lu";
+import { FaBook } from "react-icons/fa";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -67,17 +72,94 @@ export default function Page() {
       description:
         "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
     },
-    { title: "A2", id: 2, like: 222, comments: 22 },
-    { title: "A3", id: 3, like: 333, comments: 33 },
-    { title: "A4", id: 4, like: 333, comments: 33 },
-    { title: "A5", id: 5, like: 555, comments: 55 },
-    { title: "A6", id: 6, like: 333, comments: 33 },
-    { title: "B1", id: 1, like: 111, comments: 11 },
-    { title: "B2", id: 2, like: 111, comments: 11 },
-    { title: "B3", id: 3, like: 333, comments: 33 },
-    { title: "B4", id: 4, like: 555, comments: 55 },
-    { title: "B5", id: 5, like: 555, comments: 55 },
-    { title: "B6", id: 6, like: 222, comments: 22 },
+    {
+      title: "A2",
+      id: 2,
+      like: 222,
+      comments: 22,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "A3",
+      id: 3,
+      like: 333,
+      comments: 33,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "A4",
+      id: 4,
+      like: 333,
+      comments: 33,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "A5",
+      id: 5,
+      like: 555,
+      comments: 55,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "A6",
+      id: 6,
+      like: 333,
+      comments: 33,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B1",
+      id: 1,
+      like: 111,
+      comments: 11,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B2",
+      id: 2,
+      like: 111,
+      comments: 11,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B3",
+      id: 3,
+      like: 333,
+      comments: 33,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B4",
+      id: 4,
+      like: 555,
+      comments: 55,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B5",
+      id: 5,
+      like: 555,
+      comments: 55,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
+    {
+      title: "B6",
+      id: 6,
+      like: 222,
+      comments: 22,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
   ];
   useEffect(() => {
     if (showLevels) {
@@ -193,7 +275,7 @@ export default function Page() {
                           value="problems"
                           className=" rounded-none bg-transparent! max-w-fit border-none [&_svg]:opacity-70 [data-state=active]:*:opacity-100"
                         >
-                          <FaBookOpen className="text-primary w-4 h-4 " />
+                          <FaBook className="text-primary w-4 h-4 " />
                           <span>Problems</span>
                         </TabsTrigger>
 
@@ -389,6 +471,7 @@ export default function Page() {
                   value={rightBarActiveTab}
                   onValueChange={setRightBarActiveTab}
                 >
+                  {/* Header Tabs */}
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {/* Problems Tab */}
                     <TabsTrigger
@@ -396,7 +479,7 @@ export default function Page() {
                       className=" rounded-none bg-transparent! max-w-fit border-none [&_svg]:opacity-70 [data-state=active]:*:opacity-100"
                     >
                       <FaBookOpen className="text-primary w-4 h-4 " />
-                      <span>Problems</span>
+                      <span>Problem Statement</span>
                     </TabsTrigger>
 
                     <Separator
@@ -409,8 +492,8 @@ export default function Page() {
                       value="standings"
                       className="h-full rounded-none bg-transparent! max-w-fit  "
                     >
-                      <MdLeaderboard className="text-secondary w-4 h-4 " />
-                      <span>Standings</span>
+                      <LuFileText className="text-secondary w-4 h-4 " />
+                      <span>Latex Editor</span>
                     </TabsTrigger>
 
                     <Separator
@@ -424,23 +507,11 @@ export default function Page() {
                       className="h-full rounded-none bg-transparent! max-w-fit"
                     >
                       <FaLightbulb className="text-primary w-4 h-4 " />
-                      <span>Editorial</span>
-                    </TabsTrigger>
-
-                    <Separator
-                      orientation="vertical"
-                      className="!h-4 bg-foreground/20 "
-                    />
-
-                    {/* Support Tab */}
-                    <TabsTrigger
-                      value="support"
-                      className="h-full rounded-none bg-transparent! max-w-fit"
-                    >
-                      <MdContactSupport className="text-primary w-4 h-4 " />
-                      <span>Support</span>
+                      <span>Graphing Calculator</span>
                     </TabsTrigger>
                   </TabsList>
+
+                  {/* Problem statement & Submission */}
                   <TabsContent
                     value="problemStatement"
                     className="w-150 h-full mx-auto p-4 flex-col gap-4 flex items-center"
@@ -510,9 +581,7 @@ export default function Page() {
 
                     {/* Report a problem */}
                     <div className="w-full flex justify-end">
-                      <button
-                        className="text-text-muted underline text-sm"
-                      >
+                      <button className="text-text-muted underline text-sm">
                         Report a problem
                       </button>
                     </div>
