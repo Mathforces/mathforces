@@ -46,6 +46,8 @@ import { LuBookOpenText } from "react-icons/lu";
 import { FaBook } from "react-icons/fa";
 import { GrGraphQl } from "react-icons/gr";
 import { GrUploadOption } from "react-icons/gr";
+import { FaRegFilePdf } from "react-icons/fa";
+import { FaExternalLinkAlt } from "react-icons/fa";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -475,7 +477,7 @@ export default function Page() {
                   value={rightBarActiveTab}
                   onValueChange={setRightBarActiveTab}
                 >
-                  {/* Header Tabs */}
+                  {/* right bar Header Tabs */}
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {/* Problems Tab */}
                     <TabsTrigger
@@ -527,13 +529,34 @@ export default function Page() {
                   {/* Problem statement & Submission */}
                   <TabsContent
                     value="problemStatement"
-                    className="w-150 h-full mx-auto p-4 flex-col gap-4 flex items-center"
+                    className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
                   >
                     {/* Problem Header */}
-                    <div>
-                      <h1 className="text-2xl font-bold">
+                    <div className="flex flex-col gap-2 mb-2 w-full">
+                      <h1 className="text-2xl font-bold text-center">
                         Problem {shownProblem?.title ?? "the fuck"}
                       </h1>
+
+                      {/* Methods to access problem */}
+                      <div className="flex items-center gap-40 mx-auto text-primary">
+                        {/* PDF access */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <FaRegFilePdf />
+                            <span>PDF</span>
+                          </div>
+                          <FaExternalLinkAlt className="w-3 h-3" />
+                        </div>
+
+                        {/* Latex access */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <LuFileText />
+                            <span>Latex</span>
+                          </div>
+                          <FaExternalLinkAlt className="w-3 h-3" />
+                        </div>
+                      </div>
                     </div>
                     <Separator className="bg-bg-light h-0.5!" />
 
@@ -625,11 +648,12 @@ export default function Page() {
                   </TabsList>
 
                   {/* Submissions Section */}
-                  <TabsContent value="submissions" className="w-full h-full">
-                  </TabsContent>
+                  <TabsContent
+                    value="submissions"
+                    className="w-full h-full"
+                  ></TabsContent>
                 </Tabs>
               </section>
-
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
