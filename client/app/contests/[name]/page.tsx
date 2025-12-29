@@ -540,22 +540,22 @@ export default function Page() {
                       {/* Methods to access problem */}
                       <div className="flex items-center gap-40 mx-auto text-primary">
                         {/* PDF access */}
-                        <div className="flex items-center gap-2">
+                        <button className="flex items-center gap-2">
                           <div className="flex items-center gap-1">
                             <FaRegFilePdf />
                             <span>PDF</span>
                           </div>
                           <FaExternalLinkAlt className="w-3 h-3" />
-                        </div>
+                        </button>
 
                         {/* Latex access */}
-                        <div className="flex items-center gap-2">
+                        <button className="flex items-center gap-2">
                           <div className="flex items-center gap-1">
                             <LuFileText />
                             <span>Latex</span>
                           </div>
                           <FaExternalLinkAlt className="w-3 h-3" />
-                        </div>
+                        </button>
                       </div>
                     </div>
                     <Separator className="bg-bg-light h-0.5!" />
