@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
+  Calculator,
   ChevronDown,
   ChevronsUpDown,
   Gauge,
@@ -43,6 +44,7 @@ import { LuCalculator } from "react-icons/lu";
 import { LuFileText } from "react-icons/lu";
 import { LuBookOpenText } from "react-icons/lu";
 import { FaBook } from "react-icons/fa";
+import { GrGraphQl } from "react-icons/gr";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -487,9 +489,9 @@ export default function Page() {
                       className="!h-4 bg-foreground/20 "
                     />
 
-                    {/* Standings Tab */}
+                    {/* Latex Tab */}
                     <TabsTrigger
-                      value="standings"
+                      value="latexEditor"
                       className="h-full rounded-none bg-transparent! max-w-fit  "
                     >
                       <LuFileText className="text-secondary w-4 h-4 " />
@@ -501,13 +503,22 @@ export default function Page() {
                       className="!h-4 bg-foreground/20 "
                     />
 
-                    {/* Editorials Tab */}
+                    {/* Graphing Calculator Tab */}
                     <TabsTrigger
-                      value="editorials"
+                      value="graphingCalculator"
                       className="h-full rounded-none bg-transparent! max-w-fit"
                     >
-                      <FaLightbulb className="text-primary w-4 h-4 " />
+                      <GrGraphQl className="text-primary w-4 h-4 " />
                       <span>Graphing Calculator</span>
+                    </TabsTrigger>
+
+                    {/* Scientific Calculator Tab */}
+                    <TabsTrigger
+                      value="scientificCalculator"
+                      className="h-full rounded-none bg-transparent! max-w-fit"
+                    >
+                      <Calculator className="text-primary w-4 h-4 " />
+                      <span>Scientific Calculator</span>
                     </TabsTrigger>
                   </TabsList>
 
