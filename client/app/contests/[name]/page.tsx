@@ -45,6 +45,7 @@ import { LuFileText } from "react-icons/lu";
 import { LuBookOpenText } from "react-icons/lu";
 import { FaBook } from "react-icons/fa";
 import { GrGraphQl } from "react-icons/gr";
+import { GrUploadOption } from "react-icons/gr";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -55,6 +56,7 @@ export default function Page() {
   const [shownProblem, setShownProblem] = useState<Problem>();
   // Tabs
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
+  const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
     useState("problemStatement");
   const ContestInfo = {
@@ -603,12 +605,31 @@ export default function Page() {
             {/* TODO: Fix Handler here (hover only works on 1 px) */}
             <ResizableHandle className="bg-transparent border-2 border-transparent hover:border-sidebar-border" />
             <ResizablePanel defaultSize={30}>
-              <section className="relative w-full h-full space-y-5 rounded-2xl bg-card p-5 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full p-4 bg-accent flex items-center gap-2 text-sm">
-                  <BookOpen className="text-primary" />
-                  Submissions
-                </div>
+              <section className="w-full h-full rounded-sm bg-card">
+                <Tabs
+                  defaultValue="submissions"
+                  className="w-full h-full"
+                  value={bottomBarActiveTab}
+                  onValueChange={setBottomBarActiveTab}
+                >
+                  {/* Header Tabs */}
+                  <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
+                    {/* Submissions Tab */}
+                    <TabsTrigger
+                      value="submissions"
+                      className="h-full rounded-none bg-transparent! max-w-fit"
+                    >
+                      <GrUploadOption className="text-secondary w-4 h-4 " />
+                      <span>Submissions</span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Submissions Section */}
+                  <TabsContent value="submissions" className="w-full h-full">
+                  </TabsContent>
+                </Tabs>
               </section>
+
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
