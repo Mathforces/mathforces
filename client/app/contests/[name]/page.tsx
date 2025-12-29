@@ -6,7 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Gauge, MessageSquare, Plus, ThumbsUp } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronsUpDown,
+  Gauge,
+  MessageSquare,
+  Plus,
+  ThumbsUp,
+} from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
 import {
   ResizableHandle,
@@ -24,17 +32,24 @@ import { FaBookOpen, FaLightbulb } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
 import { MdLeaderboard } from "react-icons/md";
 import { MdContactSupport } from "react-icons/md";
+import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
 
   const [showLevels, setShowLevels] = useState(false);
   const [progress, setProgress] = useState<number>(45);
-  const [shownProblem, setShownProblem] = useState<number>();
-
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [shownProblem, setShownProblem] = useState<Problem>();
   // Tabs
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
-  const [rightBarActiveTab, setRightBarActiveTab] = useState("");
+  const [rightBarActiveTab, setRightBarActiveTab] =
+    useState("problemStatement");
   const ContestInfo = {
     title: "Algebra Blitz 153",
     link: "/contests/beginner-problems",
@@ -43,8 +58,15 @@ export default function Page() {
     difficulty: "Hard",
   };
 
-  const problems = [
-    { title: "A1", id: 1, like: 111, comments: 11 },
+  const sampleProblems = [
+    {
+      title: "A1",
+      id: 1,
+      like: 111,
+      comments: 11,
+      description:
+        "Consider a circle Ω with radius 9 and center at the origin (0,0), and a disc ∆ with radius 1 and center at (r,0), where 0 ≤ r ≤ 8. Two points P and Q are chosen independently and uniformly at random on Ω. Which value(s) of r minimize the probability that the chord PQ intersects ∆?",
+    },
     { title: "A2", id: 2, like: 222, comments: 22 },
     { title: "A3", id: 3, like: 333, comments: 33 },
     { title: "A4", id: 4, like: 333, comments: 33 },
@@ -65,6 +87,12 @@ export default function Page() {
     }
   }, [showLevels]);
 
+  // Set problems and shownProblem
+  // TODO: fetch problems from API
+  useEffect(() => {
+    setProblems(sampleProblems);
+    setShownProblem(sampleProblems[0]);
+  }, []);
   const handleChange = (value: number[]) => setProgress(value[0]);
   const getTabStyle = (activeTab: string, currentTab: string) => {
     const activeTabStyle = "text-text opacity-100";
@@ -128,9 +156,9 @@ export default function Page() {
           {problems.map((problem) => (
             <Button
               key={problem.id}
-              variant={problem.id === shownProblem ? "default" : "ghost"}
+              variant={problem.id === shownProblem?.id ? "default" : "ghost"}
               onClick={() => {
-                setShownProblem(problem.id);
+                setShownProblem(problem);
                 setShowLevels(false);
               }}
               className="justify-start text-2xl hover:bg-primary/10 transition"
@@ -151,7 +179,7 @@ export default function Page() {
               <section className="w-full h-full rounded-sm bg-card">
                 {/* Main section */}
                 <ScrollArea className="h-full " type="always">
-                  <section className="h-full rounded-2xl w-full space-y-3">
+                  <div className="h-full rounded-2xl w-full space-y-3">
                     {/* Tabs */}
                     <Tabs
                       defaultValue="problems"
@@ -213,7 +241,7 @@ export default function Page() {
                       </TabsList>
                       <TabsContent
                         value="problems"
-                        className="p-4 flex flex-col gap-3 abso"
+                        className="p-4 flex flex-col gap-3"
                       >
                         {/* Header */}
                         <div className="flex flex-col gap-3">
@@ -243,7 +271,7 @@ export default function Page() {
                           {problems.map((problem) => (
                             <div
                               key={`${problem.title}-${problem.id}`}
-                              onClick={() => setShownProblem(problem.id)}
+                              onClick={() => setShownProblem(problem)}
                               className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
                             >
                               {/* Left section of problem */}
@@ -303,7 +331,7 @@ export default function Page() {
                         </div>
                       </TabsContent>
                     </Tabs>
-                  </section>
+                  </div>
                   <ScrollBar className="" />
                 </ScrollArea>
 
@@ -354,69 +382,139 @@ export default function Page() {
             className="flex flex-col gap-1"
           >
             <ResizablePanel defaultSize={70}>
-              <section className="relative w-full h-full flex flex-col justify-center items-center text-center gap-5 bg-card p-4 rounded-2xl overflow-hidden">
+              <section className="w-full h-full rounded-sm bg-card">
                 <Tabs
                   defaultValue="problemStatement"
-                  className="w-full flex flex-col items-center"
+                  className="w-full h-full"
+                  value={rightBarActiveTab}
+                  onValueChange={setRightBarActiveTab}
                 >
-                  <TabsList className="absolute top-0 left-0 flex justify-start items-start  p-2 w-full bg-card">
-                    <TabsTrigger value="problemStatement" className="py-3">
-                      Problems
+                  <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
+                    {/* Problems Tab */}
+                    <TabsTrigger
+                      value="problemStatement"
+                      className=" rounded-none bg-transparent! max-w-fit border-none [&_svg]:opacity-70 [data-state=active]:*:opacity-100"
+                    >
+                      <FaBookOpen className="text-primary w-4 h-4 " />
+                      <span>Problems</span>
                     </TabsTrigger>
-                    <TabsTrigger value="standing" className="py-3">
-                      Standing
+
+                    <Separator
+                      orientation="vertical"
+                      className="!h-4 bg-foreground/20 "
+                    />
+
+                    {/* Standings Tab */}
+                    <TabsTrigger
+                      value="standings"
+                      className="h-full rounded-none bg-transparent! max-w-fit  "
+                    >
+                      <MdLeaderboard className="text-secondary w-4 h-4 " />
+                      <span>Standings</span>
                     </TabsTrigger>
-                    <TabsTrigger value="editorial" className="py-3">
-                      Editorial
+
+                    <Separator
+                      orientation="vertical"
+                      className="!h-4 bg-foreground/20 "
+                    />
+
+                    {/* Editorials Tab */}
+                    <TabsTrigger
+                      value="editorials"
+                      className="h-full rounded-none bg-transparent! max-w-fit"
+                    >
+                      <FaLightbulb className="text-primary w-4 h-4 " />
+                      <span>Editorial</span>
                     </TabsTrigger>
-                    <TabsTrigger value="support" className="py-3">
-                      Support
+
+                    <Separator
+                      orientation="vertical"
+                      className="!h-4 bg-foreground/20 "
+                    />
+
+                    {/* Support Tab */}
+                    <TabsTrigger
+                      value="support"
+                      className="h-full rounded-none bg-transparent! max-w-fit"
+                    >
+                      <MdContactSupport className="text-primary w-4 h-4 " />
+                      <span>Support</span>
                     </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="problemStatement">
-                    <p>
-                      Problem :{" "}
-                      <span className="text-primary font-bold">
-                        {" "}
-                        {shownProblem}{" "}
-                      </span>
-                    </p>
-                    <h5 className="mb-2">{ContestInfo.description}</h5>
-                    <div className="w-full max-w-2xl flex items-end gap-2">
-                      <Textarea
-                        className="mt-4 h-32 max-h-40 resize-y"
-                        placeholder="Answer here..."
-                      />
-                      <Button className="mt-4" variant="primary">
-                        Submit
-                      </Button>
+                  <TabsContent
+                    value="problemStatement"
+                    className="w-150 h-full mx-auto p-4 flex-col gap-4 flex items-center"
+                  >
+                    {/* Problem Header */}
+                    <div>
+                      <h1 className="text-2xl font-bold">
+                        Problem {shownProblem?.title ?? "the fuck"}
+                      </h1>
                     </div>
-                  </TabsContent>
+                    <Separator className="bg-bg-light h-0.5!" />
 
-                  {/* Standing */}
-                  <TabsContent value="standing">
-                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-                      <h4 className="font-semibold mb-2">Standing</h4>
-                      <p>Leaderboard and results will appear here soon.</p>
+                    {/* Problem Description & Submission */}
+                    <div className="flex flex-col gap-5">
+                      {/* Problem Description */}
+                      <div>
+                        <p className="">{shownProblem?.description}</p>
+                      </div>
+
+                      {/* Problem Submission */}
+                      <div className="w-full max-w-2xl flex gap-4">
+                        <Input
+                          className="border-none bg-bg-light! text-text-muted"
+                          placeholder="Answer here..."
+                        />
+                        <Button className="w-25 text-text" variant="primary">
+                          Submit
+                        </Button>
+                      </div>
                     </div>
-                  </TabsContent>
+                    <Separator className="bg-bg-light h-0.5!" />
 
-                  {/* Editorial */}
-                  <TabsContent value="editorial">
-                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-                      <h4 className="font-semibold mb-2">Editorial</h4>
-                      <p>
-                        Solution explanations will be posted here after the
-                        contest.
-                      </p>
+                    {/* Help */}
+                    <div className="w-full flex flex-col items-start gap-4 ">
+                      {/* Show calculator */}
+                      <button className="text-primary underline">
+                        Show calculator
+                      </button>
+                      {/* How to submit */}
+                      <Collapsible className="flex flex-col gap-1">
+                        <CollapsibleTrigger className="" asChild>
+                          <button className="flex items-center gap-1">
+                            <span className="font-normal">
+                              How do I submit an answer?
+                            </span>
+                            <span className="underline text-primary">
+                              show here
+                            </span>
+                            <ChevronsUpDown className="w-5 h-5 text-primary" />
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <ul
+                            role="list"
+                            className="list-disc text-text-muted pl-4"
+                          >
+                            <li>Click on the problem you want to solve.</li>
+                            <li>Read the problem statement carefully.</li>
+                            <li>
+                              Submit your solution using the input box provided.
+                            </li>
+                          </ul>
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
-                  </TabsContent>
+                    <Separator className="bg-bg-light h-0.5!" />
 
-                  {/* Support */}
-                  <TabsContent value="support">
-                    <div className="border border-primary/20 p-4 rounded-2xl text-center max-w-3xl mx-auto">
-                      <h4 className="font-semibold mb-2">Support</h4>
-                      <p>Need help? Contact the contest organizers here.</p>
+                    {/* Report a problem */}
+                    <div className="w-full flex justify-end">
+                      <button
+                        className="text-text-muted underline text-sm"
+                      >
+                        Report a problem
+                      </button>
                     </div>
                   </TabsContent>
                 </Tabs>

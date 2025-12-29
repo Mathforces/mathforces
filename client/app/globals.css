@@ -250,7 +250,7 @@
   --accent: var(--highlight);
   --accent-foreground: var(--text);
   --destructive: var(--danger);
-  --input: var(--border-muted);
+  --input: var(--bg-light);
   --ring: var(--border);
   --chart-1: var(--info);
   --chart-2: var(--success);
