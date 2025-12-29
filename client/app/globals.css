@@ -33,8 +33,8 @@
   p {
     @apply text-base md:text-lg text-black/50 dark:text-white/50;
   } */
-  .Link{
-    @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300
+  .Link {
+    @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300;
   }
 }
 
@@ -126,6 +126,18 @@
   --color-sidebar-border: var(--sidebar-border);
 
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom color palette variables */
+  --color-bg-dark: var(--bg-dark);
+  --color-bg: var(--bg);
+  --color-bg-light: var(--bg-light);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-highlight: var(--highlight);
+  --color-border-muted: var(--border-muted);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 }
 
 :root {
@@ -192,6 +204,19 @@
   --sidebar-border: oklch(0.922 0 0);
 
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Custom color palette - Light mode */
+  --bg-dark: oklch(0.95 0 0);
+  --bg: var(--background);
+  --bg-light: oklch(0.98 0 0);
+  --text: var(--foreground);
+  --text-muted: oklch(0.556 0 0);
+  --highlight: oklch(0.92 0.02 260);
+  --border-muted: oklch(0.85 0 0);
+  --danger: var(--destructive);
+  --warning: oklch(0.75 0.15 70);
+  --success: oklch(0.65 0.22 141);
+  --info: oklch(0.65 0.15 240);
 }
 
 .dark {
@@ -199,10 +224,10 @@
   --bg-dark: oklch(15.39% 0.013 292.47);
   --bg: oklch(22.25% 0.016 290.81);
   --bg-light: oklch(26.06% 0.019 285.04);
-  --text: oklch(95.21% 0.000 0);
+  --text: oklch(95.21% 0 0);
   --text-muted: oklch(58.49% 0.009 286.12);
   --highlight: oklch(0.5 0.04 253);
-  --border: oklch(88.53% 0.000 0);
+  --border: oklch(88.53% 0 0);
   --border-muted: oklch(58.49% 0.009 286.12);
   --primary: oklch(51.39% 0.237 268.18);
   --secondary: oklch(82.83% 0.253 141.11);

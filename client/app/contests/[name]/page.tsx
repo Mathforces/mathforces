@@ -20,6 +20,10 @@ import ContestHeader from "@/components/header/contestHeader";
 import { Progress } from "@/components/ui/progress";
 import { BsTag } from "react-icons/bs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { FaBookOpen, FaLightbulb } from "react-icons/fa";
+import { Separator } from "@/components/ui/separator";
+import { MdLeaderboard } from "react-icons/md";
+import { MdContactSupport } from "react-icons/md";
 export default function Page() {
   const params = useParams();
   const isMobile = useIsMobile();
@@ -27,6 +31,10 @@ export default function Page() {
   const [showLevels, setShowLevels] = useState(false);
   const [progress, setProgress] = useState<number>(45);
   const [shownProblem, setShownProblem] = useState<number>();
+
+  // Tabs
+  const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
+  const [rightBarActiveTab, setRightBarActiveTab] = useState("");
   const ContestInfo = {
     title: "Algebra Blitz 153",
     link: "/contests/beginner-problems",
@@ -58,10 +66,17 @@ export default function Page() {
   }, [showLevels]);
 
   const handleChange = (value: number[]) => setProgress(value[0]);
-
+  const getTabStyle = (activeTab: string, currentTab: string) => {
+    const activeTabStyle = "text-text opacity-100";
+    const idleTabStyle = "opacity-70";
+    if (activeTab.toLowerCase() == currentTab.toLowerCase()) {
+      return activeTabStyle;
+    }
+    return idleTabStyle;
+  };
   if (!ContestInfo) {
     return (
-      <main className="relative min-h-fit flex flex-col items-center justify-start text-center">
+      <main className="">
         <div className="text-[150px] md:text-[200px] font-bold text-primary/20">
           404
         </div>
@@ -138,14 +153,68 @@ export default function Page() {
                 <ScrollArea className="h-full " type="always">
                   <section className="h-full rounded-2xl w-full space-y-3">
                     {/* Tabs */}
-                    <Tabs defaultValue="problems" className="w-full">
-                      <TabsList className="flex w-full bg-card">
-                        <TabsTrigger value="problems">Problems</TabsTrigger>
-                        <TabsTrigger value="standing">Standing</TabsTrigger>
-                        <TabsTrigger value="editorial">Editorial</TabsTrigger>
-                        <TabsTrigger value="support">Support</TabsTrigger>
+                    <Tabs
+                      defaultValue="problems"
+                      className="w-full"
+                      value={leftBarActiveTab}
+                      onValueChange={setLeftBarActiveTab}
+                    >
+                      <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
+                        {/* Problems Tab */}
+                        <TabsTrigger
+                          value="problems"
+                          className=" rounded-none bg-transparent! max-w-fit border-none [&_svg]:opacity-70 [data-state=active]:*:opacity-100"
+                        >
+                          <FaBookOpen className="text-primary w-4 h-4 " />
+                          <span>Problems</span>
+                        </TabsTrigger>
+
+                        <Separator
+                          orientation="vertical"
+                          className="!h-4 bg-foreground/20 "
+                        />
+
+                        {/* Standings Tab */}
+                        <TabsTrigger
+                          value="standings"
+                          className="h-full rounded-none bg-transparent! max-w-fit  "
+                        >
+                          <MdLeaderboard className="text-secondary w-4 h-4 " />
+                          <span>Standings</span>
+                        </TabsTrigger>
+
+                        <Separator
+                          orientation="vertical"
+                          className="!h-4 bg-foreground/20 "
+                        />
+
+                        {/* Editorials Tab */}
+                        <TabsTrigger
+                          value="editorials"
+                          className="h-full rounded-none bg-transparent! max-w-fit"
+                        >
+                          <FaLightbulb className="text-primary w-4 h-4 " />
+                          <span>Editorial</span>
+                        </TabsTrigger>
+
+                        <Separator
+                          orientation="vertical"
+                          className="!h-4 bg-foreground/20 "
+                        />
+
+                        {/* Support Tab */}
+                        <TabsTrigger
+                          value="support"
+                          className="h-full rounded-none bg-transparent! max-w-fit"
+                        >
+                          <MdContactSupport className="text-primary w-4 h-4 " />
+                          <span>Support</span>
+                        </TabsTrigger>
                       </TabsList>
-                      <TabsContent value="problems" className="p-4 flex flex-col gap-3 abso">
+                      <TabsContent
+                        value="problems"
+                        className="p-4 flex flex-col gap-3 abso"
+                      >
                         {/* Header */}
                         <div className="flex flex-col gap-3">
                           <h2 className="font-bold text-2xl">
