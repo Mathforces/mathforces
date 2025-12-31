@@ -7,7 +7,7 @@
   main {
     @apply min-h-screen max-w-7xl mx-auto px-5 lg:px-10;
   }
-  /* h1 {
+  h1 {
     @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
   }
 
@@ -32,7 +32,7 @@
   }
   p {
     @apply text-base md:text-lg text-black/50 dark:text-white/50;
-  } */
+  }
   .Link {
     @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300;
   }

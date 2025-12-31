@@ -1,8 +1,4 @@
-import * as React from "react";
-import Logo from "../ui/logo";
-import { Button } from "../ui/button";
-import { ThemeButton } from "../Theme-button";
-import LogoIcon from "../ui/logo-mini";
+import { Mini_Logo } from "../ui/logo";
 import { Separator } from "../ui/separator";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TfiMenu } from "react-icons/tfi";
@@ -13,39 +9,34 @@ import { FiHelpCircle } from "react-icons/fi";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CiSettings } from "react-icons/ci";
 import { RiFireFill } from "react-icons/ri";
-import UserIcon from "./userIcon";
-interface IHeaderProps {}
+import UserIcon from "../header/userIcon";
 
-const ContestHeader: React.FunctionComponent<IHeaderProps> = (props) => {
+const ContestHeader = () => {
   return (
-    <div className="h-10 bg-transparent mb-2 w-full bg-card flex justify-between items-center gap-5 px-4 my-1">
+    <nav className="h-10 bg-transparent mb-2 w-full flex justify-between items-center gap-5 px-4 my-1">
       {/* Left section */}
-      <div className="">
-        <div className="flex items-end gap-5 ">
+      <section className="">
+        <div className="flex items-end gap-2 ">
           <div className="flex items-end gap-3">
-            <LogoIcon />
+            <Mini_Logo />
             <Separator
               orientation="vertical"
-              className="!h-4 bg-foreground/20 "
+              className="h-4! bg-foreground/20 "
             />
           </div>
           <div className="flex items-end gap-2">
             <TfiMenu className="w-4.5 h-4.5 text-muted-foreground" />
-            <h6 className="text-base font-normal self-end leading-none">
+            <h6 className="hidden md:inline text-base font-normal self-end leading-none">
               Contest List
             </h6>
-            <div className="flex gap-3">
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Middle section */}
-      <div className="flex gap-1">
+      <section className="flex gap-1">
         {/* Take notes */}
-        <div className="w-8 h-8 bg-card rounded-md flex items-center justify-center p-2">
+        <div className="hidden w-8 h-8 bg-card rounded-md md:flex items-center justify-center p-2">
           <FaRegNoteSticky className="text-muted-foreground" />
         </div>
 
@@ -62,23 +53,23 @@ const ContestHeader: React.FunctionComponent<IHeaderProps> = (props) => {
         </button>
 
         {/* Take notes */}
-        <div className="w-8 h-8 bg-card rounded-md flex items-center justify-center p-2">
+        <div className="hidden w-8 h-8 bg-card rounded-md md:flex items-center justify-center p-2">
           <FiHelpCircle className="text-muted-foreground" />
         </div>
-      </div>
+      </section>
 
-      {/* Right nav */}
-      <div className="flex items-center gap-2 text-xs">
-        <LuLayoutDashboard className="w-5 h-5 text-muted-foreground" />
-        <CiSettings className="w-5 h-5 text-muted-foreground" />
-        <RiFireFill className="w-5 h-5 text-muted-foreground" />
+      {/* Right section */}
+      <section className="flex items-center gap-2 text-xs">
+        <LuLayoutDashboard className="w-5 h-5 text-muted-foreground hidden md:inline" />
+        <CiSettings className="w-5 h-5 text-muted-foreground hidden md:inline" />
+        <RiFireFill className="w-5 h-5 text-muted-foreground hidden md:inline" />
         <UserIcon />
         {/* <ThemeButton />
         <div className="flex justify-center items-center text-xl font-semibold h-10 w-10 rounded-full overflow-hidden bg-primary text-white">
           A
         </div> */}
-      </div>
-    </div>
+      </section>
+    </nav>
   );
 };
 
