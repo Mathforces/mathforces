@@ -1,9 +1,22 @@
-export interface Problem {
+export interface contestProblem {
   id: number;
   name: string;
   num_submissions: number;
   num_correct_submissions: number;
   points: number;
+  likes: number;
+  comments_num: number;
+}
+export interface FullProblem {
+  id: number;
+  name: string;
+  num_submissions: number;
+  num_correct_submissions: number;
+  points: number;
+  likes: number;
+  comments_num: number;
+  tags: string[];
+  description: string;
 }
 export interface Contest {
   id: string;

@@ -47,54 +47,56 @@ const Problem_Card = ({ problem }: Props) => {
 
   return (
     <div
-      ref={ref}
-      className="group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default"
+      key={`${problem.name}-${problem.id}`}
+      onClick={() => {}}
+      className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
     >
-      <div className="flex flex-col justify-between gap-2 min-w-0">
-        <h3 className="text-lg font-semibold truncate">
-          Problem {problem.name}
-        </h3>
+      {/* Left section of problem */}
+      <div className="flex flex-col justify-between gap-2 ">
+        {/* Problem.name */}
+        <h3 className="text-lg font-semibold">Problem {problem.name}</h3>
 
+        {/* Lower part */}
         <div className="pl-1 flex items-center gap-3">
+          {/* likess & commentss */}
           <div className="flex justify-between items-center gap-2">
+            {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              <ThumbsUp className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                {problem.num_submissions}
-              </span>
+              <ThumbsUp className="w-4 h-4" />{" "}
+              <span className="text-sm font-medium">{problem.likes ?? 0}</span>
             </div>
 
+            {/* comments */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                {problem.num_correct_submissions}
+              <MessageSquare className="w-4 h-4" />{" "}
+              <span className="text-sm font-medium">{problem.comments_num ?? 0}</span>
+            </div>
+          </div>
+
+          {/* People answered */}
+          <div className="flex items-center">
+            {/* TODO: change to people answered */}
+            <Progress
+              value={71}
+              className="bg-background w-24 h-[3px] *:bg-success/50"
+            />
+            <div className="flex gap-1 items-center text-xs">
+              <span>71%</span>
+              <span className="text-muted-foreground/70">
+                (1200 submissions)
               </span>
             </div>
           </div>
         </div>
-        {!isTiny && (
-          <div className="flex items-center w-40">
-            <Progress value={71} />
-            <div className="flex gap-1 items-center text-xs">
-              <span>71%</span>
-              <div className="text-muted-foreground/70 flex items-center gap-1 w-full">
-                {problem.num_correct_submissions} <p> submissions</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {!isSoTiny &&
-        (isInContest ? (
-          <Button variant="destructive" disabled>
-            Selected
-          </Button>
-        ) : (
-          <Link href={`/contests/${problem.id}`}>
-            <Button variant="primary">Try Out</Button>
-          </Link>
-        ))}
+      {/* Submit button */}
+      <Button
+        variant={"secondary"}
+        className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+      >
+        Try Out
+      </Button>
     </div>
   );
 };

@@ -19,12 +19,12 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { MainTaps, ProblemsTap } from "@/data/Contest_Content";
 import GraphCalculator from "@/components/Tools/Graph_Calc";
-import Problem_Statement from "@/components/Contest/Problem_Statement";
+import Problem_Statement_card from "@/components/Contest/Problem_Statement_card";
 import { GrUploadOption } from "react-icons/gr";
 import axios from "axios";
-import { Contest, Problem } from "@/types/types";
+import { Contest, contestProblem, FullProblem } from "@/types/types";
 import Loading from "@/components/ui/Loading";
-import Problem_Card from "@/components/Contest/Problem_Card";
+import ProblemCard from "@/components/Contest/Problem_Card";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -37,7 +37,8 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [problems, setProblems] = useState<FullProblem[]>([]);
+  const [shownProblem, setShownProblem] = useState<contestProblem | null>(null);
 
   const bottomBarTabs = [
     {
@@ -66,7 +67,7 @@ export default function Page() {
         console.error("Error fetching contest:", err);
         setError(
           err.response?.data?.message ||
-            "Failed to load contest. Please try again."
+            "Failed to load contest. Please try again.",
         );
       } finally {
         setLoading(false);
@@ -82,13 +83,13 @@ export default function Page() {
       setError(null);
 
       const response = await axios.get(`/api/contests/${id}/problems`);
-
+      setShownProblem(response.data[0]);
       setProblems(response.data);
     } catch (err: any) {
       console.error("Error fetching problems:", err);
       setError(
         err.response?.data?.message ||
-          "Failed to load problems. Please try again."
+          "Failed to load problems. Please try again.",
       );
     }
   };
@@ -243,7 +244,7 @@ export default function Page() {
 
                         <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
                           {problems.map((problem) => (
-                            <Problem_Card key={problem.id} problem={problem} />
+                            <ProblemCard key={problem.id} problem={problem} />
                           ))}
                         </div>
                       </TabsContent>
@@ -322,7 +323,7 @@ export default function Page() {
                     ))}
                   </TabsList>
 
-                  <Problem_Statement shownProblem={contest} />
+                  <Problem_Statement_card shownProblem={shownProblem} />
                   <TabsContent value="graphingCalculator">
                     <GraphCalculator />
                   </TabsContent>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Contest } from "@/types/types";
+import { Contest, contestProblem, FullProblem } from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,23 +12,28 @@ import { ChevronsUpDown } from "lucide-react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
+import Problem_Card from "./Problem_Card";
+import Problem_statement from "./problem_statement";
 
 interface Props {
-  shownProblem: Contest;
+  shownProblem: contestProblem | null;
 }
 
-const Problem_Statement = ({ shownProblem }: Props) => {
+const Problem_Statement_card = ({ shownProblem }: Props) => {
   return (
     <TabsContent
       value="problemStatement"
       className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
     >
+      {/* Problem Header */}
       <div className="flex flex-col gap-2 mb-2 w-full">
         <h1 className="text-2xl font-bold text-center">
           Problem {shownProblem?.name ?? "the fuck"}
         </h1>
 
+        {/* Methods to access problem */}
         <div className="flex items-center gap-40 mx-auto text-primary">
+          {/* PDF access */}
           <button className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <FaRegFilePdf />
@@ -37,6 +42,7 @@ const Problem_Statement = ({ shownProblem }: Props) => {
             <FaExternalLinkAlt className="w-3 h-3" />
           </button>
 
+          {/* Latex access */}
           <button className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <LuFileText />
@@ -48,11 +54,11 @@ const Problem_Statement = ({ shownProblem }: Props) => {
       </div>
       <Separator className="bg-bg-light h-0.5!" />
 
+      {/* Problem Description & Submission */}
       <div className="flex flex-col gap-5">
-        <div>
-          <p className="">{shownProblem.description}</p>
-        </div>
-
+        {/* Problem Description */}
+        <Problem_statement shownProblem={shownProblem} />
+        {/* Problem Submission */}
         <div className="w-full max-w-2xl flex gap-4">
           <Input
             className="border-none bg-bg-light! text-text-muted"
@@ -65,8 +71,11 @@ const Problem_Statement = ({ shownProblem }: Props) => {
       </div>
       <Separator className="bg-bg-light h-0.5!" />
 
+      {/* Help */}
       <div className="w-full flex flex-col items-start gap-4 ">
+        {/* Show calculator */}
         <button className="text-primary underline">Show calculator</button>
+        {/* How to submit */}
         <Collapsible className="flex flex-col gap-1">
           <CollapsibleTrigger className="" asChild>
             <button className="flex items-center gap-1">
@@ -86,6 +95,7 @@ const Problem_Statement = ({ shownProblem }: Props) => {
       </div>
       <Separator className="bg-bg-light h-0.5!" />
 
+      {/* Report a problem */}
       <div className="w-full flex justify-end">
         <button className="text-text-muted underline text-sm">
           Report a problem
@@ -95,4 +105,4 @@ const Problem_Statement = ({ shownProblem }: Props) => {
   );
 };
 
-export default Problem_Statement;
+export default Problem_Statement_card;
