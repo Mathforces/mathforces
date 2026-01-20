@@ -34,28 +34,33 @@ export default function RootLayout({
           id="mathjax-config"
           dangerouslySetInnerHTML={{
             __html: `
-              window.MathJax = {
-                // LaTeX processing configuration
-                tex: {
-                  inlineMath: [['$', '$']],
-                  displayMath: [['$$', '$$']],
-                  processEscapes: true,
-                  tags: 'ams',
-                  tagSide: 'right',
-                  tagIndent: '0.2em'
-                },
-                // Output rendering configuration
-                output: {
-                  font: 'mathjax-newcm'
-                },
-                // Initialization and startup configuration
-                startup: {
-                  pageReady() {
-                    return MathJax.startup.defaultPageReady();
-                  }
-                }
-              };
-            `,
+        window.MathJax = {
+          tex: {
+            // Inline math: support \( ... \) and $ ... $
+            inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
+            // Display math: support \[ ... \] and $$ ... $$
+            displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
+            processEscapes: true,
+            tags: 'ams',             // support \tag{} numbering
+            tagSide: 'right',
+            tagIndent: '0.2em'
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], 
+          },
+          chtml: {
+            // font variant
+            scale: 1,
+            mtextInheritFont: true
+          },
+          startup: {
+            pageReady() {
+              // ensures MathJax finishes typesetting before Next.js hydration
+              return MathJax.startup.defaultPageReady();
+            }
+          }
+        };
+      `,
           }}
         />
       </head>

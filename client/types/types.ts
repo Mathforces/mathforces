@@ -19,7 +19,8 @@ export interface FullProblem {
   likes: number;
   comments_num: number;
   tags: string[];
-  description: string;
+  description_latex: string;
+  description_html: string;
 }
 export interface Contest {
   id: string;

@@ -17,7 +17,7 @@ import Problem_Card from "./Problem_Card";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
-
+import parse from 'html-react-parser';
 interface Props {
   shownProblemId: number | null;
 }
@@ -78,7 +78,7 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
       <MathJaxContent className="flex flex-col gap-5 w-full">
         {/* Problem Description */}
         <div className="">
-          <p className="text-text text-sm">{fullProblem?.description}</p>
+          <p className="text-text text-sm">{parse(fullProblem?.description_html || "")}</p>
         </div>
       </MathJaxContent>
         {/* Problem Submission */}
