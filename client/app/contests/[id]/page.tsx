@@ -164,20 +164,23 @@ export default function Page() {
 
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-3 flex flex-col py-1">
+      {/* Contest Header */}
       <ContestHeader />
 
+      {/* Problems Navigator for phones */}
       {isMobile && (
         <div className="fixed top-32 left-4 w-fit flex justify-center mb-3 z-50">
           <Button
             variant="primary"
             onClick={() => setShowLevels((prev) => !prev)}
           >
-            Levels
+            Problems
             <Gauge size={35} strokeWidth={3} />
           </Button>
         </div>
       )}
 
+      {/* Problems List Screen for phones */}
       <div
         className={`fixed top-0 left-0 bg-background px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
           isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
@@ -202,6 +205,7 @@ export default function Page() {
       </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex flex-1">
+        {/* Left Sidebar for Desktop  */}
         {!isMobile && (
           <>
             <ResizablePanel defaultSize={30}>
@@ -258,7 +262,10 @@ export default function Page() {
 
                         <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
                           {problems.map((problem) => (
-                            <div onClick={() => setShownProblem(problem.id)} className="w-full">
+                            <div
+                              onClick={() => setShownProblem(problem.id)}
+                              className="w-full"
+                            >
                               <ProblemCard
                                 key={problem.id}
                                 problem={problem}
@@ -312,8 +319,10 @@ export default function Page() {
           </>
         )}
 
+        {/* Right Sidebar */}
         <ResizablePanel defaultSize={isMobile ? 100 : 70}>
           <ResizablePanelGroup direction="vertical" className="flex flex-col">
+            {/* Top-right section (problem statements) */}
             <ResizablePanel defaultSize={70}>
               <section className="w-full h-full rounded-sm bg-card">
                 <Tabs
@@ -353,7 +362,7 @@ export default function Page() {
             </ResizablePanel>
 
             <ResizableHandle className="bg-transparent h-2! hover:bg-sidebar-border/60" />
-
+            {/* Bottom-right section (Submissions) */}
             <ResizablePanel defaultSize={30}>
               <section className="w-full h-full rounded-sm bg-card">
                 <Tabs

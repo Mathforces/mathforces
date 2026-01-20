@@ -57,10 +57,12 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
         {/* Problem.name */}
         <h3 className="text-lg font-semibold">Problem {problem.name}</h3>
 
-        {/* Lower part */}
+        {/* Lower-left part (Problem details) */}
         <div className="pl-1 flex items-center gap-3">
+
           {/* likess & commentss */}
           <div className="flex justify-between items-center gap-2">
+
             {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
@@ -74,6 +76,7 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
                 {problem.comments_num ?? 0}
               </span>
             </div>
+
           </div>
 
           {/* People answered */}
@@ -101,6 +104,7 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
               </span>
             </div>
           </div>
+
         </div>
       </div>
 
