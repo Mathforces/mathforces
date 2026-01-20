@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
@@ -10,9 +10,11 @@ import { contestProblem } from "@/types/types";
 
 interface Props {
   problem: contestProblem;
+  shownProblem: number | null;
+  setShownProblem: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const Problem_Card = ({ problem }: Props) => {
+const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
   const pathName = usePathname();
   const isInContest = pathName.includes(`/contests/${problem.id}`);
 
@@ -48,7 +50,7 @@ const Problem_Card = ({ problem }: Props) => {
     <div
       key={`${problem.name}-${problem.id}`}
       onClick={() => {}}
-      className=" group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default  "
+      className={` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default ${shownProblem == problem.id && "border border-border-muted/40"}`}
     >
       {/* Left section of problem */}
       <div className="flex flex-col justify-between gap-2 ">
@@ -76,15 +78,26 @@ const Problem_Card = ({ problem }: Props) => {
 
           {/* People answered */}
           <div className="flex items-center">
-            {/* TODO: change to people answered */}
             <Progress
-              value={71}
+              value={
+                ((problem.num_correct_submissions ?? 0) /
+                  (problem.num_submissions ?? 1)) *
+                100
+              }
               className="bg-background w-24 h-[3px] *:bg-success/50"
             />
             <div className="flex gap-1 items-center text-xs">
-              <span>71%</span>
+              <span>
+                {Math.round(
+                  ((problem.num_correct_submissions ?? 0) /
+                    (problem.num_submissions ?? 1)) *
+                    100,
+                )}
+                %
+              </span>
               <span className="text-muted-foreground/70">
-                (1200 submissions)
+                ({problem.num_correct_submissions ?? 0} /{" "}
+                {problem.num_submissions ?? 0} submissions)
               </span>
             </div>
           </div>
@@ -95,6 +108,7 @@ const Problem_Card = ({ problem }: Props) => {
       <Button
         variant={"secondary"}
         className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+        onClick={() => setShownProblem(problem.id)}
       >
         Try Out
       </Button>

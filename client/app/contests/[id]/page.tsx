@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gauge, AlertCircle } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
@@ -29,7 +29,8 @@ import ProblemCard from "@/components/Contest/Problem_Card";
 export default function Page() {
   const isMobile = useIsMobile();
   const { id } = useParams();
-
+  const router = useRouter();
+  const contestParams = useSearchParams();
   const [showLevels, setShowLevels] = useState(false);
 
   const [contest, setContest] = useState<Contest | null>(null);
@@ -38,7 +39,11 @@ export default function Page() {
 
   const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<contestProblem[]>([]);
-  const [shownProblem, setShownProblem] = useState<contestProblem | null>(null);
+
+  const problemId = contestParams.get("problemId") || null;
+  const [shownProblem, setShownProblem] = useState<number | null>(
+    Number(problemId),
+  );
 
   const bottomBarTabs = [
     {
@@ -83,7 +88,9 @@ export default function Page() {
       setError(null);
 
       const response = await axios.get(`/api/contests/${id}/problems`);
-      setShownProblem(response.data[0]);
+      if (!shownProblem) {
+        setShownProblem(response.data[0].id);
+      }
       setProblems(response.data);
     } catch (err: any) {
       console.error("Error fetching problems:", err);
@@ -106,6 +113,13 @@ export default function Page() {
     }
   }, [showLevels]);
 
+  useEffect(() => {
+    if (shownProblem) {
+      if (shownProblem != Number(contestParams.get("problemId"))) {
+        router.push(`?problemId=${shownProblem}`);
+      }
+    }
+  }, [shownProblem]);
   if (loading) return <Loading title="Contest Problem" />;
 
   if (error) {
@@ -244,7 +258,14 @@ export default function Page() {
 
                         <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
                           {problems.map((problem) => (
-                            <ProblemCard key={problem.id} problem={problem} />
+                            <div onClick={() => setShownProblem(problem.id)} className="w-full">
+                              <ProblemCard
+                                key={problem.id}
+                                problem={problem}
+                                setShownProblem={setShownProblem}
+                                shownProblem={shownProblem}
+                              />
+                            </div>
                           ))}
                         </div>
                       </TabsContent>
@@ -323,7 +344,7 @@ export default function Page() {
                     ))}
                   </TabsList>
 
-                  <Problem_Statement_card shownProblem={shownProblem} />
+                  <Problem_Statement_card shownProblemId={shownProblem} />
                   <TabsContent value="graphingCalculator">
                     <GraphCalculator />
                   </TabsContent>

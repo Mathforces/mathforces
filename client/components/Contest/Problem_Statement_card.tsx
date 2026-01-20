@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Contest, contestProblem, FullProblem } from "@/types/types";
@@ -14,12 +15,30 @@ import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
 import Problem_Card from "./Problem_Card";
 import Problem_statement from "./problem_statement";
-
+import { useState, useEffect } from "react";
+import axios from "axios";
 interface Props {
-  shownProblem: contestProblem | null;
+  shownProblemId: number | null;
 }
 
-const Problem_Statement_card = ({ shownProblem }: Props) => {
+const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
+  const [fullProblem, setFullProblem] = useState<FullProblem | null>(null);
+  useEffect(() => {
+    if (shownProblem) {
+      const getDescription = async () => {
+        await axios
+          .get(`/api/problems/${shownProblem}`)
+          .then((res) => {
+            setFullProblem(res.data);
+          })
+          .catch(() => {
+            console.error("Error fetching full problem");
+          });
+      };
+      getDescription();
+    }
+  }, [shownProblem]);
+
   return (
     <TabsContent
       value="problemStatement"
@@ -28,7 +47,7 @@ const Problem_Statement_card = ({ shownProblem }: Props) => {
       {/* Problem Header */}
       <div className="flex flex-col gap-2 mb-2 w-full">
         <h1 className="text-2xl font-bold text-center">
-          Problem {shownProblem?.name ?? "the fuck"}
+          Problem {fullProblem?.name ?? "UNKNOWN"}
         </h1>
 
         {/* Methods to access problem */}
@@ -55,13 +74,15 @@ const Problem_Statement_card = ({ shownProblem }: Props) => {
       <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Problem Description & Submission */}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 w-full">
         {/* Problem Description */}
-        <Problem_statement shownProblem={shownProblem} />
+        <div className="">
+          <p className="text-text text-sm">{fullProblem?.description}</p>
+        </div>
         {/* Problem Submission */}
         <div className="w-full max-w-2xl flex gap-4">
           <Input
-            className="border-none bg-bg-light! text-text-muted"
+            className="flex-1 border-none bg-bg-light! text-text-muted"
             placeholder="Answer here..."
           />
           <Button className="w-25 text-text" variant="primary">
