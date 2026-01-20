@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,9 +28,45 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* MathJax v4 Configuration */}
+        <script
+          id="mathjax-config"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.MathJax = {
+                // LaTeX processing configuration
+                tex: {
+                  inlineMath: [['$', '$']],
+                  displayMath: [['$$', '$$']],
+                  processEscapes: true,
+                  tags: 'ams',
+                  tagSide: 'right',
+                  tagIndent: '0.2em'
+                },
+                // Output rendering configuration
+                output: {
+                  font: 'mathjax-newcm'
+                },
+                // Initialization and startup configuration
+                startup: {
+                  pageReady() {
+                    return MathJax.startup.defaultPageReady();
+                  }
+                }
+              };
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* MathJax v4 CDN */}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
+          strategy="afterInteractive"
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

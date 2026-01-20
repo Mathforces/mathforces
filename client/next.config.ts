@@ -1,7 +1,14 @@
-import type { NextConfig } from "next";
+import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    webpack: (config) => {
+        // Handle MathJax static assets
+        config.module.rules.push({
+            test: /\.woff2$/,
+            type: 'asset/resource'
+        });
+        return config;
+    },
 };
 
 export default nextConfig;

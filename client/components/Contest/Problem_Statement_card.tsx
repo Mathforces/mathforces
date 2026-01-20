@@ -14,15 +14,17 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
 import Problem_Card from "./Problem_Card";
-import Problem_statement from "./problem_statement";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { MathJaxContent } from "@/components/ui/MathJaxContent";
+
 interface Props {
   shownProblemId: number | null;
 }
 
 const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
   const [fullProblem, setFullProblem] = useState<FullProblem | null>(null);
+
   useEffect(() => {
     if (shownProblem) {
       const getDescription = async () => {
@@ -38,7 +40,6 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
       getDescription();
     }
   }, [shownProblem]);
-
   return (
     <TabsContent
       value="problemStatement"
@@ -74,11 +75,12 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
       <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Problem Description & Submission */}
-      <div className="flex flex-col gap-5 w-full">
+      <MathJaxContent className="flex flex-col gap-5 w-full">
         {/* Problem Description */}
         <div className="">
           <p className="text-text text-sm">{fullProblem?.description}</p>
         </div>
+      </MathJaxContent>
         {/* Problem Submission */}
         <div className="w-full max-w-2xl flex gap-4">
           <Input
@@ -89,7 +91,6 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
             Submit
           </Button>
         </div>
-      </div>
       <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Help */}
