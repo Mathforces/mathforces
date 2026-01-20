@@ -52,7 +52,7 @@ const Problem_Statement_card = ({ shownProblem }: Props) => {
           </button>
         </div>
       </div>
-      <Separator className="bg-bg-light h-0.5!" />
+      <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Problem Description & Submission */}
       <div className="flex flex-col gap-5">
@@ -69,7 +69,7 @@ const Problem_Statement_card = ({ shownProblem }: Props) => {
           </Button>
         </div>
       </div>
-      <Separator className="bg-bg-light h-0.5!" />
+      <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Help */}
       <div className="w-full flex flex-col items-start gap-4 ">
@@ -93,7 +93,7 @@ const Problem_Statement_card = ({ shownProblem }: Props) => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-      <Separator className="bg-bg-light h-0.5!" />
+      <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Report a problem */}
       <div className="w-full flex justify-end">
