@@ -37,7 +37,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<FullProblem[]>([]);
+  const [problems, setProblems] = useState<contestProblem[]>([]);
   const [shownProblem, setShownProblem] = useState<contestProblem | null>(null);
 
   const bottomBarTabs = [

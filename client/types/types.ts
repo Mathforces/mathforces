@@ -1,12 +1,15 @@
-export interface contestProblem {
-  id: number;
-  name: string;
-  num_submissions: number;
-  num_correct_submissions: number;
-  points: number;
-  likes: number;
-  comments_num: number;
-}
+export const contestProblemDefaultValues = {
+  id: 0,
+  name: "",
+  num_submissions: 0,
+  num_correct_submissions: 0,
+  points: 0,
+  likes: 0,
+  comments_num: 0,
+} as const;
+export type contestProblem = {
+  [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
+};
 export interface FullProblem {
   id: number;
   name: string;

@@ -1,15 +1,18 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { contestProblemDefaultValues } from "@/types/types";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ contest_id: string }> }
+  { params }: { params: Promise<{ contest_id: string }> },
 ) {
   try {
     const supabase = await createSupabaseServerClient();
     const contestId = (await params).contest_id;
     const { data: problems, error } = await supabase
       .from("problems")
-      .select("id, name, num_submissions, num_correct_submissions, points")
+      .select(
+       Object.keys(contestProblemDefaultValues).join(", ")
+      )
       .eq("contest_id", parseInt(contestId));
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {

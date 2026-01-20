@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
-import { Problem } from "@/types/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { contestProblem } from "@/types/types";
 
 interface Props {
-  problem: Problem;
+  problem: contestProblem;
 }
 
 const Problem_Card = ({ problem }: Props) => {
@@ -44,7 +44,6 @@ const Problem_Card = ({ problem }: Props) => {
       observer.disconnect();
     };
   }, []);
-
   return (
     <div
       key={`${problem.name}-${problem.id}`}
@@ -69,7 +68,9 @@ const Problem_Card = ({ problem }: Props) => {
             {/* comments */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <MessageSquare className="w-4 h-4" />{" "}
-              <span className="text-sm font-medium">{problem.comments_num ?? 0}</span>
+              <span className="text-sm font-medium">
+                {problem.comments_num ?? 0}
+              </span>
             </div>
           </div>
 
