@@ -13,7 +13,7 @@ export async function GET(
       .select(
        Object.keys(contestProblemDefaultValues).join(", ")
       )
-      .eq("contest_id", parseInt(contestId));
+      .eq("contest_id", contestId);
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

@@ -28,7 +28,7 @@ import ProblemCard from "@/components/Contest/Problem_Card";
 
 export default function Page() {
   const isMobile = useIsMobile();
-  const { id } = useParams();
+  const { id: contest_id } = useParams();
   const router = useRouter();
   const contestParams = useSearchParams();
   const [showLevels, setShowLevels] = useState(false);
@@ -58,15 +58,14 @@ export default function Page() {
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
     useState("problemStatement");
-
   useEffect(() => {
     const fetchContest = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(`/api/contests/${id}`);
-
+        const response = await axios.get(`/api/contests/${contest_id}`);
+        console.log(response);
         setContest(response.data);
       } catch (err: any) {
         console.error("Error fetching contest:", err);
@@ -80,30 +79,32 @@ export default function Page() {
     };
 
     fetchContest();
-  }, [id]);
 
-  const fetchProblems = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchProblems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const response = await axios.get(`/api/contests/${id}/problems`);
-      if (!shownProblem) {
-        setShownProblem(response.data[0].id);
+        const response = await axios.get(
+          `/api/contests/${contest_id}/problems`,
+        );
+        if (response) {
+          if (!shownProblem) {
+            setShownProblem(response.data[0].id);
+          }
+          setProblems(response.data);
+        }
+      } catch (err: any) {
+        console.error("Error fetching problems:", err);
+        setError(
+          err.response?.data?.message ||
+            "Failed to load problems. Please try again.",
+        );
       }
-      setProblems(response.data);
-    } catch (err: any) {
-      console.error("Error fetching problems:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to load problems. Please try again.",
-      );
-    }
-  };
-
-  useEffect(() => {
+    };
     fetchProblems();
-  }, [id]);
+  }, [contest_id]);
+
 
   useEffect(() => {
     if (showLevels) {
@@ -249,8 +250,9 @@ export default function Page() {
                           <h2 className="font-bold text-2xl">{contest.name}</h2>
                           <div className="flex gap-1">
                             <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center">
+                              {/* TODO: Customize this to have multiple colors according to the difficulty */}
                               <span className="text-destructive">
-                                {contest.difficulty}
+                                {contest.difficulty ?? "Unset"}
                               </span>
                             </div>
                             <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center">

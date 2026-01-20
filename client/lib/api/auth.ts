@@ -31,9 +31,6 @@ export function requireApiKey(request: Request): Response | null {
   return null;
 }
 
-/**
- * Rate limiting store (in-memory, for production consider Redis)
- */
 const rateLimitStore = new Map<
   string,
   { count: number; resetTime: number }
