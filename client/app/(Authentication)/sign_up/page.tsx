@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Google, FaceBook } from "@/components/ui/Custom_Icons";
 import { Input } from "@/components/ui/input";
@@ -6,8 +7,86 @@ import MathNoise from "@/components/ui/MathNoise";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldTitle,
+} from "@/components/ui/field";
+import * as z from "zod";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { BsExclamationCircle } from "react-icons/bs";
+import { TiTick } from "react-icons/ti";
+const schema = z.object({
+  username: z
+    .string()
+    .min(2, "username should be at least 2 characters long")
+    .max(100, "username should be at most 100 characters long"),
+  email: z.email(),
+  password: z
+    .string()
+    .min(8, "Password is too short")
+    .max(100, "Password is too long"),
+  confirmPassword: z
+    .string()
+    .min(8, "Password is too short")
+    .max(100, "Password is too long"),
+});
 
 export default function Page() {
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
+
+  function onSubmit(data: z.infer<typeof schema>) {
+    if (data.password !== data.confirmPassword) {
+      form.setError("confirmPassword", {
+        message: "Passwords do not match",
+      });
+      form.setError("password", {
+        message: "Passwords do not match",
+      });
+    } else {
+      toast.success("You Signed up Successfully", {
+        description: <p>Check your email to activate your account</p>,
+      });
+    }
+  }
+  const handleUsernameChange = async (value: string) => {
+    form.setValue("username", value);
+    if (value.length >= 2) {
+      const { data: isUsername, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", value)
+        .limit(1);
+      if (error) {
+        console.error("Error checking username:", error);
+        setUsernameExists(null);
+      } else if (isUsername.length > 0) {
+        setUsernameExists(true);
+      } else {
+        setUsernameExists(false);
+      }
+    } else setUsernameExists(null);
+  };
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0 pt-10">
       <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl ">
@@ -40,7 +119,7 @@ export default function Page() {
         {/* Or */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="bg-border-muted"/>
+            <Separator className="bg-border-muted" />
           </div>
           <div className="relative flex justify-center text-sm uppercase">
             <span className="bg-background px-2 text-text-muted">Or</span>
@@ -50,25 +129,108 @@ export default function Page() {
 
         <form
           action=""
-          className="max-w-2xl mx-auto flex flex-col gap-5  "
+          className="max-w-2xl mx-auto flex flex-col gap-5"
+          onSubmit={form.handleSubmit(onSubmit)}
         >
-          <div className="flex flex-col gap-2">
-            <Label>Username</Label>
-            <Input placeholder="e.g. piKiller2000"></Input>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label>Email</Label>
-            <Input placeholder="Example@gmail.com"></Input>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label>Password</Label>
-            <Input placeholder="*********"></Input>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label>Confirm Password</Label>
-            <Input placeholder="*********"></Input>
-          </div>
-          <Button type="submit" className="text-text">Submit</Button>
+          <FieldGroup>
+            <Controller
+              name="username"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                  <div className="relative w-full">
+                    <Input
+                      {...field}
+                      id="username"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="e.g. piKiller2000"
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      className={
+                        usernameExists === true
+                          ? "border-destructive dark:destructive/40"
+                          : usernameExists === false
+                            ? "border-success dark:ring-success/40"
+                            : ""
+                      }
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      {usernameExists ? (
+                        <BsExclamationCircle className="w-5 h-5 text-red-500" />
+                      ) : usernameExists === false ? (
+                        <TiTick className="w-5 h-5 text-success" />
+                      ) : null}
+                    </div>
+                  </div>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    {...field}
+                    id="email"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="pikiller2000@gmail.com"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input
+                    {...field}
+                    id="password"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="*********"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="confirmPassword"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="confirmPassword">
+                    Confirm Password
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="confirmPassword"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="*********"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+          <Button type="submit" className="text-text">
+            Submit
+          </Button>
         </form>
         <div className="text-center text-xs my-4">
           Already have an account?{" "}

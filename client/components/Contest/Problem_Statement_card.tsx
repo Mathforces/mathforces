@@ -58,7 +58,7 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
             <div className="flex items-center gap-1">
               <FaRegFilePdf />
               <span>PDF</span>
-            </div>
+        </div>
             <FaExternalLinkAlt className="w-3 h-3" />
           </button>
 
