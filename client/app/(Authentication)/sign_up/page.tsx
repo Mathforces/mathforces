@@ -3,20 +3,24 @@ import { Google, FaceBook } from "@/components/ui/Custom_Icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MathNoise from "@/components/ui/MathNoise";
+import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function Page() {
   return (
-    <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
-      <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl">
+    <main className="h-screen flex justify-center items-center max-w-[1444]! px-0 pt-10">
+      <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl ">
+        {/* Heading */}
         <div>
-          <h3>Get Started Now</h3>
-          <p>Enter your credentials to access your account</p>
+          <h3 className="text-text">Get Started Now</h3>
+          <p className="text-text-muted">
+            Enter your credentials to create a new account
+          </p>
         </div>
 
         {/* sign Up with Google or FaceBook section */}
-        <section className="grid grid-cols-2 gap-6 px-5 mt-5 max-w-2xl mx-auto">
+        <section className="grid grid-cols-2 gap-6  mt-5 max-w-2xl mx-auto">
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
@@ -34,21 +38,23 @@ export default function Page() {
         </section>
 
         {/* Or */}
-        <div className="relative w-full max-w-lg mx-auto h-0.5 bg-black my-10 opacity-30">
-          <span className="absolute top-2/4 left-2/4 -translate-2/4 bg-background p-2 uppercase ">
-            Or
-          </span>
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="bg-border-muted"/>
+          </div>
+          <div className="relative flex justify-center text-sm uppercase">
+            <span className="bg-background px-2 text-text-muted">Or</span>
+          </div>
         </div>
-
-        {/* sign Up with Email <not recommended> */}
+        {/* sign Up with Email */}
 
         <form
           action=""
-          className="max-w-2xl mx-auto bg-card rounded-2xl p-4 flex flex-col gap-5  "
+          className="max-w-2xl mx-auto flex flex-col gap-5  "
         >
           <div className="flex flex-col gap-2">
-            <Label>Full Name</Label>
-            <Input placeholder="Your Full Name"></Input>
+            <Label>Username</Label>
+            <Input placeholder="e.g. piKiller2000"></Input>
           </div>
           <div className="flex flex-col gap-2">
             <Label>Email</Label>
@@ -59,13 +65,13 @@ export default function Page() {
             <Input placeholder="*********"></Input>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Conform Password</Label>
+            <Label>Confirm Password</Label>
             <Input placeholder="*********"></Input>
           </div>
-          <Button type="submit">Submit</Button>
+          <Button type="submit" className="text-text">Submit</Button>
         </form>
         <div className="text-center text-xs my-4">
-          don't have an Account ?{" "}
+          Already have an account?{" "}
           <Link href={"/sign_in"} className="Link">
             Sign In
           </Link>

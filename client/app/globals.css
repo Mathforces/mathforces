@@ -243,7 +243,7 @@
   --card-foreground: var(--text);
   --popover: var(--bg-light);
   --popover-foreground: var(--text);
-  --primary-foreground: var(--bg-dark);
+  --primary-foreground: var(--text-text);
   --secondary-foreground: var(--bg-dark);
   --muted: var(--bg-light);
   --muted-foreground: var(--text-muted);
