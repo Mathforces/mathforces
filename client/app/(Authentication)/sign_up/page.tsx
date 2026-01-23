@@ -84,7 +84,8 @@ export default function Page() {
     })
     console.log(data);
   };
-  const handleUsernameChange = async (value: string) => {
+  const handleUsernameChange = async () => {
+    const value = form.getValues("username");
     form.setValue("username", value);
     if (value.length >= 2) {
       const { data: isUsername, error } = await supabase
@@ -92,6 +93,7 @@ export default function Page() {
         .select("id")
         .eq("username", value)
         .limit(1);
+      console.log(isUsername)
       if (error) {
         console.error("Error checking username:", error);
         setUsernameExists(null);
@@ -160,7 +162,7 @@ export default function Page() {
                       id="username"
                       aria-invalid={fieldState.invalid}
                       placeholder="e.g. piKiller2000"
-                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      onBlur={() => handleUsernameChange()}
                       className={
                         usernameExists === true
                           ? "border-destructive dark:destructive/40"
