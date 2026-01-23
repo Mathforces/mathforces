@@ -27,7 +27,9 @@ import { supabase } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
-const schema = z.object({
+import { signupWithEmailAndPassword } from "./auth_utils";
+import axios from "axios";
+export const schema = z.object({
   username: z
     .string()
     .min(2, "username should be at least 2 characters long")
@@ -55,7 +57,7 @@ export default function Page() {
   });
   const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
 
-  function onSubmit(data: z.infer<typeof schema>) {
+  const onSubmit = async (data: z.infer<typeof schema>) => {
     if (data.password !== data.confirmPassword) {
       form.setError("confirmPassword", {
         message: "Passwords do not match",
@@ -63,12 +65,25 @@ export default function Page() {
       form.setError("password", {
         message: "Passwords do not match",
       });
-    } else {
-      toast.success("You Signed up Successfully", {
-        description: <p>Check your email to activate your account</p>,
-      });
+      return;
     }
-  }
+    axios.post("/api/signup", data)
+    .then((res) => {
+      // toast.success(
+      //   "You Signed up Successfully, check your email to activate your account",
+      // );
+      console.log("hey success here")
+    }).catch((err) => {
+      // toast.error(
+      //   "Couldn't Signup, check your internet connection or try again later",
+      //   {
+      //     description: err,
+      //   },
+      // );
+      console.log("failed at signup tsx ")
+    })
+    console.log(data);
+  };
   const handleUsernameChange = async (value: string) => {
     form.setValue("username", value);
     if (value.length >= 2) {
@@ -197,6 +212,7 @@ export default function Page() {
                   <Input
                     {...field}
                     id="password"
+                    type="password"
                     aria-invalid={fieldState.invalid}
                     placeholder="*********"
                   />
@@ -218,6 +234,7 @@ export default function Page() {
                   <Input
                     {...field}
                     id="confirmPassword"
+                    type="password"
                     aria-invalid={fieldState.invalid}
                     placeholder="*********"
                   />
