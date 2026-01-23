@@ -1,96 +1,34 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  console.log("on top of the request")
   try {
-    const formData = await request.json();
-
-    if (!formData || !formData.username || !formData.email || !formData.password) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    const body = await request.json();
+    const {username} = body;
+    if (!username || username.length < 2) {
+      return NextResponse.json({ error: "Invalid username input" }, { status: 400 });
     }
 
     const supabase = createSupabaseServiceClient();
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: formData.email,
-      password: formData.password,
-      email_confirm: false, // User will need to confirm email
-      user_metadata: {
-        username: formData.username,
-      },
-    });
-
-    if (authError) {
-      console.error("Auth error:", authError);
-      return new Response(
-        JSON.stringify({ error: authError.message }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    if (!authData.user) {
-      return new Response(
-        JSON.stringify({ error: "Failed to create user" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // Create profile
-    const { data: profileData, error: profileError } = await supabase
+    const { data: username_matches, error: usernameError } = await supabase
       .from("profiles")
-      .insert([
-        {
-          id: authData.user.id,
-          username: formData.username,
-          email: formData.email,
-        },
-      ])
-      .select();
-
-    if (profileError) {
-      console.error("Profile error:", profileError);
-       
-      // TODO: Clean the user auth from users table
-      
-      return new Response(
-        JSON.stringify({ error: profileError.message }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      .select("username")
+      .eq("username", body.username)
+    if (usernameError) {
+      return NextResponse.json({ error: usernameError.message }, { status: 500 });
     }
-
-    return new Response(JSON.stringify({ success: true, user: authData.user }), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    if (username_matches.length > 0) {
+      return NextResponse.json({ exists: true });
+    }
+    return NextResponse.json({ exists: false });
   } catch (error) {
     console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return NextResponse.json({
+      error: "Internal server error",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

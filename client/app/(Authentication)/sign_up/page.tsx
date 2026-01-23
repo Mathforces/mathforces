@@ -67,41 +67,46 @@ export default function Page() {
       });
       return;
     }
-    axios.post("/api/signup", data)
-    .then((res) => {
-      // toast.success(
-      //   "You Signed up Successfully, check your email to activate your account",
-      // );
-      console.log("hey success here")
-    }).catch((err) => {
-      // toast.error(
-      //   "Couldn't Signup, check your internet connection or try again later",
-      //   {
-      //     description: err,
-      //   },
-      // );
-      console.log("failed at signup tsx ")
-    })
+    axios
+      .post("/api/signup", data)
+      .then((res) => {
+        // toast.success(
+        //   "You Signed up Successfully, check your email to activate your account",
+        // );
+        console.log("hey success here");
+      })
+      .catch((err) => {
+        // toast.error(
+        //   "Couldn't Signup, check your internet connection or try again later",
+        //   {
+        //     description: err,
+        //   },
+        // );
+        console.log("failed at signup tsx ");
+      });
     console.log(data);
   };
   const handleUsernameChange = async () => {
     const value = form.getValues("username");
     form.setValue("username", value);
     if (value.length >= 2) {
-      const { data: isUsername, error } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", value)
-        .limit(1);
-      console.log(isUsername)
-      if (error) {
-        console.error("Error checking username:", error);
-        setUsernameExists(null);
-      } else if (isUsername.length > 0) {
-        setUsernameExists(true);
-      } else {
-        setUsernameExists(false);
-      }
+      axios
+        .post("/api/signup/username_exists", { username: value })
+        .then((res) => {
+          setUsernameExists(res.data.exists);
+          console.log("res: ", res.data.exists);
+          if (res.data.exists) {
+            form.setError("username", {
+              message: "Username is already taken",
+            });
+          } else {
+            form.clearErrors("username");
+          }
+        })
+        .catch((err) => {
+          console.error("Error checking username:", err);
+          setUsernameExists(null);
+        });
     } else setUsernameExists(null);
   };
   return (
