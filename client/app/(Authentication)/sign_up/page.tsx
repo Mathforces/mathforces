@@ -24,28 +24,63 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
-import { signupWithEmailAndPassword } from "./auth_utils";
 import axios from "axios";
-export const schema = z.object({
-  username: z
-    .string()
-    .min(2, "username should be at least 2 characters long")
-    .max(100, "username should be at most 100 characters long"),
-  email: z.email(),
-  password: z
-    .string()
-    .min(8, "Password is too short")
-    .max(100, "Password is too long"),
-  confirmPassword: z
-    .string()
-    .min(8, "Password is too short")
-    .max(100, "Password is too long"),
-});
-
+import { debounce } from "lodash";
 export default function Page() {
+  const schema = z
+    .object({
+      username: z
+        .string()
+        .min(2, "username should be at least 2 characters long")
+        .max(100, "username should be at most 100 characters long")
+        .refine(async (val) => {
+          const res = await debouncedIsUsernameUnique(val);
+          console.log("res: ", res);
+          return res;
+        }, "Username is already taken"),
+      email: z.email(),
+      password: z
+        .string()
+        .min(8, "Password is too short")
+        .max(100, "Password is too long"),
+      confirmPassword: z
+        .string()
+        .min(8, "Password is too short")
+        .max(100, "Password is too long"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword", "password"],
+    });
+  const isUsernameUnique = async (value: string): Promise<boolean> => {
+    try {
+      const res = await axios.post("/api/signup/username_exists", {
+        username: value,
+      });
+      const isUnique = !res.data.exists;
+      return isUnique;
+    } catch (err: any) {
+      console.error(err.response?.data?.error);
+      return false;
+    }
+  };
+  const debouncedIsUsernameUnique = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+    let lastPromise: Promise<boolean>;
+
+    return async (value: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+          lastPromise = isUsernameUnique(value);
+          resolve(await lastPromise);
+        }, 500);
+      });
+    };
+  }, []);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -54,61 +89,35 @@ export default function Page() {
       password: "",
       confirmPassword: "",
     },
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
   const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
-    if (data.password !== data.confirmPassword) {
-      form.setError("confirmPassword", {
-        message: "Passwords do not match",
-      });
-      form.setError("password", {
-        message: "Passwords do not match",
-      });
-      return;
-    }
     axios
       .post("/api/signup", data)
       .then((res) => {
-        // toast.success(
-        //   "You Signed up Successfully, check your email to activate your account",
-        // );
-        console.log("hey success here");
+        toast.success(
+          "Successfully signed up, check your email to activate your account",
+        );
       })
       .catch((err) => {
-        // toast.error(
-        //   "Couldn't Signup, check your internet connection or try again later",
-        //   {
-        //     description: err,
-        //   },
-        // );
-        console.log("failed at signup tsx ");
+        if (err.response && err.response.data.error) {
+          toast.error(err.response.data.error);
+        }
       });
-    console.log(data);
   };
-  const handleUsernameChange = async () => {
-    const value = form.getValues("username");
-    form.setValue("username", value);
-    if (value.length >= 2) {
-      axios
-        .post("/api/signup/username_exists", { username: value })
-        .then((res) => {
-          setUsernameExists(res.data.exists);
-          console.log("res: ", res.data.exists);
-          if (res.data.exists) {
-            form.setError("username", {
-              message: "Username is already taken",
-            });
-          } else {
-            form.clearErrors("username");
-          }
-        })
-        .catch((err) => {
-          console.error("Error checking username:", err);
-          setUsernameExists(null);
-        });
-    } else setUsernameExists(null);
-  };
+  useEffect(() => {
+    console.log("usernameExists:", usernameExists);
+    if (usernameExists === true) {
+      form.setError("username", {
+        message: "Username is already taken",
+      });
+    } else if (usernameExists === false) {
+      form.clearErrors("username");
+    }
+  }, [usernameExists]);
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0 pt-10">
       <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl ">
@@ -158,6 +167,14 @@ export default function Page() {
             <Controller
               name="username"
               control={form.control}
+              rules={{
+                validate: async (val) => {
+                  console.log("validate called with:", val);
+                  const result = await isUsernameUnique(val);
+                  console.log("isUsernameUnique returned:", result);
+                  return result || "Username is already taken";
+                },
+              }}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
@@ -167,7 +184,6 @@ export default function Page() {
                       id="username"
                       aria-invalid={fieldState.invalid}
                       placeholder="e.g. piKiller2000"
-                      onBlur={() => handleUsernameChange()}
                       className={
                         usernameExists === true
                           ? "border-destructive dark:destructive/40"

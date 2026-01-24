@@ -23,14 +23,13 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: formData.email,
       password: formData.password,
-      email_confirm: false, // User will need to confirm email
+      email_confirm: false, 
       user_metadata: {
         username: formData.username,
       },
     });
 
     if (authError) {
-      console.error("Auth error:", authError);
       return new Response(
         JSON.stringify({ error: authError.message }),
         {
