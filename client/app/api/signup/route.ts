@@ -17,16 +17,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServiceClient();
+    const supabaseClient = createSupabaseServerClient();
 
     // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await (await supabaseClient).auth.signUp({
       email: formData.email,
       password: formData.password,
-      email_confirm: false, 
-      user_metadata: {
-        username: formData.username,
-      },
     });
 
     if (authError) {
@@ -50,7 +46,8 @@ export async function POST(request: Request) {
     }
 
     // Create profile
-    const { data: profileData, error: profileError } = await supabase
+    const supabaseService = createSupabaseServiceClient();
+    const { data: profileData, error: profileError } = await supabaseService
       .from("profiles")
       .insert([
         {
