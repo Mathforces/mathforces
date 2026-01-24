@@ -9,8 +9,8 @@ import Link from "next/link";
 
 export default function Page() {
   return (
-    <main className="h-screen flex justify-center items-center max-w-[1444]! px-0 pt-10">
-      <section className="h-full w-full lg:w-2/4 pt-24 px-5 md:px-10 max-w-4xl ">
+    <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
+      <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto ">
         {/* Heading */}
         <div>
           <h3 className="text-text">Get Started Now</h3>
