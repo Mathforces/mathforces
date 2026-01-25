@@ -22,45 +22,12 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
-import axios from "axios";
-import { toast } from "sonner";
-import React from "react";
-export default function Page() {
-  const schema = z.object({
-    usernameOrEmail: z
-      .string()
-      .min(2, "username should be at least 2 characters long")
-      .max(100, "username should be at most 100 characters long"),
-    password: z
-      .string()
-      .min(8, "Password is too short")
-      .max(100, "Password is too long"),
-  });
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      usernameOrEmail: "",
-      password: "",
-    },
-  });
 
-  const onSubmit = async (data: z.infer<typeof schema>) => {
-    // e.preventDefault();
-    axios
-      .post("/api/signin", data)
-      .then((res) => {
-        toast.success(
-          "Successfully signed in!",
-        );
-        console.log("Sign in data:", res.data);
-      })
-      .catch((err) => {
-        if (err.response && err.response.data.error) {
-          toast.error(err.response.data.error);
-        }
-        console.error("Sign in error:", err);
-      });
-  };
+interface IForgotPasswordProps {}
+
+const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
+  props,
+) => {
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
       <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto ">
@@ -101,7 +68,7 @@ export default function Page() {
         </div>
         {/* sign Up with Email */}
 
-        <form className="max-w-2xl mx-auto flex flex-col gap-5" onSubmit={form.handleSubmit(onSubmit)}>
+        <form action="" className="max-w-2xl mx-auto flex flex-col gap-5  ">
           <Controller
             name="usernameOrEmail"
             control={form.control}
@@ -135,18 +102,13 @@ export default function Page() {
                     {...field}
                     id="password"
                     aria-invalid={fieldState.invalid}
-                    type="password"
                     placeholder="*********"
                   />
                 </div>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
-                <div>
-                  <Link href={"/forgot_password"} className="Link text-sm ">
-                    Forgot password?{" "}
-                  </Link>
-                </div>
+                <Link href={"/forgot_password"}>Forgot password? </Link>
               </Field>
             )}
           />
@@ -186,4 +148,6 @@ export default function Page() {
       </section>
     </main>
   );
-}
+};
+
+export default ForgotPassword;

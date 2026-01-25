@@ -3,7 +3,6 @@ import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
 
 export async function POST(request: Request) {
-  console.log("on top of the request")
   try {
     const formData = await request.json();
 

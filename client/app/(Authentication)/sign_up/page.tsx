@@ -28,7 +28,6 @@ import { useEffect, useMemo, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
 import axios from "axios";
-import { debounce } from "lodash";
 export default function Page() {
   const schema = z
     .object({
@@ -167,14 +166,6 @@ export default function Page() {
             <Controller
               name="username"
               control={form.control}
-              rules={{
-                validate: async (val) => {
-                  console.log("validate called with:", val);
-                  const result = await isUsernameUnique(val);
-                  console.log("isUsernameUnique returned:", result);
-                  return result || "Username is already taken";
-                },
-              }}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
