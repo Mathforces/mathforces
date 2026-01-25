@@ -25,6 +25,8 @@ import { Controller, useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "sonner";
 import React from "react";
+import { signIn } from "../utils";
+import { FaXTwitter } from "react-icons/fa6";
 export default function Page() {
   const schema = z.object({
     usernameOrEmail: z
@@ -47,7 +49,7 @@ export default function Page() {
   const onSubmit = async (data: z.infer<typeof schema>) => {
     // e.preventDefault();
     axios
-      .post("/api/signin", data)
+      .post("/api/auth/signin/email_and_password", data)
       .then((res) => {
         toast.success(
           "Successfully signed in!",
@@ -77,6 +79,7 @@ export default function Page() {
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("google")}
           >
             <Google className="w-12 h-12" />
             Google
@@ -84,12 +87,12 @@ export default function Page() {
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("x")}
           >
-            <FaceBook className="w-12 h-12" />
-            FaceBook
+            <FaXTwitter className="w-12 h-12 text-text" />
+           X / Twitter 
           </Button>
         </section>
-
         {/* Or */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">

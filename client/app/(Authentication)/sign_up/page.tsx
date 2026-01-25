@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MathNoise from "@/components/ui/MathNoise";
 import { Separator } from "@/components/ui/separator";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import Link from "next/link";
 import {
   Field,
@@ -28,6 +28,8 @@ import { useEffect, useMemo, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
 import axios from "axios";
+import { signIn } from "../utils";
+import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
 export default function Page() {
   const schema = z
     .object({
@@ -95,7 +97,7 @@ export default function Page() {
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     axios
-      .post("/api/signup", data)
+      .post("/api/auth/signup", data)
       .then((res) => {
         toast.success(
           "Successfully signed up, check your email to activate your account",
@@ -133,6 +135,7 @@ export default function Page() {
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("google")}
           >
             <Google className="w-12 h-12" />
             Google
@@ -140,9 +143,10 @@ export default function Page() {
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("x")}
           >
-            <FaceBook className="w-12 h-12" />
-            FaceBook
+            <FaXTwitter className="w-12 h-12 text-text" />
+           X / Twitter 
           </Button>
         </section>
 
