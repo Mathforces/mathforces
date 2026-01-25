@@ -46,7 +46,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const {data: signinData, error: signinError} =  await supabaseService.auth.signInWithPassword({
+    const supabase = await createSupabaseServerClient();
+    const {data: signinData, error: signinError} =  await supabase.auth.signInWithPassword({
         email: email, 
         password: formData.password
     })
@@ -62,7 +63,12 @@ export async function POST(request: Request) {
       );
     }
 
-    return new Response(JSON.stringify({ success: true, user: signinData.user }), {
+    // Return both user and session so client can verify
+    return new Response(JSON.stringify({ 
+      success: true, 
+      user: signinData.user,
+      session: signinData.session 
+    }), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });

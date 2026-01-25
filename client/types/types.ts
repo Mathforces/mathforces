@@ -35,3 +35,15 @@ export interface Contest {
   start_date: Date;
   created_at: Date;
 }
+
+export interface UserProfile{
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  email: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  image: string;
+  bio: string;
+}

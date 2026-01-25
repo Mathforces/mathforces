@@ -27,7 +27,10 @@ import { toast } from "sonner";
 import React from "react";
 import { signIn } from "../utils";
 import { FaXTwitter } from "react-icons/fa6";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 export default function Page() {
+  const router = useRouter();
   const schema = z.object({
     usernameOrEmail: z
       .string()
@@ -47,21 +50,44 @@ export default function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
-    // e.preventDefault();
-    axios
-      .post("/api/auth/signin/email_and_password", data)
-      .then((res) => {
-        toast.success(
-          "Successfully signed in!",
-        );
-        console.log("Sign in data:", res.data);
-      })
-      .catch((err) => {
-        if (err.response && err.response.data.error) {
-          toast.error(err.response.data.error);
+    try {
+      const res = await axios.post("/api/auth/signin/email_and_password", data);
+      
+      // Set the session on the client side
+      if (res.data.session) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: res.data.session.access_token,
+          refresh_token: res.data.session.refresh_token,
+        });
+
+        if (sessionError) {
+          console.error("Error setting session:", sessionError);
+          toast.error("Failed to set session. Please try again.");
+          return;
         }
-        console.error("Sign in error:", err);
-      });
+
+        // Verify the session was set
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          toast.success("Successfully signed in!");
+          console.log("Session verified:", currentSession);
+          // Redirect to home page or dashboard
+          router.push("/");
+          router.refresh();
+        } else {
+          toast.error("Session not found. Please try again.");
+        }
+      } else {
+        toast.error("No session received from server.");
+      }
+    } catch (err: any) {
+      if (err.response && err.response.data.error) {
+        toast.error(err.response.data.error);
+      } else {
+        toast.error("Sign in failed. Please try again.");
+      }
+      console.error("Sign in error:", err);
+    }
   };
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">

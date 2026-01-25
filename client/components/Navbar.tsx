@@ -6,11 +6,16 @@ import { usePathname } from "next/navigation";
 import { Logs, Plus } from "lucide-react";
 import { useState } from "react";
 import { ThemeButton } from "./Theme-button";
+import { getProfile } from "@/contexts/userContext";
 
 const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
-  if (pathName.slice(0, 10) === "/contests/") return;
+  const [userProfile, setUserProfile] = getProfile();
+  const bannedURLs = ["/contests/"];
+  bannedURLs.forEach((e) => {
+    if (pathName.includes(e)) return;
+  });
   return (
     <nav className="fixed top-0 left-2/4 -translate-x-2/4 w-full max-w-7xl flex justify-between md:justify-evenly items-center gap-5 p-5 z-50 bg-card rounded-b-2xl">
       <Link href="/">
@@ -46,9 +51,16 @@ const Navbar = () => {
 
       <div className="flex items-center gap-2">
         <ThemeButton />
+        {
+          userProfile
+          ? <div>
+            hello {userProfile.email}
+          </div>
+          : 
         <Button variant={"primary"} link="/sign_up">
           Sign Up
         </Button>
+        }
         <Button
           variant={"outline"}
           onClick={() => setOpenMenu(!openMenu)}

@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
+import Proivders from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,10 +80,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          {children}
-          <Toaster />
-          <Footer />
+          <Proivders>
+            <Navbar />
+            {children}
+            <Toaster />
+            <Footer />
+          </Proivders>
         </ThemeProvider>
       </body>
     </html>
