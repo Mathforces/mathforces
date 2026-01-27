@@ -47,3 +47,4 @@ export interface UserProfile{
   image: string;
   bio: string;
 }
+

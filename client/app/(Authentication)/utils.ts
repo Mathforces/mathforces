@@ -15,7 +15,7 @@ export const signIn = async (provider: "google" | "x") => {
 
 const isUsernameUnique = async (value: string): Promise<boolean> => {
   try {
-    const res = await axios.post("/api/signup/username_exists", {
+    const res = await axios.post("/api/auth/signup/username_exists", {
       username: value,
     });
     const isUnique = !res.data.exists;

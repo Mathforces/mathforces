@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { Logs, Plus } from "lucide-react";
 import { useState } from "react";
 import { ThemeButton } from "./Theme-button";
-import { getProfile } from "@/contexts/userContext";
+import { useUserProfile } from "@/contexts/userContext";
 
 const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
-  const [userProfile, setUserProfile] = getProfile();
+  const [userProfile, setUserProfile] = useUserProfile();
   const bannedURLs = ["/contests/"];
   let isBanned = false;
   bannedURLs.forEach((e) => {
@@ -60,7 +60,7 @@ const Navbar = () => {
         {
           userProfile
           ? <div>
-            hello {userProfile.email}
+            hello {userProfile.username}
           </div>
           : 
         <Button variant={"primary"} link="/sign_up">

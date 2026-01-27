@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import Proivders from "./providers";
+import { redirect} from "next/navigation";
+import NavigationListener from "@/components/navigationListener";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,6 +83,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Proivders>
+            <NavigationListener/>
             <Navbar />
             {children}
             <Toaster />

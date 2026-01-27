@@ -1,5 +1,5 @@
 "use client";
-import { getProfile, UserContext } from "@/contexts/userContext";
+import { UserContext } from "@/contexts/userContext";
 import { supabase } from "@/lib/supabase/client";
 import { UserProfile } from "@/types/types";
 import * as React from "react";
@@ -11,7 +11,8 @@ interface IProivdersProps {
 }
 
 const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null | 'without username'>(null);
+  const [accWithoutUsername, setAccWithoutUsername] = useState(false); 
   const { user, loading} = useUser();
   const router = useRouter();
   const handleGetUserProfile = async () => {
@@ -24,6 +25,7 @@ const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
     if (error) {
       console.error("Error fetching user profile:", error);
       if(user?.app_metadata.provider !== 'email'){
+        setUserProfile('without username')
         router.push('/get_username')
       }
       return;

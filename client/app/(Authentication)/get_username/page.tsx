@@ -31,6 +31,8 @@ import axios from "axios";
 import { debouncedIsUsernameUnique, signIn } from "../utils";
 import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
 import { useUser } from "@/app/hooks/useUser";
+import { useUserProfile } from "@/contexts/userContext";
+import { useRouter } from "next/navigation";
 interface IPageProps {}
 
 const Page: React.FunctionComponent<IPageProps> = (props) => {
@@ -46,20 +48,36 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
       }, "Username is already taken"),
   });
   const isUsernameUnique = useMemo(() => debouncedIsUsernameUnique(), []);
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
       username: "",
     },
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
   const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
-  const {user} = useUser();
+  const { user } = useUser();
+  const [userprofile, setUserProfile] = useUserProfile();
+  const router = useRouter();
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
-      const res = await axios.post("/api/auth/signup/create_profile", {id: user?.id, username: data.username, email: user?.email});
-      if(res){
-        toast("Successfully Signed in!")
+      const profileData = {
+        id: user?.id,
+        username: data.username,
+        email: user?.email,
+      };
+      const res = await axios.post(
+        "/api/auth/signup/create_profile",
+        profileData,
+      );
+      if (res) {
+        console.log("data: ", res.data.profileData);
+        setUserProfile(res.data.profileData);
+        toast("Successfully Signed in!");
+        router.push("/");
       }
     } catch (err: any) {
       if (err.response && err.response.data.error) {
@@ -70,8 +88,7 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
       console.error("Sign in error:", err);
     }
   };
-   
-  
+
   useEffect(() => {
     console.log("usernameExists:", usernameExists);
     if (usernameExists === true) {
@@ -82,46 +99,25 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
       form.clearErrors("username");
     }
   }, [usernameExists]);
+
+  useEffect(() => {
+    if (userprofile !== "without username") {
+      router.push("/");
+    }
+  }, [userprofile]);
+
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
-      <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto ">
+      <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto space-y-6">
         {/* Heading */}
         <div>
-          <h3 className="text-text">Get Started Now</h3>
+          <h3 className="text-text">Almost Done!</h3>
           <p className="text-text-muted">
-            Enter your credentials to create a new account
+            Enter your username to complete your sign in process
           </p>
         </div>
 
-        {/* sign Up with Google or FaceBook section */}
-        <section className="grid grid-cols-2 gap-6  mt-5 max-w-2xl mx-auto">
-          <Button
-            variant={"outline"}
-            className="flex justify-center items-center gap-3 bg-card"
-            onClick={() => signIn("google")}
-          >
-            <Google className="w-12 h-12" />
-            Google
-          </Button>
-          <Button
-            variant={"outline"}
-            className="flex justify-center items-center gap-3 bg-card"
-            onClick={() => signIn("x")}
-          >
-            <FaXTwitter className="w-12 h-12 text-text" />X / Twitter
-          </Button>
-        </section>
-        {/* Or */}
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="bg-border-muted" />
-          </div>
-          <div className="relative flex justify-center text-sm uppercase">
-            <span className="bg-background px-2 text-text-muted">Or</span>
-          </div>
-        </div>
         {/* sign Up with Email */}
-
         <form
           className="max-w-2xl mx-auto flex flex-col gap-5"
           onSubmit={form.handleSubmit(onSubmit)}
