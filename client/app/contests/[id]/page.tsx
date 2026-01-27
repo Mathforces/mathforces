@@ -47,7 +47,9 @@ export default function Page() {
   const [shownProblem, setShownProblem] = useState<number | null>(
     Number(problemId),
   );
-  const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>({})
+  const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
+    {},
+  );
 
   const bottomBarTabs = [
     {
@@ -92,11 +94,15 @@ export default function Page() {
         const response = await axios.get(
           `/api/contests/${contest_id}/problems`,
         );
-        if (response) {
+        if (response && response.data) {
           if (!shownProblem) {
             setShownProblem(response.data[0].id);
           }
-          setProblems(response.data);
+          const problemsTemp = response.data as contestProblem[];
+          problemsTemp.sort((a: contestProblem, b: contestProblem) => {
+            return a.index_in_contest - b.index_in_contest;
+          });
+          setProblems(problemsTemp);
         }
       } catch (err: any) {
         console.error("Error fetching problems:", err);
@@ -125,6 +131,32 @@ export default function Page() {
     }
   }, [shownProblem]);
 
+  // logging and importing problemsStatement to and from Local Storage  
+  let prevLocalStorage:Record<string, string> | null = null;
+  useEffect(() => {
+    if (Object.keys(problemsStatus).length > 0) {
+      if (problemsStatus === prevLocalStorage) return;
+      if (contest && typeof window !== "undefined") {
+        console.log("setter");
+        localStorage.setItem(
+          `problemsStatus-${contest.id}`,
+          JSON.stringify(problemsStatus),
+        );
+      }
+    } else {
+      if (contest) {
+        console.log("I should get here")
+        const data = localStorage.getItem(`problemsStatus-${contest.id}`);
+        if (data) {
+          prevLocalStorage = JSON.parse(data);
+          setProblemsStatus(JSON.parse(data));
+        }
+      }
+    }
+  }, [problemsStatus, contest]);
+  
+
+  
   if (loading) return <Loading title="Contest Problem" />;
 
   if (error) {
@@ -220,6 +252,7 @@ export default function Page() {
                         problems={problems}
                         shownProblem={shownProblem}
                         setShownProblem={setShownProblem}
+                        problemsStatus={problemsStatus}
                       />
                     </Tabs>
                   </div>
@@ -265,7 +298,11 @@ export default function Page() {
                     ))}
                   </TabsList>
 
-                  <Problem_Statement_card shownProblemId={shownProblem} setProblemsStatus={setProblemsStatus} problemsStatus={problemsStatus}/>
+                  <Problem_Statement_card
+                    shownProblemId={shownProblem}
+                    setProblemsStatus={setProblemsStatus}
+                    problemsStatus={problemsStatus}
+                  />
                   <TabsContent value="graphingCalculator">
                     <GraphCalculator />
                   </TabsContent>

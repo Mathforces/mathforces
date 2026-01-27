@@ -6,6 +6,7 @@ export const contestProblemDefaultValues = {
   points: 0,
   likes: 0,
   comments_num: 0,
+  index_in_contest: 0
 } as const;
 export type contestProblem = {
   [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
@@ -23,6 +24,7 @@ export interface FullProblem {
   description_html: string | null;
   answer: string | null;
   editorial: string;
+  index_in_contest: number;
 }
 export interface Contest {
   id: string;

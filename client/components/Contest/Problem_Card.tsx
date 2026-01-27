@@ -7,14 +7,21 @@ import { MessageSquare, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { contestProblem } from "@/types/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   problem: contestProblem;
   shownProblem: number | null;
   setShownProblem: React.Dispatch<React.SetStateAction<number | null>>;
+  problemsStatus: Record<string, string>;
 }
 
-const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
+const Problem_Card = ({
+  problem,
+  setShownProblem,
+  shownProblem,
+  problemsStatus,
+}: Props) => {
   const pathName = usePathname();
   const isInContest = pathName.includes(`/contests/${problem.id}`);
 
@@ -50,19 +57,21 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
     <div
       key={`${problem.name}-${problem.id}`}
       onClick={() => {}}
-      className={` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default ${shownProblem == problem.id && "border border-border-muted/40"}`}
+      className={cn(
+        ` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default`,
+        ` ${shownProblem == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
+        ` ${problemsStatus[problem.id] === "success" ? "border border-success/40" : problemsStatus[problem.id] === "failure" ? "border border-destructive/40" : ""}`,
+      )}
     >
       {/* Left section of problem */}
       <div className="flex flex-col justify-between gap-2 ">
         {/* Problem.name */}
-        <h3 className="text-lg font-semibold">Problem {problem.name}</h3>
+        <h3 className={ `text-lg ${shownProblem == problem.id ? "font-semibold text-text" : "text-muted-foreground"}` }>Problem {problem.name}</h3>
 
         {/* Lower-left part (Problem details) */}
         <div className="pl-1 flex items-center gap-3">
-
           {/* likess & commentss */}
           <div className="flex justify-between items-center gap-2">
-
             {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
@@ -76,7 +85,6 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
                 {problem.comments_num ?? 0}
               </span>
             </div>
-
           </div>
 
           {/* People answered */}
@@ -104,7 +112,6 @@ const Problem_Card = ({ problem, setShownProblem,shownProblem }: Props) => {
               </span>
             </div>
           </div>
-
         </div>
       </div>
 

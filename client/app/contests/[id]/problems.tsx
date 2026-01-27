@@ -10,6 +10,7 @@ interface ContestProblemsProps {
   problems: contestProblem[];
   shownProblem: number | null;
   setShownProblem: React.Dispatch<React.SetStateAction<number | null>>;
+  problemsStatus: Record<string, string>;
 }
 
 const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
@@ -17,6 +18,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
   problems,
   shownProblem,
   setShownProblem,
+  problemsStatus,
 }) => {
   return (
     <div>
@@ -45,6 +47,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
                 problem={problem}
                 setShownProblem={setShownProblem}
                 shownProblem={shownProblem}
+                problemsStatus={problemsStatus}
               />
             </div>
           ))}
