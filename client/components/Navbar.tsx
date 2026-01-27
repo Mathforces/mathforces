@@ -13,9 +13,15 @@ const Navbar = () => {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [userProfile, setUserProfile] = getProfile();
   const bannedURLs = ["/contests/"];
+  let isBanned = false;
   bannedURLs.forEach((e) => {
-    if (pathName.includes(e)) return;
+    if (pathName.includes(e)){
+      isBanned = true;
+    }
   });
+  if(isBanned){
+    return;
+  }
   return (
     <nav className="fixed top-0 left-2/4 -translate-x-2/4 w-full max-w-7xl flex justify-between md:justify-evenly items-center gap-5 p-5 z-50 bg-card rounded-b-2xl">
       <Link href="/">

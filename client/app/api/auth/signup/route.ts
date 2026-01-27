@@ -1,12 +1,13 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
+import axios from "axios";
 
 export async function POST(request: Request) {
   try {
     const formData = await request.json();
-
-    if (!formData || !formData.username || !formData.email || !formData.password) {
+      const {username, email, password } = formData;
+    if (!formData || !username || !email || !password) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
@@ -20,8 +21,8 @@ export async function POST(request: Request) {
 
     // Create user in Supabase Auth
     const { data: authData, error: authError } = await (await supabaseClient).auth.signUp({
-      email: formData.email,
-      password: formData.password,
+      email: email,
+      password: password,
     });
 
     if (authError) {
@@ -44,33 +45,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create profile
-    const supabaseService = createSupabaseServiceClient();
-    const { data: profileData, error: profileError } = await supabaseService
-      .from("profiles")
-      .insert([
-        {
-          id: authData.user.id,
-          username: formData.username,
-          email: formData.email,
-        },
-      ])
-      .select();
-
-    if (profileError) {
-      console.error("Profile error:", profileError);
-       
-      // TODO: Clean the user auth from users table
-      
+   axios.post('/api/auth/signup/create_profile', {id:authData.user.id, username: username, email: email}).then((res) => {
+    if(!res || !res.data.success){
       return new Response(
-        JSON.stringify({ error: profileError.message }),
+        JSON.stringify({ error: "Failed to create profile, sign up" }),
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
-
+   }) 
+    
     return new Response(JSON.stringify({ success: true, user: authData.user }), {
       status: 201,
       headers: { "Content-Type": "application/json" },

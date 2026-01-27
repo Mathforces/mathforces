@@ -5,6 +5,7 @@ import { UserProfile } from "@/types/types";
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "./hooks/useUser";
+import { useRouter } from "next/navigation";
 interface IProivdersProps {
   children: React.ReactNode;
 }
@@ -12,6 +13,7 @@ interface IProivdersProps {
 const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { user, loading} = useUser();
+  const router = useRouter();
   const handleGetUserProfile = async () => {
     console.log("user: ", user);
     const { data: profile, error } = await supabase
@@ -21,6 +23,9 @@ const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
       .single();
     if (error) {
       console.error("Error fetching user profile:", error);
+      if(user?.app_metadata.provider !== 'email'){
+        router.push('/get_username')
+      }
       return;
     }
     setUserProfile(profile);

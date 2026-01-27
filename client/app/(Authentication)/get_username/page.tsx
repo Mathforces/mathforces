@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MathNoise from "@/components/ui/MathNoise";
 import { Separator } from "@/components/ui/separator";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import Link from "next/link";
 import {
   Field,
@@ -19,15 +19,69 @@ import {
   FieldSet,
   FieldTitle,
 } from "@/components/ui/field";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/client";
+import { useEffect, useMemo, useState } from "react";
+import { BsExclamationCircle } from "react-icons/bs";
+import { TiTick } from "react-icons/ti";
+import axios from "axios";
+import { debouncedIsUsernameUnique, signIn } from "../utils";
+import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
+import { useUser } from "@/app/hooks/useUser";
+interface IPageProps {}
 
-interface IForgotPasswordProps {}
+const Page: React.FunctionComponent<IPageProps> = (props) => {
+  const schema = z.object({
+    username: z
+      .string()
+      .min(2, "username should be at least 2 characters long")
+      .max(100, "username should be at most 100 characters long")
+      .refine(async (val) => {
+        const res = await isUsernameUnique(val);
+        console.log("res: ", res);
+        return res;
+      }, "Username is already taken"),
+  });
+  const isUsernameUnique = useMemo(() => debouncedIsUsernameUnique(), []);
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      username: "",
+    },
+  });
 
-const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
-  props,
-) => {
+  const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
+  const {user} = useUser();
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    try {
+      const res = await axios.post("/api/auth/signup/create_profile", {id: user?.id, username: data.username, email: user?.email});
+      if(res){
+        toast("Successfully Signed in!")
+      }
+    } catch (err: any) {
+      if (err.response && err.response.data.error) {
+        toast.error(err.response.data.error);
+      } else {
+        toast.error("Sign in failed. Please try again.");
+      }
+      console.error("Sign in error:", err);
+    }
+  };
+   
+  
+  useEffect(() => {
+    console.log("usernameExists:", usernameExists);
+    if (usernameExists === true) {
+      form.setError("username", {
+        message: "Username is already taken",
+      });
+    } else if (usernameExists === false) {
+      form.clearErrors("username");
+    }
+  }, [usernameExists]);
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
       <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto ">
@@ -44,6 +98,7 @@ const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("google")}
           >
             <Google className="w-12 h-12" />
             Google
@@ -51,12 +106,11 @@ const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
           <Button
             variant={"outline"}
             className="flex justify-center items-center gap-3 bg-card"
+            onClick={() => signIn("x")}
           >
-            <FaceBook className="w-12 h-12" />
-            FaceBook
+            <FaXTwitter className="w-12 h-12 text-text" />X / Twitter
           </Button>
         </section>
-
         {/* Or */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
@@ -67,53 +121,47 @@ const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
           </div>
         </div>
         {/* sign Up with Email */}
-        {/* TODO: Fix forgot password  */}
-        {/* <form action="" className="max-w-2xl mx-auto flex flex-col gap-5  ">
+
+        <form
+          className="max-w-2xl mx-auto flex flex-col gap-5"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <Controller
-            name="usernameOrEmail"
+            name="username"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="usernameOREmail">
-                  Username or email
-                </FieldLabel>
+                <FieldLabel htmlFor="username">Username</FieldLabel>
                 <div className="relative w-full">
                   <Input
                     {...field}
-                    id="usernameOREmail"
+                    id="username"
                     aria-invalid={fieldState.invalid}
-                    placeholder="piKiller or pikiller@gmail.com"
+                    placeholder="e.g. piKiller2000"
+                    className={
+                      usernameExists === true
+                        ? "border-destructive dark:destructive/40"
+                        : usernameExists === false
+                          ? "border-success dark:ring-success/40"
+                          : ""
+                    }
                   />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    {usernameExists ? (
+                      <BsExclamationCircle className="w-5 h-5 text-red-500" />
+                    ) : usernameExists === false ? (
+                      <TiTick className="w-5 h-5 text-success" />
+                    ) : null}
+                  </div>
                 </div>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <div className="relative w-full">
-                  <Input
-                    {...field}
-                    id="password"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="*********"
-                  />
-                </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-                <Link href={"/forgot_password"}>Forgot password? </Link>
               </Field>
             )}
           />
           <Button type="submit">Submit</Button>
-        </form> */}
+        </form>
         <div className="text-center text-xs my-4">
           Don't have an account?{" "}
           <Link href={"/sign_up"} className="Link">
@@ -150,4 +198,4 @@ const ForgotPassword: React.FunctionComponent<IForgotPasswordProps> = (
   );
 };
 
-export default ForgotPassword;
+export default Page;

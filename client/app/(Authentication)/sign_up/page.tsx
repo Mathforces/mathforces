@@ -28,7 +28,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
 import axios from "axios";
-import { signIn } from "../utils";
+import { debouncedIsUsernameUnique, signIn } from "../utils";
 import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
 export default function Page() {
   const schema = z
@@ -38,7 +38,7 @@ export default function Page() {
         .min(2, "username should be at least 2 characters long")
         .max(100, "username should be at most 100 characters long")
         .refine(async (val) => {
-          const res = await debouncedIsUsernameUnique(val);
+          const res = await isUsernameUnique(val);
           console.log("res: ", res);
           return res;
         }, "Username is already taken"),
@@ -56,32 +56,7 @@ export default function Page() {
       message: "Passwords don't match",
       path: ["confirmPassword", "password"],
     });
-  const isUsernameUnique = async (value: string): Promise<boolean> => {
-    try {
-      const res = await axios.post("/api/signup/username_exists", {
-        username: value,
-      });
-      const isUnique = !res.data.exists;
-      return isUnique;
-    } catch (err: any) {
-      console.error(err.response?.data?.error);
-      return false;
-    }
-  };
-  const debouncedIsUsernameUnique = useMemo(() => {
-    let timeoutId: NodeJS.Timeout;
-    let lastPromise: Promise<boolean>;
-
-    return async (value: string): Promise<boolean> => {
-      return new Promise((resolve) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(async () => {
-          lastPromise = isUsernameUnique(value);
-          resolve(await lastPromise);
-        }, 500);
-      });
-    };
-  }, []);
+  const isUsernameUnique = useMemo(() => debouncedIsUsernameUnique(), [])
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
