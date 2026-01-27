@@ -14,17 +14,25 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
 import Problem_Card from "./Problem_Card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
-import parse from 'html-react-parser';
+import parse from "html-react-parser";
 interface Props {
   shownProblemId: number | null;
 }
 
 const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
   const [fullProblem, setFullProblem] = useState<FullProblem | null>(null);
-
+  const [inputData, setInputData] = useState("");
+  const saveInputToLocalStorage = (value: string) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`input-problem-${fullProblem?.id}`, value);
+    }
+  };
+  const handleSubmit = () => {
+    saveInputToLocalStorage(inputData);
+  };
   useEffect(() => {
     if (shownProblem) {
       const getDescription = async () => {
@@ -37,13 +45,32 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
             console.error("Error fetching full problem");
           });
       };
+
       getDescription();
     }
   }, [shownProblem]);
+  useEffect(() => {
+    if (fullProblem) {
+      const getInputFromLocalStorage = () => {
+        if (typeof window !== "undefined") {
+          const storedValue = localStorage.getItem(
+            `input-problem-${fullProblem?.id}`,
+          );
+          if (storedValue) {
+            setInputData(storedValue);
+          } else {
+            setInputData("");
+          }
+        }
+      };
+      getInputFromLocalStorage();
+    }
+  }, [fullProblem]);
   return (
     <TabsContent
       value="problemStatement"
       className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
+      key={fullProblem?.id}
     >
       {/* Problem Header */}
       <div className="flex flex-col gap-2 mb-2 w-full">
@@ -58,7 +85,7 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
             <div className="flex items-center gap-1">
               <FaRegFilePdf />
               <span>PDF</span>
-        </div>
+            </div>
             <FaExternalLinkAlt className="w-3 h-3" />
           </button>
 
@@ -78,19 +105,25 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
       <MathJaxContent className="flex flex-col gap-5 w-full">
         {/* Problem Description */}
         <div className="">
-          <p className="text-text text-sm">{parse(fullProblem?.description_html || "")}</p>
+          <p className="text-text text-sm">
+            {parse(fullProblem?.description_html || "")}
+          </p>
         </div>
       </MathJaxContent>
-        {/* Problem Submission */}
-        <div className="w-full max-w-2xl flex gap-4">
-          <Input
-            className="flex-1 border-none bg-bg-light! text-text-muted"
-            placeholder="Answer here..."
-          />
-          <Button className="w-25 text-text" variant="primary">
-            Submit
-          </Button>
-        </div>
+      {/* Problem Submission */}
+      <div className="w-full max-w-2xl flex gap-4">
+        <Input
+          className="flex-1 border-none bg-bg-light! text-text-muted"
+          placeholder="Answer here..."
+          value={inputData}
+          onChange={(e) => setInputData(e.target.value)}
+          onBlur={(e) => saveInputToLocalStorage(e.target.value)}
+          onSubmit={() => handleSubmit()}
+        />
+        <Button className="w-25 text-text" variant="primary">
+          Submit
+        </Button>
+      </div>
       <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Help */}

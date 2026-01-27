@@ -49,39 +49,41 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
             </div>
           ))}
         </div>
+
+        {/* Copyrights */}
+        <section className="flex flex-col justify-center items-center gap-2">
+          <div className="flex items-center text-xs">
+            <Image
+              src="/Logo.png"
+              alt="Logo"
+              width={200}
+              height={200}
+              className="h-3 w-10 object-contain"
+            />
+            2026
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-3 text-xs">
+            <button
+              title="Im not a Link :>"
+              className="text-primary border-b border-primary"
+            >
+              Terms of use
+            </button>
+            <button
+              title="Im not a Link :>"
+              className="text-primary border-b border-primary"
+            >
+              Cookie notice
+            </button>
+            <button
+              title="Im not a Link :>"
+              className="text-primary border-b border-primary"
+            >
+              Privacy policy
+            </button>
+          </div>
+        </section>
       </TabsContent>
-      <section className="flex flex-col justify-center items-center gap-2">
-        <div className="flex items-center text-xs">
-          <Image
-            src="/Logo.png"
-            alt="Logo"
-            width={200}
-            height={200}
-            className="h-3 w-10 object-contain"
-          />
-          2026
-        </div>
-        <div className="flex flex-wrap justify-center items-center gap-3 text-xs">
-          <button
-            title="Im not a Link :>"
-            className="text-primary border-b border-primary"
-          >
-            Terms of use
-          </button>
-          <button
-            title="Im not a Link :>"
-            className="text-primary border-b border-primary"
-          >
-            Cookie notice
-          </button>
-          <button
-            title="Im not a Link :>"
-            className="text-primary border-b border-primary"
-          >
-            Privacy policy
-          </button>
-        </div>
-      </section>
     </div>
   );
 };
