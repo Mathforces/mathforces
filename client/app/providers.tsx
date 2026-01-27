@@ -36,7 +36,6 @@ const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
     if (user) {
       handleGetUserProfile();
     }
-    console.log("I was here")
   }, [user]);
   if(loading) return null;
   return (

@@ -47,6 +47,7 @@ export default function Page() {
   const [shownProblem, setShownProblem] = useState<number | null>(
     Number(problemId),
   );
+  const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>({})
 
   const bottomBarTabs = [
     {
@@ -264,7 +265,7 @@ export default function Page() {
                     ))}
                   </TabsList>
 
-                  <Problem_Statement_card shownProblemId={shownProblem} />
+                  <Problem_Statement_card shownProblemId={shownProblem} setProblemsStatus={setProblemsStatus} problemsStatus={problemsStatus}/>
                   <TabsContent value="graphingCalculator">
                     <GraphCalculator />
                   </TabsContent>

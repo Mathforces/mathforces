@@ -14,25 +14,99 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
 import Problem_Card from "./Problem_Card";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, Dispatch, SetStateAction } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
 import parse from "html-react-parser";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Field, FieldError, FieldLabel } from "../ui/field";
+import { toast } from "sonner";
+import { useUser } from "@/app/hooks/useUser";
 interface Props {
   shownProblemId: number | null;
+  problemsStatus: Record<string, string>;
+  setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
 }
 
-const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
+const Problem_Statement_card = ({
+  shownProblemId: shownProblem,
+  problemsStatus,
+  setProblemsStatus,
+}: Props) => {
+  const schema = z.object({
+    // TODO: Add checkers for submission guioelines
+    answer: z
+      .string()
+      .min(
+        1,
+        "You can't submit an empty field, enter at least 1 character to submit",
+      )
+      .max(
+        200,
+        "Answer is too long, pls review submission guidelines before submitting",
+      ),
+  });
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      answer: "",
+    },
+  });
+  const { user } = useUser();
   const [fullProblem, setFullProblem] = useState<FullProblem | null>(null);
-  const [inputData, setInputData] = useState("");
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${fullProblem?.id}`, value);
     }
   };
-  const handleSubmit = () => {
-    saveInputToLocalStorage(inputData);
+  const onSubmit = ({ answer: user_answer }: z.infer<typeof schema>) => {
+    if (user_answer) {
+      saveInputToLocalStorage(user_answer);
+
+      // validation
+      if (fullProblem?.answer && fullProblem.id && user?.id) {
+        let status = "idle";
+        if (user_answer === fullProblem.answer) {
+          status = "success";
+        } else {
+          status = "failure";
+        }
+        const submission_data = {
+          user_answer,
+          status,
+        };
+        axios
+          .post(
+            `/api/problems/${fullProblem.id}/submissions/${user.id}`,
+            submission_data,
+          )
+          .then((res) => {
+            if (res) {
+              if(status === 'success' || problemsStatus[fullProblem.id] === 'success'){
+                status = 'success'
+              }
+              setProblemsStatus((prev) => {
+                return { ...prev, [fullProblem.id]: status };
+              });
+              console.log("submission was sucessful, your status is: ", status)
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            toast.error(
+              "An Error has occured while submitting pls submit again, or try reconnecting",
+            );
+          });
+      } else {
+        toast.error(
+          "Couldn't get the problem answer. Try refreshing or reconnecting",
+        );
+      }
+    }
   };
+
   useEffect(() => {
     if (shownProblem) {
       const getDescription = async () => {
@@ -49,6 +123,7 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
       getDescription();
     }
   }, [shownProblem]);
+
   useEffect(() => {
     if (fullProblem) {
       const getInputFromLocalStorage = () => {
@@ -57,9 +132,9 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
             `input-problem-${fullProblem?.id}`,
           );
           if (storedValue) {
-            setInputData(storedValue);
+            form.setValue("answer", storedValue);
           } else {
-            setInputData("");
+            form.setValue("answer", "");
           }
         }
       };
@@ -111,19 +186,38 @@ const Problem_Statement_card = ({ shownProblemId: shownProblem }: Props) => {
         </div>
       </MathJaxContent>
       {/* Problem Submission */}
-      <div className="w-full max-w-2xl flex gap-4">
-        <Input
-          className="flex-1 border-none bg-bg-light! text-text-muted"
-          placeholder="Answer here..."
-          value={inputData}
-          onChange={(e) => setInputData(e.target.value)}
-          onBlur={(e) => saveInputToLocalStorage(e.target.value)}
-          onSubmit={() => handleSubmit()}
+      <form
+        action=""
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="w-full max-w-2xl flex gap-4"
+      >
+        <Controller
+          name="answer"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <Input
+                {...field}
+                id="answer"
+                aria-invalid={fieldState.invalid}
+                placeholder="Answer here..."
+                className="flex-1 border-none bg-bg-light! text-text-muted"
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
+                onBlur={(e) => {
+                  saveInputToLocalStorage(e.target.value);
+                  field.onBlur();
+                }}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-        <Button className="w-25 text-text" variant="primary">
+        <Button type="submit" className="w-25 text-text" variant="primary">
           Submit
         </Button>
-      </div>
+      </form>
       <Separator className="bg-bg-light h-0.5! w-full" />
 
       {/* Help */}

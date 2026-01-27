@@ -12,15 +12,17 @@ export type contestProblem = {
 };
 export interface FullProblem {
   id: number;
-  name: string;
-  num_submissions: number;
-  num_correct_submissions: number;
-  points: number;
-  likes: number;
-  comments_num: number;
-  tags: string[];
-  description_latex: string;
-  description_html: string;
+  name: string | null;
+  num_submissions: number | null;
+  num_correct_submissions: number | null;
+  points: number | null;
+  likes: number | null;
+  comments_num: number | null;
+  tags: string[] | null;
+  description_latex: string | null;
+  description_html: string | null;
+  answer: string | null;
+  editorial: string;
 }
 export interface Contest {
   id: string;
