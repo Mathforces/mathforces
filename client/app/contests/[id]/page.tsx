@@ -12,7 +12,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import Image from "next/image";
 import ContestHeader from "@/components/Contest/Header";
 import { BsTag } from "react-icons/bs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -25,6 +24,10 @@ import axios from "axios";
 import { Contest, contestProblem, FullProblem } from "@/types/types";
 import Loading from "@/components/ui/Loading";
 import ProblemCard from "@/components/Contest/Problem_Card";
+import ContestSubmissions from "./submissions";
+import ContestProblems from "./problems";
+import ContestNotFound from "./contest_404";
+import ContestError from "./contest_error";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -105,7 +108,6 @@ export default function Page() {
     fetchProblems();
   }, [contest_id]);
 
-
   useEffect(() => {
     if (showLevels) {
       document.body.style.overflow = "hidden";
@@ -121,46 +123,15 @@ export default function Page() {
       }
     }
   }, [shownProblem]);
+
   if (loading) return <Loading title="Contest Problem" />;
 
   if (error) {
-    return (
-      <main className="flex flex-col justify-center items-center h-screen gap-4 px-3 text-center">
-        <AlertCircle className="w-20 h-20 text-destructive" />
-        <h1 className="text-2xl font-bold">Error Loading Contest</h1>
-        <p className="text-lg text-muted-foreground max-w-md">{error}</p>
-        <div className="mt-5 flex justify-center items-center gap-4">
-          <Button variant="primary" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-          <Link href={"/contests"}>
-            <Button variant="outline">Back to Contests</Button>
-          </Link>
-        </div>
-      </main>
-    );
+    return <ContestError error={error} />;
   }
 
   if (!contest) {
-    return (
-      <main className="flex flex-col justify-center items-center h-screen gap-4 px-3 text-center">
-        <div className="text-[150px] md:text-[200px] font-bold text-primary/20">
-          404
-        </div>
-        <h1 className="mb-2">Contest Not Found</h1>
-        <p className="md:text-lg lg:text-xl text-black/70">
-          The contest you are looking for does not exist. Please check the name.
-        </p>
-        <div className="mt-5 flex justify-center items-center gap-4">
-          <Link href={"/"}>
-            <Button variant="primary">Home</Button>
-          </Link>
-          <Link href={"/contests"}>
-            <Button variant="primary">Contests</Button>
-          </Link>
-        </div>
-      </main>
-    );
+    return <ContestNotFound />;
   }
 
   return (
@@ -242,79 +213,17 @@ export default function Page() {
                         ))}
                       </TabsList>
 
-                      <TabsContent
-                        value="problems"
-                        className="p-4 flex flex-col gap-3 w-full"
-                      >
-                        <div className="flex flex-col gap-3">
-                          <h2 className="font-bold text-2xl">{contest.name}</h2>
-                          <div className="flex gap-1">
-                            <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center">
-                              {/* TODO: Customize this to have multiple colors according to the difficulty */}
-                              <span className="text-destructive">
-                                {contest.difficulty ?? "Unset"}
-                              </span>
-                            </div>
-                            <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center">
-                              <BsTag />
-                              <span>Topics</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
-                          {problems.map((problem) => (
-                            <div
-                              onClick={() => setShownProblem(problem.id)}
-                              className="w-full"
-                            >
-                              <ProblemCard
-                                key={problem.id}
-                                problem={problem}
-                                setShownProblem={setShownProblem}
-                                shownProblem={shownProblem}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </TabsContent>
+                      {/* Problems */}
+                      <ContestProblems
+                        contest={contest}
+                        problems={problems}
+                        shownProblem={shownProblem}
+                        setShownProblem={setShownProblem}
+                      />
                     </Tabs>
                   </div>
                   <ScrollBar />
                 </ScrollArea>
-
-                <section className="flex flex-col justify-center items-center gap-2">
-                  <div className="flex items-center text-xs">
-                    <Image
-                      src="/Logo.png"
-                      alt="Logo"
-                      width={200}
-                      height={200}
-                      className="h-3 w-10 object-contain"
-                    />
-                    2026
-                  </div>
-                  <div className="flex flex-wrap justify-center items-center gap-3 text-xs">
-                    <button
-                      title="Im not a Link :>"
-                      className="text-primary border-b border-primary"
-                    >
-                      Terms of use
-                    </button>
-                    <button
-                      title="Im not a Link :>"
-                      className="text-primary border-b border-primary"
-                    >
-                      Cookie notice
-                    </button>
-                    <button
-                      title="Im not a Link :>"
-                      className="text-primary border-b border-primary"
-                    >
-                      Privacy policy
-                    </button>
-                  </div>
-                </section>
               </section>
             </ResizablePanel>
             <ResizableHandle className="w-2 bg-transparent hover:bg-sidebar-border/60" />
@@ -394,11 +303,7 @@ export default function Page() {
                       </Fragment>
                     ))}
                   </TabsList>
-
-                  <TabsContent
-                    value="submissions"
-                    className="w-full h-full"
-                  ></TabsContent>
+                  <ContestSubmissions />
                 </Tabs>
               </section>
             </ResizablePanel>

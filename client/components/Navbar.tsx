@@ -2,24 +2,26 @@
 import { MainLinks } from "@/data/Links";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Logs, Plus } from "lucide-react";
 import { useState } from "react";
 import { ThemeButton } from "./Theme-button";
 import { useUserProfile } from "@/contexts/userContext";
+import { profile } from "console";
 
 const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useUserProfile();
   const bannedURLs = ["/contests/"];
+  const router = useRouter();
   let isBanned = false;
   bannedURLs.forEach((e) => {
-    if (pathName.includes(e)){
+    if (pathName.includes(e)) {
       isBanned = true;
     }
   });
-  if(isBanned){
+  if (isBanned || !userProfile || userProfile == "without username") {
     return;
   }
   return (
@@ -55,18 +57,15 @@ const Navbar = () => {
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-cenuter gap-2">
         <ThemeButton />
-        {
-          userProfile
-          ? <div>
-            hello {userProfile.username}
-          </div>
-          : 
-        <Button variant={"primary"} link="/sign_up">
-          Sign Up
-        </Button>
-        }
+        {userProfile ? (
+          <div>hello {userProfile.username}</div>
+        ) : (
+          <Button variant={"primary"} link="/sign_up">
+            Sign Up
+          </Button>
+        )}
         <Button
           variant={"outline"}
           onClick={() => setOpenMenu(!openMenu)}
