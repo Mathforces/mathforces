@@ -9,13 +9,14 @@ export async function GET(
   try {
     const supabase = await createSupabaseServerClient();
     const problemId = (await params).problem_id;
-    // TODO: Uncomment user_id filter when user authentication is implemented
     const userId = (await params).user_id;
+    console.log("hey outside of request")
     const { data: submissions, error } = await supabase
       .from("submissions")
       .select("*")
-      .eq("problem_id", parseInt(problemId));
-    // .eq("user_id", userId);
+      .eq("problem_id", problemId)
+      .eq("user_id", userId);
+    console.log("hey right after request")
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

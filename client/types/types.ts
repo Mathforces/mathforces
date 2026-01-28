@@ -1,5 +1,5 @@
 export const contestProblemDefaultValues = {
-  id: 0,
+  id: "",
   name: "",
   num_submissions: 0,
   num_correct_submissions: 0,
@@ -12,7 +12,7 @@ export type contestProblem = {
   [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
 };
 export interface FullProblem {
-  id: number;
+  id: string;
   name: string | null;
   num_submissions: number | null;
   num_correct_submissions: number | null;

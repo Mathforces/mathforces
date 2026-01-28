@@ -44,9 +44,7 @@ export default function Page() {
   const [problems, setProblems] = useState<contestProblem[]>([]);
 
   const problemId = contestParams.get("problemId") || null;
-  const [shownProblem, setShownProblem] = useState<number | null>(
-    Number(problemId),
-  );
+  const [shownProblem, setShownProblem] = useState<string | null>(problemId);
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
   );
@@ -125,14 +123,14 @@ export default function Page() {
 
   useEffect(() => {
     if (shownProblem) {
-      if (shownProblem != Number(contestParams.get("problemId"))) {
+      if (shownProblem != contestParams.get("problemId")) {
         router.push(`?problemId=${shownProblem}`);
       }
     }
   }, [shownProblem]);
 
-  // logging and importing problemsStatement to and from Local Storage  
-  let prevLocalStorage:Record<string, string> | null = null;
+  // logging and importing problemsStatement to and from Local Storage
+  let prevLocalStorage: Record<string, string> | null = null;
   useEffect(() => {
     if (Object.keys(problemsStatus).length > 0) {
       if (problemsStatus === prevLocalStorage) return;
@@ -145,7 +143,7 @@ export default function Page() {
       }
     } else {
       if (contest) {
-        console.log("I should get here")
+        console.log("I should get here");
         const data = localStorage.getItem(`problemsStatus-${contest.id}`);
         if (data) {
           prevLocalStorage = JSON.parse(data);
@@ -154,9 +152,7 @@ export default function Page() {
       }
     }
   }, [problemsStatus, contest]);
-  
 
-  
   if (loading) return <Loading title="Contest Problem" />;
 
   if (error) {
@@ -341,7 +337,8 @@ export default function Page() {
                       </Fragment>
                     ))}
                   </TabsList>
-                  <ContestSubmissions />
+                  <ContestSubmissions
+                  />
                 </Tabs>
               </section>
             </ResizablePanel>

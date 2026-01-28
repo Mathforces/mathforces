@@ -8,8 +8,8 @@ import { BsTag } from "react-icons/bs";
 interface ContestProblemsProps {
   contest: Contest;
   problems: contestProblem[];
-  shownProblem: number | null;
-  setShownProblem: React.Dispatch<React.SetStateAction<number | null>>;
+  shownProblem: string | null;
+  setShownProblem: React.Dispatch<React.SetStateAction<string | null>>;
   problemsStatus: Record<string, string>;
 }
 

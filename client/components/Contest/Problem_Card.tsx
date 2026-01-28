@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   problem: contestProblem;
-  shownProblem: number | null;
-  setShownProblem: React.Dispatch<React.SetStateAction<number | null>>;
+  shownProblem: string | null;
+  setShownProblem: React.Dispatch<React.SetStateAction<string | null>>;
   problemsStatus: Record<string, string>;
 }
 
@@ -60,13 +60,17 @@ const Problem_Card = ({
       className={cn(
         ` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default`,
         ` ${shownProblem == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
-        ` ${problemsStatus[problem.id] === "success" ? "border border-success/40" : problemsStatus[problem.id] === "failure" ? "border border-destructive/40" : ""}`,
+        ` ${problemsStatus[problem.id] === "success" ? "border border-success/30" : problemsStatus[problem.id] === "failure" ? "border border-destructive/30" : ""}`,
       )}
     >
       {/* Left section of problem */}
       <div className="flex flex-col justify-between gap-2 ">
         {/* Problem.name */}
-        <h3 className={ `text-lg ${shownProblem == problem.id ? "font-semibold text-text" : "text-muted-foreground"}` }>Problem {problem.name}</h3>
+        <h3
+          className={`text-lg ${shownProblem == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
+        >
+          Problem {problem.name}
+        </h3>
 
         {/* Lower-left part (Problem details) */}
         <div className="pl-1 flex items-center gap-3">
@@ -116,13 +120,31 @@ const Problem_Card = ({
       </div>
 
       {/* Submit button */}
-      <Button
-        variant={"secondary"}
-        className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-        onClick={() => setShownProblem(problem.id)}
-      >
-        Try Out
-      </Button>
+      {problemsStatus[problem.id] === "success" ? (
+        <Button
+          variant={"secondary"}
+          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={() => setShownProblem(problem.id)}
+        >
+          Review
+        </Button>
+      ) : problemsStatus[problem.id] === "failure" ? (
+        <Button
+          variant={"secondary"}
+          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={() => setShownProblem(problem.id)}
+        >
+          Try again
+        </Button>
+      ) : (
+        <Button
+          variant={"secondary"}
+          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={() => setShownProblem(problem.id)}
+        >
+          Try out
+        </Button>
+      )}
     </div>
   );
 };

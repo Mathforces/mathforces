@@ -25,7 +25,7 @@ import { Field, FieldError, FieldLabel } from "../ui/field";
 import { toast } from "sonner";
 import { useUser } from "@/app/hooks/useUser";
 interface Props {
-  shownProblemId: number | null;
+  shownProblemId: string | null;
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
 }
