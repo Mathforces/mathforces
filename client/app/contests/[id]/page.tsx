@@ -28,6 +28,7 @@ import ContestSubmissions from "./submissions";
 import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
+import { useShownProblemId } from "@/app/store";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -42,9 +43,8 @@ export default function Page() {
 
   const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<contestProblem[]>([]);
-
+  const {shownProblemId, setShownProblemId} = useShownProblemId(); 
   const problemId = contestParams.get("problemId") || null;
-  const [shownProblem, setShownProblem] = useState<string | null>(problemId);
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
   );
@@ -61,7 +61,8 @@ export default function Page() {
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
-    useState("problemStatement");
+  useState("problemStatement");
+
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -93,8 +94,9 @@ export default function Page() {
           `/api/contests/${contest_id}/problems`,
         );
         if (response && response.data) {
-          if (!shownProblem) {
-            setShownProblem(response.data[0].id);
+          if (!shownProblemId) {
+            console.log("shownProblemId: ", response.data[0].id);
+            setShownProblemId(response.data[0].id);
           }
           const problemsTemp = response.data as contestProblem[];
           problemsTemp.sort((a: contestProblem, b: contestProblem) => {
@@ -122,12 +124,12 @@ export default function Page() {
   }, [showLevels]);
 
   useEffect(() => {
-    if (shownProblem) {
-      if (shownProblem != contestParams.get("problemId")) {
-        router.push(`?problemId=${shownProblem}`);
+    if (shownProblemId) {
+      if (shownProblemId != contestParams.get("problemId")) {
+        router.push(`?problemId=${shownProblemId}`);
       }
     }
-  }, [shownProblem]);
+  }, [shownProblemId]);
 
   // logging and importing problemsStatement to and from Local Storage
   let prevLocalStorage: Record<string, string> | null = null;
@@ -246,8 +248,6 @@ export default function Page() {
                       <ContestProblems
                         contest={contest}
                         problems={problems}
-                        shownProblem={shownProblem}
-                        setShownProblem={setShownProblem}
                         problemsStatus={problemsStatus}
                       />
                     </Tabs>
@@ -295,7 +295,6 @@ export default function Page() {
                   </TabsList>
 
                   <Problem_Statement_card
-                    shownProblemId={shownProblem}
                     setProblemsStatus={setProblemsStatus}
                     problemsStatus={problemsStatus}
                   />

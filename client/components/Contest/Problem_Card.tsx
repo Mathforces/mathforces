@@ -8,20 +8,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { contestProblem } from "@/types/types";
 import { cn } from "@/lib/utils";
+import { useShownProblemId } from "@/app/store";
 
 interface Props {
   problem: contestProblem;
-  shownProblem: string | null;
-  setShownProblem: React.Dispatch<React.SetStateAction<string | null>>;
   problemsStatus: Record<string, string>;
 }
 
 const Problem_Card = ({
   problem,
-  setShownProblem,
-  shownProblem,
   problemsStatus,
 }: Props) => {
+  const {shownProblemId, setShownProblemId} = useShownProblemId();
   const pathName = usePathname();
   const isInContest = pathName.includes(`/contests/${problem.id}`);
 
@@ -59,7 +57,7 @@ const Problem_Card = ({
       onClick={() => {}}
       className={cn(
         ` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default`,
-        ` ${shownProblem == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
+        ` ${shownProblemId == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
         ` ${problemsStatus[problem.id] === "success" ? "border border-success/30" : problemsStatus[problem.id] === "failure" ? "border border-destructive/30" : ""}`,
       )}
     >
@@ -67,7 +65,7 @@ const Problem_Card = ({
       <div className="flex flex-col justify-between gap-2 ">
         {/* Problem.name */}
         <h3
-          className={`text-lg ${shownProblem == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
+          className={`text-lg ${shownProblemId == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
         >
           Problem {problem.name}
         </h3>
@@ -124,7 +122,7 @@ const Problem_Card = ({
         <Button
           variant={"secondary"}
           className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblem(problem.id)}
+          onClick={() => setShownProblemId(problem.id)}
         >
           Review
         </Button>
@@ -132,7 +130,7 @@ const Problem_Card = ({
         <Button
           variant={"secondary"}
           className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblem(problem.id)}
+          onClick={() => setShownProblemId(problem.id)}
         >
           Try again
         </Button>
@@ -140,7 +138,7 @@ const Problem_Card = ({
         <Button
           variant={"secondary"}
           className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblem(problem.id)}
+          onClick={() => setShownProblemId(problem.id)}
         >
           Try out
         </Button>

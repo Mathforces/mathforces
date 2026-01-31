@@ -1,7 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Contest, contestProblem, FullProblem } from "@/types/types";
+import {
+  Contest,
+  contestProblem,
+  FullProblem,
+  ProblemCore,
+} from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,14 +29,13 @@ import * as z from "zod";
 import { Field, FieldError, FieldLabel } from "../ui/field";
 import { toast } from "sonner";
 import { useUser } from "@/app/hooks/useUser";
+import { useContestProblems, useShownProblemId } from "@/app/store";
 interface Props {
-  shownProblemId: string | null;
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
 }
 
 const Problem_Statement_card = ({
-  shownProblemId: shownProblem,
   problemsStatus,
   setProblemsStatus,
 }: Props) => {
@@ -55,20 +59,26 @@ const Problem_Statement_card = ({
     },
   });
   const { user } = useUser();
-  const [fullProblem, setFullProblem] = useState<FullProblem | null>(null);
+  // const [problemCore, setFullProblem] = useState<FullProblem | null>(null);
+  const shownProblemId = useShownProblemId((state) => state.shownProblemId);
+  const problemCore = useContestProblems(
+    (state) => state.problems[shownProblemId]?.core,
+  );
+
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(`input-problem-${fullProblem?.id}`, value);
+      localStorage.setItem(`input-problem-${problemCore?.id}`, value);
     }
   };
+
   const onSubmit = ({ answer: user_answer }: z.infer<typeof schema>) => {
     if (user_answer) {
       saveInputToLocalStorage(user_answer);
 
       // validation
-      if (fullProblem?.answer && fullProblem.id && user?.id) {
+      if (problemCore?.answer && problemCore.id && user?.id) {
         let status = "idle";
-        if (user_answer === fullProblem.answer) {
+        if (user_answer === problemCore.answer) {
           status = "success";
         } else {
           status = "failure";
@@ -79,18 +89,21 @@ const Problem_Statement_card = ({
         };
         axios
           .post(
-            `/api/problems/${fullProblem.id}/submissions/${user.id}`,
+            `/api/problems/${problemCore.id}/submissions/${user.id}`,
             submission_data,
           )
           .then((res) => {
             if (res) {
-              if(status === 'success' || problemsStatus[fullProblem.id] === 'success'){
-                status = 'success'
+              if (
+                status === "success" ||
+                problemsStatus[problemCore.id] === "success"
+              ) {
+                status = "success";
               }
               setProblemsStatus((prev) => {
-                return { ...prev, [fullProblem.id]: status };
+                return { ...prev, [problemCore.id]: status };
               });
-              console.log("submission was sucessful, your status is: ", status)
+              console.log("submission was sucessful, your status is: ", status);
             }
           })
           .catch((err) => {
@@ -108,28 +121,23 @@ const Problem_Statement_card = ({
   };
 
   useEffect(() => {
-    if (shownProblem) {
-      const getDescription = async () => {
-        await axios
-          .get(`/api/problems/${shownProblem}`)
-          .then((res) => {
-            setFullProblem(res.data);
-          })
-          .catch(() => {
-            console.error("Error fetching full problem");
-          });
-      };
-
-      getDescription();
+    if (shownProblemId) {
+      if (!problemCore || shownProblemId !== problemCore?.id) {
+        const getCore = () => {
+          useContestProblems.getState().fetch_core(shownProblemId);
+        };
+        getCore();
+      }
     }
-  }, [shownProblem]);
+  }, [shownProblemId]);
 
   useEffect(() => {
-    if (fullProblem) {
+    if (problemCore) {
+      console.log("problemCore: ", problemCore);
       const getInputFromLocalStorage = () => {
         if (typeof window !== "undefined") {
           const storedValue = localStorage.getItem(
-            `input-problem-${fullProblem?.id}`,
+            `input-problem-${problemCore?.id}`,
           );
           if (storedValue) {
             form.setValue("answer", storedValue);
@@ -140,17 +148,20 @@ const Problem_Statement_card = ({
       };
       getInputFromLocalStorage();
     }
-  }, [fullProblem]);
+  }, [problemCore]);
+
+  if (!shownProblemId) return null;
+
   return (
     <TabsContent
       value="problemStatement"
       className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
-      key={fullProblem?.id}
+      key={problemCore?.id}
     >
       {/* Problem Header */}
       <div className="flex flex-col gap-2 mb-2 w-full">
         <h1 className="text-2xl font-bold text-center">
-          Problem {fullProblem?.name ?? "UNKNOWN"}
+          Problem {problemCore?.name ?? "UNKNOWN"}
         </h1>
 
         {/* Methods to access problem */}
@@ -181,7 +192,7 @@ const Problem_Statement_card = ({
         {/* Problem Description */}
         <div className="">
           <p className="text-text text-sm">
-            {parse(fullProblem?.description_html || "")}
+            {parse(problemCore?.description_html || "")}
           </p>
         </div>
       </MathJaxContent>

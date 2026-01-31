@@ -6,7 +6,7 @@ export const contestProblemDefaultValues = {
   points: 0,
   likes: 0,
   comments_num: 0,
-  index_in_contest: 0
+  index_in_contest: 0,
 } as const;
 export type contestProblem = {
   [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
@@ -40,7 +40,7 @@ export interface Contest {
   created_at: Date;
 }
 
-export interface UserProfile{
+export interface UserProfile {
   id: string;
   created_at: Date;
   updated_at: Date;
@@ -52,3 +52,20 @@ export interface UserProfile{
   bio: string;
 }
 
+export interface Submission {
+  id: string;
+  created_at: Date;
+  problem_id: string;
+  user_id: string;
+  user_answer: string;
+  status: string;
+}
+
+export type ProblemStatus = "success" | "failure" | "idle";
+
+export interface ProblemCore {
+  id: string;
+  name: string;
+  description_html: string;
+  answer: string;
+}
