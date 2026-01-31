@@ -9,14 +9,11 @@ export const useUser = () => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      console.log("user: ", user);
       setUser(user);
       setLoading(false);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((e, session) => {
-    console.log("Auth event:", e);
-    console.log("Session:", session);
       setUser(session?.user ?? null);
     });
 

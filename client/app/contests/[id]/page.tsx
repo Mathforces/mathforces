@@ -70,7 +70,6 @@ export default function Page() {
         setError(null);
 
         const response = await axios.get(`/api/contests/${contest_id}`);
-        console.log(response);
         setContest(response.data);
       } catch (err: any) {
         console.error("Error fetching contest:", err);
@@ -95,7 +94,6 @@ export default function Page() {
         );
         if (response && response.data) {
           if (!shownProblemId) {
-            console.log("shownProblemId: ", response.data[0].id);
             setShownProblemId(response.data[0].id);
           }
           const problemsTemp = response.data as contestProblem[];
@@ -137,7 +135,6 @@ export default function Page() {
     if (Object.keys(problemsStatus).length > 0) {
       if (problemsStatus === prevLocalStorage) return;
       if (contest && typeof window !== "undefined") {
-        console.log("setter");
         localStorage.setItem(
           `problemsStatus-${contest.id}`,
           JSON.stringify(problemsStatus),
@@ -145,7 +142,6 @@ export default function Page() {
       }
     } else {
       if (contest) {
-        console.log("I should get here");
         const data = localStorage.getItem(`problemsStatus-${contest.id}`);
         if (data) {
           prevLocalStorage = JSON.parse(data);

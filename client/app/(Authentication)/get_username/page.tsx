@@ -43,7 +43,6 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
       .max(100, "username should be at most 100 characters long")
       .refine(async (val) => {
         const res = await isUsernameUnique(val);
-        console.log("res: ", res);
         return res;
       }, "Username is already taken"),
   });
@@ -74,7 +73,6 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
         profileData,
       );
       if (res) {
-        console.log("data: ", res.data.profileData);
         setUserProfile(res.data.profileData);
         toast("Successfully Signed in!");
         router.push("/");
@@ -90,7 +88,6 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
   };
 
   useEffect(() => {
-    console.log("usernameExists:", usernameExists);
     if (usernameExists === true) {
       form.setError("username", {
         message: "Username is already taken",

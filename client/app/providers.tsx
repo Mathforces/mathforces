@@ -16,7 +16,6 @@ const Proivders: React.FunctionComponent<IProivdersProps> = ({ children }) => {
   const { user, loading} = useUser();
   const router = useRouter();
   const handleGetUserProfile = async () => {
-    console.log("user: ", user);
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")

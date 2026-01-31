@@ -39,7 +39,6 @@ export default function Page() {
         .max(100, "username should be at most 100 characters long")
         .refine(async (val) => {
           const res = await isUsernameUnique(val);
-          console.log("res: ", res);
           return res;
         }, "Username is already taken"),
       email: z.email(),
@@ -85,7 +84,6 @@ export default function Page() {
       });
   };
   useEffect(() => {
-    console.log("usernameExists:", usernameExists);
     if (usernameExists === true) {
       form.setError("username", {
         message: "Username is already taken",

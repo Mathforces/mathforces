@@ -22,11 +22,9 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
       .then((res) => {
         if(res){
             setSubmissions(res.data)
-            console.log("submisssions: ", res.data)
         }
       })
       .catch((err) => {
-          console.log("couldn't get this problems' submission")
         console.error(err);
       })
     }

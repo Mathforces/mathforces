@@ -70,7 +70,6 @@ export default function Page() {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (currentSession) {
           toast.success("Successfully signed in!");
-          console.log("Session verified:", currentSession);
           // Redirect to home page or dashboard
           router.push("/");
           router.refresh();

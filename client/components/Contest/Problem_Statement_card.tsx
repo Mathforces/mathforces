@@ -103,7 +103,6 @@ const Problem_Statement_card = ({
               setProblemsStatus((prev) => {
                 return { ...prev, [problemCore.id]: status };
               });
-              console.log("submission was sucessful, your status is: ", status);
             }
           })
           .catch((err) => {
@@ -133,7 +132,6 @@ const Problem_Statement_card = ({
 
   useEffect(() => {
     if (problemCore) {
-      console.log("problemCore: ", problemCore);
       const getInputFromLocalStorage = () => {
         if (typeof window !== "undefined") {
           const storedValue = localStorage.getItem(
