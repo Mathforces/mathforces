@@ -4,15 +4,15 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import { Logs, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeButton } from "./Theme-button";
-import { useUserProfile } from "@/contexts/userContext";
 import { profile } from "console";
+import { useProfile } from "@/app/store";
 
 const Navbar = () => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
-  const [userProfile, setUserProfile] = useUserProfile();
+  const userProfile = useProfile((state) => state.userProfile);
   const bannedURLs = ["/contests/"];
   const router = useRouter();
   let isBanned = false;
@@ -21,7 +21,10 @@ const Navbar = () => {
       isBanned = true;
     }
   });
-  if (isBanned || !userProfile || userProfile == "without username") {
+  useEffect(() => {
+    console.log("userprofile: ", userProfile)
+  }, [userProfile])
+  if (isBanned || !userProfile) {
     return;
   }
   return (

@@ -1,23 +1,139 @@
+import { supabase } from "@/lib/supabase/client";
 import {
   ProblemCore,
   ProblemStatus,
   Submission,
   UserProfile,
 } from "@/types/types";
+import { User } from "@supabase/supabase-js";
 import axios from "axios";
+import { redirect } from "next/navigation";
+import { toast } from "sonner";
 import { create } from "zustand";
 
-export const useProfile = create<UserProfile>(() => ({
-  id: "",
-  created_at: new Date(),
-  updated_at: new Date(),
-  email: "",
-  first_name: "",
-  last_name: "",
-  username: "",
-  image: "",
-  bio: "",
+export interface UserProfileContext {
+  user: User | null;
+  userProfile: UserProfile;
+  isWithoutUsername: boolean;
+  initialize: () => Promise<void>;
+  createProfile: (
+    userProfile: UserProfile,
+  ) => Promise<{ ok: boolean; error?: string }>;
+  updateProfile: (userProfile: UserProfile) => Promise<void>;
+}
+export const useProfile = create<UserProfileContext>((set, get) => ({
+  user: null,
+  userProfile: {
+    id: "",
+    created_at: new Date(),
+    updated_at: new Date(),
+    email: "",
+    first_name: "",
+    last_name: "",
+    username: "",
+    image: "",
+    bio: "",
+  },
+  isWithoutUsername: false,
+
+  initialize: async () => {
+    // Get the user session from Supabase (to get the userID)
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error("Error fetching auth user:", userError);
+      return;
+    }
+    set(() => ({ user }));
+
+    // get the user profile from supabase
+    const { data: userProfile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user profile:", error);
+
+      // Checking if user signed in using a provider but didn't enter a username
+      if (user?.app_metadata.provider !== "email") {
+        set(() => ({ isWithoutUsername: true }));
+        redirect("/get_username");
+      }
+      return;
+    }
+
+    // If no Errors set userprofile
+    set(() => ({ userProfile }));
+    set(() => ({ isWithoutUsername: false }));
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((e, session) => {
+      set(() => ({ user: session?.user ?? null }));
+    });
+  },
+
+  createProfile: async (userProfile: UserProfile) => {
+    let profileError = "No userprofile provided";
+    let ok = false;
+    if (userProfile) {
+      try {
+        const res = await axios.post(
+          `/api/auth/signup/create_profile`,
+          userProfile,
+        );
+        if (res) {
+          ok = true;
+          profileError = "";
+          set(() => ({ userProfile: res.data.profileData }));
+          set(() => ({ isWithoutUsername: false }));
+        }
+      } catch (err: any) {
+        if (err.response && err.response.data.error) {
+          if (
+            err.data.error ===
+            'duplicate key value violates unique constraint "profiles_pkey"'
+          ) {
+            profileError =
+              "An Account with those credentials already exists. Please sign in instead.";
+          } else {
+            profileError = err.response.data.error;
+          }
+        } else {
+          profileError = "Sign in failed. Please try again.";
+        }
+        console.error("Sign in error:", err);
+        ok = false;
+      }
+    }
+    return { ok, error: profileError };
+  },
+
+  updateProfile: async (userProfile: UserProfile) => {
+    if (userProfile) {
+      axios
+        .post(`/api/auth/signup/update_profile`, userProfile)
+        .then((res) => {
+          if (res) {
+            set(() => ({ userProfile: res.data.profileData }));
+            toast("Successfully Updated Profile!");
+          }
+        })
+        .catch((err) => {
+          if (err.response && err.response.data.error) {
+            toast.error(err.response.data.error);
+          } else {
+            toast.error("Profile update failed. Please try again.");
+          }
+          console.error("Profile update error:", err);
+        });
+    }
+  },
 }));
+
 
 interface Problem {
   core: ProblemCore;
@@ -26,12 +142,9 @@ interface Problem {
 }
 interface ContestProblemsContext {
   problems: Record<string, Problem>;
-
   fetchCore: (problemId: string) => Promise<void>;
-
   fetchProblemSubmissions: (userId: string, problemId: string) => Promise<void>;
 }
-
 export const useProblems = create<ContestProblemsContext>((set, get) => ({
   problems: {},
   coreLoading: false,
@@ -107,7 +220,6 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
       }));
     }
   },
-
   // Fetch user submitted Submissions of a problem
   fetchProblemSubmissions: async (userId: string, problemId: string) => {
     try {
@@ -116,7 +228,7 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
       // if (problem?.submissions || problem?.coreLoading) {
       //   return;
       // }
-      console.log("core loading: ", problem?.coreLoading)
+      console.log("core loading: ", problem?.coreLoading);
       // Check if core is still loading (in order not to interfere with the network request and give it privilege)
       if (problem?.coreLoading == true) {
         const unsubscribe = useProblems.subscribe((state, prevState) => {
@@ -150,6 +262,7 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
       console.error("Failed to fetch submissions:", error);
     }
   },
+
 }));
 
 interface ShownProblemIdContext {

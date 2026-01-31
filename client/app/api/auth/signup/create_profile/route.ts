@@ -5,9 +5,9 @@ import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
 export async function POST(request: Request) {
   try {
     const formData = await request.json();
-    const { id, username, email } = formData;
+    // const { id, username, email } = formData;
     // id, username, email
-    if (!formData || !id || !username || !email) {
+    if (!formData) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
@@ -22,11 +22,7 @@ export async function POST(request: Request) {
     const { data: profileData, error: profileError } = await supabaseService
       .from("profiles")
       .insert([
-        {
-          id: id,
-          username: username,
-          email: email,
-        },
+       formData 
       ])
       .select()
       .single();

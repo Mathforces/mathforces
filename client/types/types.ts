@@ -41,15 +41,14 @@ export interface Contest {
 }
 
 export interface UserProfile {
-  id: string;
-  created_at: Date;
-  updated_at: Date;
-  email: string;
-  first_name: string;
-  last_name: string;
-  username: string;
-  image: string;
-  bio: string;
+  id?: string;
+  created_at?: Date;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  image?: string;
+  bio?: string;
 }
 
 export interface Submission {

@@ -1,4 +1,5 @@
 "use client";
+import { useProfile } from "@/app/store";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { useState, useEffect } from "react";
@@ -8,18 +9,15 @@ interface INavigationListenerProps {}
 const NavigationListener: React.FunctionComponent<INavigationListenerProps> = (
   props,
 ) => {
-//   const [userProfile, setUserProfile] = getProfile();
-//   const pathname = usePathname();
-//   const router = useRouter();
-//   useEffect(() => {
-//     if (userProfile) {
-//       console.log("userprofile: ", userProfile);
-//       if (userProfile == "without username") {
-//         router.push("/get_username");
-//         toast("Almost done, just enter your username")
-//       }
-//     }
-//   }, [userProfile, pathname]);
+  const isWithoutUsername = useProfile((state) => state.isWithoutUsername);
+  const pathname = usePathname();
+  const router = useRouter();
+  useEffect(() => {
+    if (isWithoutUsername) {
+      router.push("/get_username");
+      toast("Almost done, just enter your username");
+    }
+  }, [isWithoutUsername, pathname]);
   return null;
 };
 

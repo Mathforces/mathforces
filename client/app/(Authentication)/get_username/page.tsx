@@ -30,9 +30,8 @@ import { TiTick } from "react-icons/ti";
 import axios from "axios";
 import { debouncedIsUsernameUnique, signIn } from "../utils";
 import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
-import { useUser } from "@/app/hooks/useUser";
-import { useUserProfile } from "@/contexts/userContext";
 import { useRouter } from "next/navigation";
+import { useProfile } from "@/app/store";
 interface IPageProps {}
 
 const Page: React.FunctionComponent<IPageProps> = (props) => {
@@ -58,32 +57,23 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
   });
 
   const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
-  const { user } = useUser();
-  const [userprofile, setUserProfile] = useUserProfile();
+  const userProfile = useProfile((state) => state.userProfile);
+  const isWithoutUsername = useProfile((state) => state.isWithoutUsername);
+  const createProfile = useProfile((state) => state.createProfile);
+  const user = useProfile((state) => state.user);
   const router = useRouter();
   const onSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      const profileData = {
-        id: user?.id,
-        username: data.username,
-        email: user?.email,
-      };
-      const res = await axios.post(
-        "/api/auth/signup/create_profile",
-        profileData,
-      );
-      if (res) {
-        setUserProfile(res.data.profileData);
-        toast("Successfully Signed in!");
-        router.push("/");
-      }
-    } catch (err: any) {
-      if (err.response && err.response.data.error) {
-        toast.error(err.response.data.error);
-      } else {
-        toast.error("Sign in failed. Please try again.");
-      }
-      console.error("Sign in error:", err);
+    const userProfileData = {
+      id: user?.id,
+      email: user?.email,
+      username: data.username,
+    };
+    const res = await createProfile(userProfileData);
+    if(res.ok){
+      toast.success("Logged in successfully!");
+      router.push("/");
+    } else if(res.error){
+      toast.error(res.error);
     }
   };
 
@@ -97,11 +87,11 @@ const Page: React.FunctionComponent<IPageProps> = (props) => {
     }
   }, [usernameExists]);
 
-  useEffect(() => {
-    if (userprofile !== "without username") {
-      router.push("/");
-    }
-  }, [userprofile]);
+  // useEffect(() => {
+  //   if (!isWithoutUsername) {
+  //     router.push("/");
+  //   }
+  // }, [isWithoutUsername]);
 
   return (
     <main className="h-screen flex justify-center items-center max-w-[1444]! px-0">
