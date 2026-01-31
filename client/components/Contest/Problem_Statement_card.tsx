@@ -29,7 +29,7 @@ import * as z from "zod";
 import { Field, FieldError, FieldLabel } from "../ui/field";
 import { toast } from "sonner";
 import { useUser } from "@/app/hooks/useUser";
-import { useContestProblems, useShownProblemId } from "@/app/store";
+import { useProblems, useShownProblemId } from "@/app/store";
 interface Props {
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
@@ -59,12 +59,10 @@ const Problem_Statement_card = ({
     },
   });
   const { user } = useUser();
-  // const [problemCore, setFullProblem] = useState<FullProblem | null>(null);
   const shownProblemId = useShownProblemId((state) => state.shownProblemId);
-  const problemCore = useContestProblems(
+  const problemCore = useProblems(
     (state) => state.problems[shownProblemId]?.core,
   );
-
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${problemCore?.id}`, value);
@@ -103,6 +101,7 @@ const Problem_Statement_card = ({
               setProblemsStatus((prev) => {
                 return { ...prev, [problemCore.id]: status };
               });
+              console.log("submission was sucessful, your status is: ", status);
             }
           })
           .catch((err) => {
@@ -123,7 +122,7 @@ const Problem_Statement_card = ({
     if (shownProblemId) {
       if (!problemCore || shownProblemId !== problemCore?.id) {
         const getCore = () => {
-          useContestProblems.getState().fetch_core(shownProblemId);
+          useProblems.getState().fetchCore(shownProblemId);
         };
         getCore();
       }
