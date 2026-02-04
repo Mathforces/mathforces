@@ -3,11 +3,10 @@ import { MainLinks } from "@/data/Links";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import { Logs, Plus } from "lucide-react";
+import { Logs, Plus, Send, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ThemeButton } from "./Theme-button";
-import { profile } from "console";
 import { useProfile } from "@/app/store";
+import { Input } from "./ui/input";
 
 const Navbar = () => {
   const pathName = usePathname();
@@ -22,48 +21,55 @@ const Navbar = () => {
     }
   });
   useEffect(() => {
-    console.log("userprofile: ", userProfile)
-  }, [userProfile])
+    console.log("userprofile: ", userProfile);
+  }, [userProfile]);
   if (isBanned || !userProfile) {
     return;
   }
   return (
-    <nav className="fixed top-0 left-2/4 -translate-x-2/4 w-full max-w-7xl flex justify-between md:justify-evenly items-center gap-5 p-5 z-50 bg-card rounded-b-2xl">
-      <Link href="/">
-        <h5 className="font-bold! flex items-end justify-end z-50">
-          <div className="flex justify-end items-end">
-            <h4 className="font-bold!">N</h4>UM
-          </div>
-
-          <div className="flex items-start gap-px">
-            <div className="flex flex-col justify-center items-center gap-0.5">
-              <Plus strokeWidth={6} size={10} className="text-primary" />
-              <div className="w-1  h-2.5 bg-foreground" />
+    <nav className="fixed top-0 left-2/4 -translate-x-2/4 w-full mx-2 flex justify-between items-center gap-5 p-5 z-50 bg-card rounded-b-2xl">
+      <div className="flex items-center gap-3">
+        <Link href="/">
+          <h5 className="font-bold! flex items-end justify-end z-50">
+            <div className="flex justify-end items-end">
+              <h4 className="font-bold!">N</h4>UM
             </div>
-            TZ
-          </div>
-        </h5>
-      </Link>
-      <div className="hidden md:flex">
-        {MainLinks.map((link) => (
-          <Link
-            key={link.name}
-            href={link.href}
-            className={`mx-3 text-lg hover:text-primary duration-100 ${
-              pathName === link.href
-                ? "text-primary "
-                : "text-neutral-700 dark:text-neutral-300 "
-            }`}
-          >
-            {link.name}
-          </Link>
-        ))}
+
+            <div className="flex items-start gap-px">
+              <div className="flex flex-col justify-center items-center gap-0.5">
+                <Plus strokeWidth={6} size={10} className="text-primary" />
+                <div className="w-1  h-2.5 bg-foreground" />
+              </div>
+              TZ
+            </div>
+          </h5>
+        </Link>
+        <div className="hidden md:flex">
+          {MainLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={`mx-3 text-lg hover:text-primary duration-100 ${
+                pathName === link.href
+                  ? "text-primary "
+                  : "text-neutral-700 dark:text-neutral-300 "
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
       </div>
 
-      <div className="flex items-cenuter gap-2">
-        <ThemeButton />
+      <div className="hidden lg:flex items-center gap-2 w-1/4">
+        <Input placeholder="Search for something..." />
+        <Settings />
         {userProfile ? (
-          <div>hello {userProfile.username}</div>
+          <div className="w-10 h-10 rounded-full bg-primary flex justify-center items-center uppercase text-white text-sm font-bold cursor-pointer">
+            {userProfile.username
+              ? userProfile.username.charAt(0).toUpperCase()
+              : ""}
+          </div>
         ) : (
           <Button variant={"primary"} link="/sign_up">
             Sign Up
