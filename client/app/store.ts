@@ -144,6 +144,7 @@ interface ContestProblemsContext {
   problems: Record<string, Problem>;
   fetchCore: (problemId: string) => Promise<void>;
   fetchProblemSubmissions: (userId: string, problemId: string) => Promise<void>;
+  updateProblemSubmissions: (submission: Submission) => void;
 }
 export const useProblems = create<ContestProblemsContext>((set, get) => ({
   problems: {},
@@ -225,9 +226,6 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
     try {
       // check if it's saved
       const problem = get().problems[problemId];
-      // if (problem?.submissions || problem?.coreLoading) {
-      //   return;
-      // }
       console.log("core loading: ", problem?.coreLoading);
       // Check if core is still loading (in order not to interfere with the network request and give it privilege)
       if (problem?.coreLoading == true) {
@@ -263,6 +261,30 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
     }
   },
 
+  updateProblemSubmissions: (submission: Submission) => {
+    if(submission){
+      try{
+        let {problem_id: problemId} = submission;
+        let submissions = get().problems[problemId].submissions ?? [];
+
+        if(submissions){
+          submissions.unshift(submission)
+          set((state) => ({
+            problems: {
+              ...state.problems,
+              [problemId]: {
+                ...state.problems[problemId],
+                submissions,
+              },
+            },
+          }));
+        }
+      } 
+      catch (error) {
+        console.error("Failed to fetch submissions:", error);
+      }
+    }
+  },
 }));
 
 interface ShownProblemIdContext {

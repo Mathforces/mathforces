@@ -63,6 +63,7 @@ const Problem_Statement_card = ({
   const problemCore = useProblems(
     (state) => state.problems[shownProblemId]?.core,
   );
+  const updateSubmission = useProblems((state) => state.updateProblemSubmissions);
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${problemCore?.id}`, value);
@@ -72,9 +73,9 @@ const Problem_Statement_card = ({
   const onSubmit = ({ answer: user_answer }: z.infer<typeof schema>) => {
     if (user_answer) {
       saveInputToLocalStorage(user_answer);
-
       // validation
       if (problemCore?.answer && problemCore.id && user?.id) {
+
         let status = "idle";
         if (user_answer === problemCore.answer) {
           status = "success";
@@ -82,9 +83,11 @@ const Problem_Statement_card = ({
           status = "failure";
         }
         const submission_data = {
+          problem_id: shownProblemId,
           user_answer,
           status,
         };
+        updateSubmission(submission_data) 
         axios
           .post(
             `/api/problems/${problemCore.id}/submissions/${user.id}`,

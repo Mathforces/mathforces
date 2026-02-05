@@ -52,12 +52,12 @@ export interface UserProfile {
 }
 
 export interface Submission {
-  id: string;
-  created_at: Date;
-  problem_id: string;
-  user_id: string;
-  user_answer: string;
-  status: string;
+  id?: string;
+  created_at?: Date;
+  problem_id?: string;
+  user_id?: string;
+  user_answer?: string;
+  status?: string;
 }
 
 export type ProblemStatus = "success" | "failure" | "idle";
