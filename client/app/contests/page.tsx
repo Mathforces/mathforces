@@ -1,6 +1,5 @@
 "use client";
 import Right_Side from "@/components/Contest/Right_Side";
-import Suggested_problem from "@/components/Contest/Suggested_problem";
 import Loading from "@/components/ui/Loading";
 import { Contest } from "@/types/types";
 import axios from "axios";
@@ -8,13 +7,14 @@ import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import SuggestedContest from "@/components/Contest/suggestedContest";
 
 export default function Page() {
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
 
-  const fetchProblems = async () => {
+  const fetchContests = async () => {
     try {
       const response = await axios.get("/api/contests");
       setContests(response.data);
@@ -27,7 +27,7 @@ export default function Page() {
   };
 
   useEffect(() => {
-    fetchProblems();
+    fetchContests();
   }, []);
   if (loading) return <Loading />;
 
@@ -51,7 +51,7 @@ export default function Page() {
 
   return (
     <main className="pt-24 flex flex-col md:flex-row items-center lg:justify-evenly gap-5 lg:gap-10 md:items-start overflow-hidden">
-      <Suggested_problem Contest={contests} />
+      <SuggestedContest contests={contests} />
 
       <Right_Side />
     </main>

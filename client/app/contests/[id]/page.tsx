@@ -28,6 +28,7 @@ import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
 import { useShownProblemId } from "@/app/store";
+import ContestStandings from './standings.tsx'
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -245,6 +246,9 @@ export default function Page() {
                         problems={problems}
                         problemsStatus={problemsStatus}
                       />
+
+                      <ContestStandings contestId={contest.id} />
+                      
                     </Tabs>
                   </div>
                   <ScrollBar />

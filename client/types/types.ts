@@ -68,3 +68,14 @@ export interface ProblemCore {
   description_html: string;
   answer: string;
 }
+
+export interface Standing {
+  id?: string;
+  user_id?: string;
+  contest_id?: string;
+  score?: number;
+  profiles: {
+    name: string;
+    // avatar: string;
+  }
+}
