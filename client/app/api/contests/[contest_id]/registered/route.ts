@@ -39,25 +39,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
     const { user_id } = body;
     const contest_id = (await params).contest_id;
 
-    // Check if user is already registered 
-    const {data: user_matches, error: user_matches_error } = await supabase
-    .from('registered_in_contest')
-    .select("id")
-    .eq("contest_id", contest_id)
-    .eq("user_id", user_id)
-
-    if(user_matches_error){
-      console.error(user_matches_error)
-      throw new Error("Couldn't get if user is registered in contest")
-    }
-    if(user_matches && user_matches.length > 0){
-      console.log("user is already registered in contest")
-      return new Response(JSON.stringify({ error: "user is already registered in contest" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
     // When user doesn't exist add them 
     const { data: registered_users, error } = await supabase
       .from("registered_in_contest")
@@ -70,6 +51,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
         headers: { "Content-Type": "application/json" },
       });
     }
+
 
     return new Response(JSON.stringify(registered_users), {
       status: 201,

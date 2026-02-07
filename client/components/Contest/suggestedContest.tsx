@@ -20,7 +20,13 @@ const SuggestedContest = ({ contests }: Props) => {
       })
       .catch((error) => {
         console.error(error);
-        toast.error("Error Occured while registering to contest")
+        if(error.response.data.error.includes("duplicate key value violates unique constraint")){
+          console.log("You are already registered to this contest")
+          toast.error("You are already registered to this contest")
+        }
+        else{
+          toast.error("Error Occured while registering to contest")
+        }
       })
   }
 
