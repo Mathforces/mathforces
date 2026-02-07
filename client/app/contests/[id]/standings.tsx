@@ -12,13 +12,13 @@ type Props = {
 const ContestStandings = ({ contestId }: Props) => {
   const userProfile = useProfile((state) => state.user);
   const [standings, setStandings] = useState<Standing[]>([]);
-
   const getStandings = async () => {
     axios.get(`/api/contests/${contestId}/standings`)
       .then((res) => {
         if (res) {
-          console.log("contest_standings: ", standings)
-          setStandings((standings));
+          const standingsTemp = res.data;
+          console.log("contest_standings: ", standingsTemp)
+          setStandings(standingsTemp);
         }
       })
       .catch((error) => {
@@ -38,12 +38,15 @@ const ContestStandings = ({ contestId }: Props) => {
             <div className="flex items-center justify-between">
               <div>
                 {/* user's icon */}
-                <span>{standing.profiles.name}</span>
+                <span>{standing.profiles.username}</span>
               </div>
               <div>
                 <span>{standing.score}</span>
               </div>
 
+              <div>
+                <span>{standing.penalty}</span>
+              </div>
             </div>
           ))
         }

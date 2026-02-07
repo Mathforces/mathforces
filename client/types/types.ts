@@ -74,8 +74,11 @@ export interface Standing {
   user_id?: string;
   contest_id?: string;
   score?: number;
+  penalty?: number;
   profiles: {
-    name: string;
+    username: string;
     // avatar: string;
   }
+
+
 }

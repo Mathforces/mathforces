@@ -28,7 +28,7 @@ import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
 import { useShownProblemId } from "@/app/store";
-import ContestStandings from './standings.tsx'
+import ContestStandings from "./standings";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -43,7 +43,7 @@ export default function Page() {
 
   const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<contestProblem[]>([]);
-  const {shownProblemId, setShownProblemId} = useShownProblemId(); 
+  const { shownProblemId, setShownProblemId } = useShownProblemId();
   const problemId = contestParams.get("problemId") || null;
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
@@ -61,7 +61,7 @@ export default function Page() {
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
-  useState("problemStatement");
+    useState("problemStatement");
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -75,7 +75,7 @@ export default function Page() {
         console.error("Error fetching contest:", err);
         setError(
           err.response?.data?.message ||
-            "Failed to load contest. Please try again.",
+          "Failed to load contest. Please try again.",
         );
       } finally {
         setLoading(false);
@@ -106,7 +106,7 @@ export default function Page() {
         console.error("Error fetching problems:", err);
         setError(
           err.response?.data?.message ||
-            "Failed to load problems. Please try again.",
+          "Failed to load problems. Please try again.",
         );
       }
     };
@@ -181,9 +181,8 @@ export default function Page() {
 
       {/* Problems List Screen for phones */}
       <div
-        className={`fixed top-0 left-0 bg-background px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
-          isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
-        }`}
+        className={`fixed top-0 left-0 bg-background px-4 rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
+          }`}
       >
         <h2 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
           <Gauge size={25} strokeWidth={3} className="text-primary" /> Levels
@@ -241,14 +240,20 @@ export default function Page() {
                       </TabsList>
 
                       {/* Problems */}
-                      <ContestProblems
-                        contest={contest}
-                        problems={problems}
-                        problemsStatus={problemsStatus}
-                      />
+                      {
+                        leftBarActiveTab == "problems" &&
+                        <ContestProblems
+                          contest={contest}
+                          problems={problems}
+                          problemsStatus={problemsStatus}
+                        />
+                      }
 
-                      <ContestStandings contestId={contest.id} />
-                      
+                      {
+                        leftBarActiveTab == "standings" &&
+                        <ContestStandings contestId={contest.id} />
+                      }
+
                     </Tabs>
                   </div>
                   <ScrollBar />
