@@ -16,7 +16,7 @@ export async function GET(
     const supabase = await createSupabaseServerClient();
     const problemId = (await params).problem_id;
     const { data: submissions, error } = await supabase
-      .from("submissions")
+      .from("problems")
       .select("*")
       .eq("id", problemId);
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const { data, error } = await supabase
-      .from("submissions")
+      .from("problems")
       .insert([body])
       .select()
       .single();
