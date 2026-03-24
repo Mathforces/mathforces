@@ -41,6 +41,7 @@ export interface Contest {
   start_date: Date;
   created_at: Date;
   length_in_minutes: number;
+  problem_count: number;
 }
 
 export interface UserProfile {
