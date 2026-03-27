@@ -22,14 +22,14 @@ export async function GET(request: Request) {
       .from("contests")
       .select("*")
       .order("start_date", { ascending: false })
-      .gte(
+      .lte(
         "start_date",
         (pointer ? new Date(pointer) : new Date()).toISOString(),
       )
       .limit(limit + 1);
 
     if (error) {
-      console.log("couldnt get upcoming1");
+      console.log("couldnt get pastContests1");
       console.error(error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
       },
     );
   } catch (error) {
-    console.log("couldn't get upcoming");
+    console.log("couldn't get pastContests");
     console.error(error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,

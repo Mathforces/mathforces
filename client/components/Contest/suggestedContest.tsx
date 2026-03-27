@@ -12,6 +12,8 @@ import { useEffect, useState } from "react";
 import ContestListing from "@/app/contests/contestListing";
 import { ScrollArea } from "../ui/scroll-area";
 import useInfiniteScroll from "@/hook/useInfiniteScroll";
+import Loading from "../ui/Loading";
+import { Loader2 } from "lucide-react";
 
 interface Props {}
 const SuggestedContest = ({}: Props) => {
@@ -42,14 +44,22 @@ const SuggestedContest = ({}: Props) => {
   // const [upComingContests, setUpComingContests] = useState<Contest[] | null>(
   //   null,
   // );
-  const [pastContests, setPastContests] = useState<Contest[] | null>(null);
 
   const {
     items: upComingContests,
-    loading: upComingLoading,
-    observerTarget: UpcomingObserver,
+    loading: upComingContestsLoading,
+    observerTarget: UpcomingContestsObserver,
   } = useInfiniteScroll({
     apiUrl: "/api/contests/upcoming",
+    options: { limit: 5 },
+  });
+
+  const {
+    items: pastContests,
+    loading: pastContestsLoading,
+    observerTarget: pastContestsObserver,
+  } = useInfiniteScroll({
+    apiUrl: "/api/contests/past",
     options: { limit: 5 },
   });
   // Handle error
@@ -73,30 +83,55 @@ const SuggestedContest = ({}: Props) => {
             <TabsContent value="upcoming_contests">
               {/* TODO: Change this to upcoming contests only  */}
               <ScrollArea className="h-60">
-                <div className="space-y-3">
-                  {upComingContests ? (
-                    upComingContests.map((contest: Contest, i: number) => (
-                      <ContestListing
-                        key={contest?.id ?? i}
-                        contest={contest}
-                      />
-                    ))
+                <div className="">
+                  {upComingContests && upComingContests.length > 0 ? (
+                    <div className="space-y-3">
+                      {upComingContests.map((contest: Contest, i: number) => (
+                        <ContestListing
+                          key={contest?.id ?? i}
+                          contest={contest}
+                        />
+                      ))}
+                      {upComingContestsLoading && (
+                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                      )}
+                    </div>
+                  ) : upComingContestsLoading ? (
+                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
                   ) : (
                     <div>
                       <span>There are no contests to show</span>
                     </div>
                   )}
-                  <div ref={UpcomingObserver}></div>
+                  <div ref={UpcomingContestsObserver}></div>
                 </div>
               </ScrollArea>
             </TabsContent>
             <TabsContent value="past_contests">
-              {/* TODO: Change this to past contests only  */}
-              {/* <div className="space-y-3"> */}
-              {/*   {contests.map((contest, i) => ( */}
-              {/*     <ContestListing key={contest?.id ?? i} contest={contest} /> */}
-              {/*   ))} */}
-              {/* </div> */}
+              <ScrollArea className="h-60">
+                <div className="">
+                  {pastContests ? (
+                    <div className="space-y-3">
+                      {pastContests.map((contest: Contest, i: number) => (
+                        <ContestListing
+                          key={contest?.id ?? i}
+                          contest={contest}
+                        />
+                      ))}
+                      {pastContestsLoading && (
+                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                      )}
+                    </div>
+                  ) : pastContestsLoading ? (
+                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                  ) : (
+                    <div>
+                      <span>There are no contests to show</span>
+                    </div>
+                  )}
+                  <div ref={pastContestsObserver}></div>
+                </div>
+              </ScrollArea>
             </TabsContent>
           </CardContent>
         </Card>
