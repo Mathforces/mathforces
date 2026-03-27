@@ -36,18 +36,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
+import axios from "axios";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function ProblemSetTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [problemsCount, setProblemsCount] = useState(0);
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("query") || null;
   const table = useReactTable({
@@ -69,6 +72,7 @@ export function DataTable<TData, TValue>({
   const [usedSortingMethod, setUsedSortingMehtod] = useState<string>(
     problemsSortingMethods[0],
   );
+
   const handleSortingMethodChange = (meth: string) => {
     if (meth) {
       if (meth !== usedSortingMethod) {
@@ -79,13 +83,27 @@ export function DataTable<TData, TValue>({
       }
     }
   };
+
   useEffect(() => {
     if (searchQuery) {
       table.getColumn("name")?.setFilterValue(searchQuery);
     }
   }, [searchQuery]);
+
+  useEffect(() => {
+    const getProblemsCount = async () => {
+      const res = await axios.get("/api/problems/count");
+      console.log(res);
+      if (res.data) {
+        setProblemsCount(res.data);
+      }
+    };
+    getProblemsCount();
+  }, []);
+
   return (
     <div>
+      {/* Table Controllers */}
       <div className="flex items-center gap-2">
         {/* Searching */}
         <div className="flex items-center py-4">
@@ -118,6 +136,10 @@ export function DataTable<TData, TValue>({
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        <div>
+          <span>({problemsCount} Problems)</span>
         </div>
       </div>
 

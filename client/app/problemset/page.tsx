@@ -1,14 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { IoFolderOpen, IoSearch } from "react-icons/io5";
-import { IoExtensionPuzzle } from "react-icons/io5";
-import { FaGraduationCap } from "react-icons/fa";
-import { useProfile } from "../store";
-import { FaRegUserCircle } from "react-icons/fa";
-import { DataTable } from "./data_table";
+import { IoSearch } from "react-icons/io5";
+import { ProblemSetTable } from "./data_table";
 import { columns } from "./columns";
 import { HEADER_MARGIN } from "@/lib/utils";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -83,13 +77,6 @@ export default function LearningDashboard() {
         "Geomtry",
       ],
     },
-    // { title: "Euclidean Theory", solved: "80.67%", diff: "Easy" },
-    // { title: "Pythagoras Game", solved: "80.23%", diff: "Med." },
-    // { title: "Newton and rough planes", solved: "97.45%", diff: "Hard" },
-    // { title: "Einstein fights Newton", solved: "56%", diff: "Med." },
-    // { title: "Einstein the flash", solved: "12.63%", diff: "Easy" },
-    // { title: "Plank and his constant", solved: "74.05%", diff: "Med." },
-    // { title: "Gojo's infinity limit", solved: "21.32%", diff: "Hard" },
   ];
 
   const trendingCompetitions = [
@@ -146,9 +133,10 @@ export default function LearningDashboard() {
             <RsvpButton name="SAT Challenge" />
           </div>
         </div>
+
         <div className="space-y-1.5">
           <Suspense fallback={<div>Loading...</div>}>
-            <DataTable columns={columns} data={problems} />
+            <ProblemSetTable columns={columns} data={problems} />
           </Suspense>
         </div>
 
