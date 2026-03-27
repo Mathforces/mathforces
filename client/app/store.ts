@@ -26,6 +26,7 @@ export interface UserProfileContext {
   loading: boolean;
   signOut: () => Promise<void>;
 }
+
 export const useProfile = create<UserProfileContext>((set, get) => ({
   user: null,
   userProfile: null,

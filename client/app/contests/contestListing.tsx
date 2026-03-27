@@ -33,7 +33,7 @@ function ContestListing({ contest }: Props) {
           <h4 className="text-base !font-normal ">{contest.name}</h4>
           <span className="text-muted-foreground text-sm">
             {getFormattedDate(contest.start_date).fullDate} (
-            {formatDistance(contest.start_date, contest.end_date, {
+            {formatDistance(contest.start_date, new Date(), {
               addSuffix: true,
             })}
             )
