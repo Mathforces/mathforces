@@ -1,97 +1,51 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { NextResponse } from "next/server";
+import { json, apiError, handleSupabaseError, requireFields } from "@/lib/api/response";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ problem_id: string; user_id: string }> },
 ) {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const problemId = (await params).problem_id;
-    const userId = (await params).user_id;
-    const { data: submissions, error } = await supabase
-      .from("submissions")
-      .select("*, problems(name), profiles(username)")
-      .eq("problem_id", problemId)
-      .eq("user_id", userId);
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify(submissions), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const supabase = await createSupabaseServerClient();
+  const { problem_id, user_id } = await params;
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .select("*, problems(name), profiles(username)")
+    .eq("problem_id", problem_id)
+    .eq("user_id", user_id);
+
+  const err = handleSupabaseError(error, "user submissions");
+  if (err) return err;
+
+  return json(data);
 }
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ problem_id: string; user_id: string }> },
 ) {
-  try {
-    const body = await request.json();
-    const { problem_id, user_id } = await params;
-    const { user_answer, status, display_id } = body;
-    if (
-      !body ||
-      !user_id ||
-      !problem_id ||
-      !display_id ||
-      !user_answer ||
-      !status
-    ) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+  const body = await request.json();
+  const { problem_id, user_id } = await params;
 
-    const supabase = createSupabaseServiceClient();
+  const missingFields = requireFields(body, ["user_answer", "status", "display_id"]);
+  if (missingFields) return missingFields;
 
-    const { data: submission_data, error: submissionError } = await supabase
-      .from("submissions")
-      .insert({
-        user_id,
-        problem_id,
-        user_answer,
-        status,
-        display_id,
-      })
-      .select("*, problems(name), profiles(username)")
-      .single();
-    if (submissionError) {
-      return new Response(JSON.stringify({ error: submissionError.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify({ success: true, submission_data }), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
+  const supabase = createSupabaseServiceClient();
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .insert({
+      user_id,
+      problem_id,
+      user_answer: body.user_answer,
+      status: body.status,
+      display_id: body.display_id,
+    })
+    .select("*, problems(name), profiles(username)")
+    .single();
+
+  if (error) return apiError(error.message, 500);
+
+  return json({ success: true, data }, 201);
 }

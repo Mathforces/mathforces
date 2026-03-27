@@ -1,62 +1,23 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
+import { rateLimitPublic } from "@/lib/api/auth";
+import { json, handleSupabaseError, paginate, parsePaginationParams } from "@/lib/api/response";
 
 export async function GET(request: Request) {
-  try {
-    // Rate limit public GET requests
-    const rateLimitError = rateLimitPublic(request);
-    const { searchParams } = new URL(request.url);
+  const rateLimitError = rateLimitPublic(request);
+  if (rateLimitError) return rateLimitError;
 
-    let limit = Number(searchParams.get("limit") ?? 0);
-    if (!limit) limit = 2;
-    let pointer = searchParams.get("pointer");
-    console.log("limit: ", limit);
+  const { limit, pointer } = parsePaginationParams(request.url, 2);
 
-    if (rateLimitError) {
-      return rateLimitError;
-    }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("contests")
+    .select("*")
+    .order("start_date", { ascending: false })
+    .gte("start_date", (pointer ? new Date(pointer) : new Date()).toISOString())
+    .limit(limit + 1);
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("contests")
-      .select("*")
-      .order("start_date", { ascending: false })
-      .gte(
-        "start_date",
-        (pointer ? new Date(pointer) : new Date()).toISOString(),
-      )
-      .limit(limit + 1);
+  const err = handleSupabaseError(error, "upcoming contests");
+  if (err) return err;
 
-    if (error) {
-      console.log("couldnt get upcoming1");
-      console.error(error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    const hasMore = data.length > Number(limit);
-    const res = data.slice(0, data.length - 1);
-    const nextPointer = res.length > 0 ? res[res.length - 1].start_date : null;
-    console.log("next_pointer: ", nextPointer);
-    return new Response(
-      JSON.stringify({
-        data: res,
-        hasMore: hasMore,
-        nextPointer: nextPointer,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  } catch (error) {
-    console.log("couldn't get upcoming");
-    console.error(error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  return json(paginate(data, limit, "start_date"));
 }

@@ -1,30 +1,20 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { json, handleSupabaseError } from "@/lib/api/response";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ problem_id: string }> }
 ) {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const problemId = (await params).problem_id;
-    const { data: editorials, error } = await supabase
-      .from("editorials")
-      .select("*")
-      .eq("problem_id", parseInt(problemId));
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify(editorials), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const supabase = await createSupabaseServerClient();
+  const problemId = (await params).problem_id;
+
+  const { data, error } = await supabase
+    .from("editorials")
+    .select("*")
+    .eq("problem_id", parseInt(problemId));
+
+  const err = handleSupabaseError(error, "editorials");
+  if (err) return err;
+
+  return json(data);
 }
