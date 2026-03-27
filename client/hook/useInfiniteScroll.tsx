@@ -5,9 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface InfiniteScrollOptions {
   limit: number;
+  autoFetch?: boolean;
 }
 const defaultOptions = {
   limit: 20,
+  autoFetch: true,
 };
 type Props = {
   apiUrl: string;
@@ -19,8 +21,9 @@ function useInfiniteScroll({ apiUrl, options = defaultOptions }: Props) {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState(false);
   const [pointer, setPointer] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
-  const { limit } = options;
+  const { limit, autoFetch } = options;
 
   const fetchMore = useCallback(async () => {
     setLoading(true);
@@ -69,12 +72,20 @@ function useInfiniteScroll({ apiUrl, options = defaultOptions }: Props) {
 
   //  initial load
   useEffect(() => {
-    if (!items || items.length === 0) {
+    if (autoFetch && (!items || items.length === 0)) {
+      fetchMore();
+      if (!isInitialized) setIsInitialized(true);
+    }
+  }, [autoFetch, fetchMore, items]);
+
+  const loadMore = useCallback(() => {
+    if (!isInitialized) {
+      setIsInitialized(true);
       fetchMore();
     }
-  }, []);
+  }, [fetchMore, isInitialized]);
 
-  return { items, loading, observerTarget };
+  return { items, loading, observerTarget, loadMore, hasMore, isInitialized };
 }
 
 export default useInfiniteScroll;

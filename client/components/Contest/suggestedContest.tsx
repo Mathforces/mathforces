@@ -16,9 +16,11 @@ import Loading from "../ui/Loading";
 import { Loader2 } from "lucide-react";
 
 interface Props {}
+type ContestTypeTab = "upcoming_contests" | "past_contests" | "all";
 const SuggestedContest = ({}: Props) => {
   const userId = useProfile((state) => state.user?.id);
-  const [contestTypeTab, setContestTypeTab] = useState("upcoming_contests");
+  const [contestTypeTab, setContestTypeTab] =
+    useState<ContestTypeTab>("upcoming_contests");
   const handleRegister = async (contestId: string) => {
     axios
       .post(`/api/contests/${contestId}/registered`, { user_id: userId })
@@ -49,26 +51,44 @@ const SuggestedContest = ({}: Props) => {
     items: upComingContests,
     loading: upComingContestsLoading,
     observerTarget: UpcomingContestsObserver,
+    loadMore: upComingContestLoadMore,
+    isInitialized: upComingContestsIsInitialized,
   } = useInfiniteScroll({
     apiUrl: "/api/contests/upcoming",
-    options: { limit: 5 },
+    options: { limit: 5, autoFetch: false },
   });
 
   const {
     items: pastContests,
     loading: pastContestsLoading,
     observerTarget: pastContestsObserver,
+    loadMore: pastContestLoadMore,
+    isInitialized: pastContestsIsInitialized,
   } = useInfiniteScroll({
     apiUrl: "/api/contests/past",
-    options: { limit: 5 },
+    options: { limit: 5, autoFetch: false },
   });
+
+  useEffect(() => {
+    if (
+      contestTypeTab === "upcoming_contests" &&
+      !upComingContestsIsInitialized
+    ) {
+      upComingContestLoadMore();
+    } else if (
+      contestTypeTab === "past_contests" &&
+      !pastContestsIsInitialized
+    ) {
+      pastContestLoadMore();
+    }
+  }, [contestTypeTab]);
   // Handle error
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
       <Tabs
         defaultValue="upcoming_contests"
         value={contestTypeTab}
-        onValueChange={setContestTypeTab}
+        onValueChange={(e: any) => setContestTypeTab(e)}
       >
         <Card className="pt-3 border-none">
           <CardHeader>
@@ -81,7 +101,6 @@ const SuggestedContest = ({}: Props) => {
           </CardHeader>
           <CardContent>
             <TabsContent value="upcoming_contests">
-              {/* TODO: Change this to upcoming contests only  */}
               <ScrollArea className="h-60">
                 <div className="">
                   {upComingContests && upComingContests.length > 0 ? (
