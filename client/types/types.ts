@@ -3,21 +3,22 @@ import { MdOutlineRemoveShoppingCart } from "react-icons/md";
 export const contestProblemDefaultValues = {
   id: "",
   name: "",
-  num_submissions: 0,
-  num_correct_submissions: 0,
+  submission_count: 0,
+  correct_submission_count: 0,
   points: 0,
+  difficulty: 1400,
   likes: 0,
   comments_num: 0,
   index_in_contest: 0,
 } as const;
-export type contestProblem = {
+export type ContestProblem = {
   [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
 };
 export interface FullProblem {
   id: string;
   name: string | null;
-  num_submissions: number | null;
-  num_correct_submissions: number | null;
+  submission_count: number | null;
+  correct_submission_count: number | null;
   points: number | null;
   likes: number | null;
   comments_num: number | null;

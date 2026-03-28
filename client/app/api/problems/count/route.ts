@@ -16,9 +16,6 @@ export async function GET(request: Request) {
     .from("problems")
     .select("*", { count: "planned", head: true });
 
-  console.log("count: ", count);
-  console.log("error: ", error);
-
   const err = handleSupabaseError(error, "problem discussions");
   if (err) return err;
 

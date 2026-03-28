@@ -20,7 +20,7 @@ import GraphCalculator from "@/components/Tools/Graph_Calc";
 import Problem_Statement_card from "@/components/Contest/Problem_Statement_card";
 import { GrUploadOption } from "react-icons/gr";
 import axios from "axios";
-import { Contest, contestProblem, FullProblem } from "@/types/types";
+import { Contest, ContestProblem, FullProblem } from "@/types/types";
 import Loading from "@/components/ui/Loading";
 import ProblemCard from "@/components/Contest/Problem_Card";
 import ContestSubmissions from "./submissions";
@@ -43,7 +43,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<contestProblem[]>([]);
+  const [problems, setProblems] = useState<ContestProblem[]>([]);
   const { shownProblemId, setShownProblemId } = useShownProblemId();
   const problemId = contestParams.get("problemId") || null;
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
@@ -97,8 +97,8 @@ export default function Page() {
           if (!shownProblemId) {
             setShownProblemId(response.data[0].id);
           }
-          const problemsTemp = response.data as contestProblem[];
-          problemsTemp.sort((a: contestProblem, b: contestProblem) => {
+          const problemsTemp = response.data as ContestProblem[];
+          problemsTemp.sort((a: ContestProblem, b: ContestProblem) => {
             return a.index_in_contest - b.index_in_contest;
           });
           setProblems(problemsTemp);

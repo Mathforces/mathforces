@@ -6,20 +6,17 @@ import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { contestProblem } from "@/types/types";
+import { ContestProblem } from "@/types/types";
 import { cn } from "@/lib/utils";
 import { useShownProblemId } from "@/app/store";
 
 interface Props {
-  problem: contestProblem;
+  problem: ContestProblem;
   problemsStatus: Record<string, string>;
 }
 
-const Problem_Card = ({
-  problem,
-  problemsStatus,
-}: Props) => {
-  const {shownProblemId, setShownProblemId} = useShownProblemId();
+const Problem_Card = ({ problem, problemsStatus }: Props) => {
+  const { shownProblemId, setShownProblemId } = useShownProblemId();
   const pathName = usePathname();
   const isInContest = pathName.includes(`/contests/${problem.id}`);
 
@@ -93,8 +90,8 @@ const Problem_Card = ({
           <div className="flex items-center">
             <Progress
               value={
-                ((problem.num_correct_submissions ?? 0) /
-                  (problem.num_submissions ?? 1)) *
+                ((problem.correct_submission_count ?? 0) /
+                  (problem.submission_count ?? 1)) *
                 100
               }
               className="bg-background w-24 h-[3px] *:bg-success/50"
@@ -102,15 +99,15 @@ const Problem_Card = ({
             <div className="flex gap-1 items-center text-xs">
               <span>
                 {Math.round(
-                  ((problem.num_correct_submissions ?? 0) /
-                    (problem.num_submissions ?? 1)) *
+                  ((problem.correct_submission_count ?? 0) /
+                    (problem.submission_count ?? 1)) *
                     100,
                 )}
                 %
               </span>
               <span className="text-muted-foreground/70">
-                ({problem.num_correct_submissions ?? 0} /{" "}
-                {problem.num_submissions ?? 0} submissions)
+                ({problem.correct_submission_count ?? 0} /{" "}
+                {problem.submission_count ?? 0} submissions)
               </span>
             </div>
           </div>

@@ -10,80 +10,14 @@ import ProblemSetsLeftBarBottomSection from "./leftBarBottomSection";
 import ProblemSetLeftBarTopSection from "./leftBarTopSection";
 import RsvpButton from "@/components/rsvpButton";
 import { Suspense } from "react";
+
 export default function LearningDashboard() {
-  const problems = [
-    {
-      id: "ce985cb6-555a-4db0-b60b-67a230d76ed1",
-      shownId: "2412D",
-      name: "Euclidean Theory",
-      precentage_solved: 84.2,
-      difficulty: "Hard",
-      contestId: "93ad77b8-2b6e-49f7-a0b9-796efa0f08fb",
-      topics: [
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-      ],
-    },
-    {
-      id: "ce985cb6-555a-4db0-b60b-67a230d76ed1",
-      shownId: "412C",
-      name: "Pythagoras Game",
-      precentage_solved: 94.2,
-      difficulty: "medium",
-      contestId: "93ad77b8-2b6e-49f7-a0b9-796efa0f08fb",
-      topics: [
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-      ],
-    },
-    {
-      shownId: "712A",
-      id: "ce985cb6-555a-4db0-b60b-67a230d76ed1",
-      name: "Newton and rough planes",
-      precentage_solved: 24.2,
-      difficulty: "Easy",
-      contestId: "93ad77b8-2b6e-49f7-a0b9-796efa0f08fb",
-      topics: [
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-      ],
-    },
-    {
-      shownId: "412C",
-      id: "ce985cb6-555a-4db0-b60b-67a230d76ed1",
-      name: "Einstein fights Newton",
-      precentage_solved: 54.2,
-      difficulty: "Hard",
-
-      contestId: "93ad77b8-2b6e-49f7-a0b9-796efa0f08fb",
-      topics: [
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-        "calc ||",
-        "Algebra",
-        "Geomtry",
-      ],
-    },
-  ];
-
   const trendingCompetitions = [
     { name: "Sat", participants: "123" },
     { name: "Kangaroo", participants: "345" },
     { name: "Shabola", participants: "341" },
   ];
+
   return (
     <main
       style={{ height: `calc(100vh - ${HEADER_MARGIN}px)` }}
@@ -110,7 +44,6 @@ export default function LearningDashboard() {
                 Turn calculus into gamified progress
               </p>
             </div>
-            {/* TODO: Change back to start  */}
             <RsvpButton name="Calculus Challenge" />
           </div>
 
@@ -136,7 +69,7 @@ export default function LearningDashboard() {
 
         <div className="space-y-1.5">
           <Suspense fallback={<div>Loading...</div>}>
-            <ProblemSetTable columns={columns} data={problems} />
+            <ProblemSetTable columns={columns} />
           </Suspense>
         </div>
 
@@ -148,7 +81,6 @@ export default function LearningDashboard() {
       {/* Right side bar */}
       <aside className="bg-background  py-5 hidden xl:block col-span-4 mr-2 space-y-5">
         <Card className="gap-0 border-none rounded-md">
-          {/* TODO: Change to actual streak */}
           <CardHeader className="font-medium flex line-clamp-2">
             Day 13{" "}
             <span className="font-normal text-xs text-muted-foreground">
@@ -175,7 +107,7 @@ export default function LearningDashboard() {
             </div>
             <div className="flex gap-3 flex-wrap">
               {trendingCompetitions.map((comp) => (
-                <div className="bg-bg-light px-2 gap-2 py-1 flex items-center justify-between w-fit rounded-md text-text/80">
+                <div key={comp.name} className="bg-bg-light px-2 gap-2 py-1 flex items-center justify-between w-fit rounded-md text-text/80">
                   <span className="text-sm">{comp.name}</span>
                   <div className="px-2 bg-primary rounded-md text-xs">
                     <span>{comp.participants}</span>

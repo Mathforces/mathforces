@@ -1,14 +1,14 @@
 import { useShownProblemId } from "@/app/store";
 import Problem_Card from "@/components/Contest/Problem_Card";
 import { TabsContent } from "@/components/ui/tabs";
-import { Contest, contestProblem } from "@/types/types";
+import { Contest, ContestProblem } from "@/types/types";
 import Image from "next/image";
 import * as React from "react";
 import { BsTag } from "react-icons/bs";
 
 interface ContestProblemsProps {
   contest: Contest;
-  problems: contestProblem[];
+  problems: ContestProblem[];
   problemsStatus: Record<string, string>;
 }
 
@@ -17,7 +17,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
   problems,
   problemsStatus,
 }) => {
-  const {shownProblemId, setShownProblemId} = useShownProblemId();
+  const { shownProblemId, setShownProblemId } = useShownProblemId();
   return (
     <div>
       <TabsContent value="problems" className="p-4 flex flex-col gap-3 w-full">
@@ -39,7 +39,10 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
 
         <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
           {problems.map((problem) => (
-            <div onClick={() => setShownProblemId(problem.id)} className="w-full">
+            <div
+              onClick={() => setShownProblemId(problem.id)}
+              className="w-full"
+            >
               <Problem_Card
                 key={problem.id}
                 problem={problem}

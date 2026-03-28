@@ -3,7 +3,7 @@
 import { Difficulties, difficultyStyle } from "@/data/Contest_Content";
 import { cleanStr, styleUsername } from "@/lib/utils";
 import {
-  contestProblem,
+  ContestProblem,
   Difficulty,
   Ranking,
   Ranking_title,
