@@ -26,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -198,7 +198,7 @@ export function ProblemSetTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Loading...
+                  <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
                 </TableCell>
               </TableRow>
             ) : problems.length ? (
