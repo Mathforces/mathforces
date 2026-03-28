@@ -56,7 +56,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("problems")
     .select(
-      "id, name, full_name, tags, submission_count, correct_submission_count, points, difficulty, likes_count, created_at",
+      "id, name, contest_id, full_name, tags, submission_count, correct_submission_count, points, difficulty, likes_count, created_at",
       { count: "exact" },
     );
 

@@ -45,7 +45,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<ContestProblem[]>([]);
   const { shownProblemId, setShownProblemId } = useShownProblemId();
-  const problemId = contestParams.get("problemId") || null;
+  const problemId = contestParams.get("problemId") ?? null;
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
   );
@@ -94,13 +94,12 @@ export default function Page() {
           `/api/contests/${contest_id}/problems`,
         );
         if (response && response.data) {
-          if (!shownProblemId) {
-            setShownProblemId(response.data[0].id);
-          }
           const problemsTemp = response.data as ContestProblem[];
-          problemsTemp.sort((a: ContestProblem, b: ContestProblem) => {
-            return a.index_in_contest - b.index_in_contest;
-          });
+
+          // problemsTemp.sort((a: ContestProblem, b: ContestProblem) => {
+          //   return a.index_in_contest - b.index_in_contest;
+          // });
+
           setProblems(problemsTemp);
         }
       } catch (err: any) {
@@ -124,11 +123,33 @@ export default function Page() {
 
   useEffect(() => {
     if (shownProblemId) {
-      if (shownProblemId != contestParams.get("problemId")) {
+      if (
+        problems.length > 0 &&
+        problems.filter((e) => e.id == shownProblemId).length < 1
+      ) {
+        setShownProblemId(problems[0].id);
+      }
+    } else if (problemId) {
+      setShownProblemId(problemId);
+    } else if (problems.length > 0) {
+      setShownProblemId(problems[0].id);
+    }
+  }, [shownProblemId, problems]);
+
+  useEffect(() => {
+    if (problemId) {
+      if (
+        problems.length > 0 &&
+        problems.filter((e) => e.id == problemId).length < 1
+      ) {
+        setShownProblemId(problems[0].id);
+      }
+      if (shownProblemId != problemId) {
         router.push(`?problemId=${shownProblemId}`);
+        setShownProblemId(problemId);
       }
     }
-  }, [shownProblemId]);
+  }, []);
 
   // logging and importing problemsStatement to and from Local Storage
   let prevLocalStorage: Record<string, string> | null = null;

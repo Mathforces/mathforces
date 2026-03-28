@@ -12,7 +12,8 @@ export async function GET(
   const { data, error } = await supabase
     .from("problems")
     .select(Object.keys(contestProblemDefaultValues).join(", "))
-    .eq("contest_id", contestId);
+    .eq("contest_id", contestId)
+    .order("index_in_contest", { ascending: true });
 
   const err = handleSupabaseError(error, "contest problems");
   if (err) return err;

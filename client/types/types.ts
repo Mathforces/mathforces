@@ -7,8 +7,8 @@ export const contestProblemDefaultValues = {
   correct_submission_count: 0,
   points: 0,
   difficulty: 1400,
-  likes: 0,
-  comments_num: 0,
+  likes_count: 0,
+  comments_count: 0,
   index_in_contest: 0,
 } as const;
 export type ContestProblem = {

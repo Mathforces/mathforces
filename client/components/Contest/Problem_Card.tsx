@@ -74,14 +74,16 @@ const Problem_Card = ({ problem, problemsStatus }: Props) => {
             {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
-              <span className="text-sm font-medium">{problem.likes ?? 0}</span>
+              <span className="text-sm font-medium">
+                {problem.likes_count ?? 0}
+              </span>
             </div>
 
             {/* comments */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <MessageSquare className="w-4 h-4" />{" "}
               <span className="text-sm font-medium">
-                {problem.comments_num ?? 0}
+                {problem.comments_count ?? 0}
               </span>
             </div>
           </div>

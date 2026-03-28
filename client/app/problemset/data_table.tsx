@@ -53,6 +53,7 @@ export function ProblemSetTable<TData, TValue>({
   columns,
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
+  const PROBLEM_COL_LIMIT = 20;
   const {
     problems,
     pagination,
@@ -63,7 +64,7 @@ export function ProblemSetTable<TData, TValue>({
     setFilters,
     setPage,
     setSort,
-  } = useProblemset(50);
+  } = useProblemset(PROBLEM_COL_LIMIT);
 
   const [searchValue, setSearchValue] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -209,7 +210,7 @@ export function ProblemSetTable<TData, TValue>({
                     className="border-none h-12 cursor-pointer hover:bg-bg-light transition-all"
                     onClick={() =>
                       router.push(
-                        `/contests/93ad77b8-2b6e-49f7-a0b9-796efa0f08fb?problemId=${problem.id}`,
+                        `/contests/${problem.contest_id}?problemId=${problem.id}`,
                       )
                     }
                   >
@@ -218,11 +219,15 @@ export function ProblemSetTable<TData, TValue>({
                         key={cell.id}
                         className={cn(
                           i % 2 === 0 && "bg-bg",
-                          j === row.getVisibleCells().length - 1 && "rounded-r-md",
+                          j === row.getVisibleCells().length - 1 &&
+                            "rounded-r-md",
                           j === 0 && "rounded-l-md",
                         )}
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>

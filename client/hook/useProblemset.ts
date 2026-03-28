@@ -31,6 +31,7 @@ export interface Problem {
   id: string;
   name: string;
   full_name: string;
+  contest_id: string;
   submission_count: number;
   correct_submission_count: number;
   points: number;
@@ -55,7 +56,7 @@ interface UseProblemsetReturn {
   refetch: () => void;
 }
 
-export function useProblemset(defaultLimit = 50): UseProblemsetReturn {
+export function useProblemset(defaultLimit = 20): UseProblemsetReturn {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [pagination, setPagination] = useState<ProblemPagination | null>(null);
   const [loading, setLoading] = useState(true);
