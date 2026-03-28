@@ -22,7 +22,7 @@ export const columns: ColumnDef<Problem>[] = [
       const tags = row.original.tags ?? [];
       return (
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-4 w-full">
-          <span className="font-medium truncate">{row.original.name}</span>
+          <span className="font-medium truncate">{row.original.full_name}</span>
           <div className="flex flex-wrap gap-1">
             {tags.slice(0, 3).map((tag, i) => (
               <span

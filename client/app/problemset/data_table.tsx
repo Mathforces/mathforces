@@ -35,7 +35,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useProblemset, SortField, Problem } from "@/hook/useProblemset";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -65,6 +65,9 @@ export function ProblemSetTable<TData, TValue>({
     setSort,
   } = useProblemset(50);
 
+  const [searchValue, setSearchValue] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
   const table = useReactTable({
     data: problems as TData[],
     columns,
@@ -76,7 +79,16 @@ export function ProblemSetTable<TData, TValue>({
   });
 
   const handleSearchChange = (value: string) => {
-    setFilters({ ...filters, search: value || undefined });
+    setSearchValue(value);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setFilters({ ...filters, search: value || undefined });
+      setPage(1);
+    }, 300);
   };
 
   const handleSortChange = (field: SortField) => {
@@ -125,7 +137,7 @@ export function ProblemSetTable<TData, TValue>({
         <div className="flex items-center py-4">
           <Input
             placeholder="Search Problem..."
-            value={filters.search ?? ""}
+            value={searchValue}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="max-w-sm"
           />
@@ -189,30 +201,33 @@ export function ProblemSetTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             ) : problems.length ? (
-              problems.map((problem: Problem, i: number) => (
-                <TableRow
-                  key={problem.id}
-                  className="border-none h-12 cursor-pointer hover:bg-bg-light transition-all"
-                  onClick={() =>
-                    router.push(
-                      `/contests/93ad77b8-2b6e-49f7-a0b9-796efa0f08fb?problemId=${problem.id}`,
-                    )
-                  }
-                >
-                  {(columns as ColumnDef<TData, TValue>[]).map((_, j) => (
-                    <TableCell
-                      key={j}
-                      className={cn(
-                        i % 2 === 0 && "bg-bg",
-                        j === columns.length - 1 && "rounded-r-md",
-                        j === 0 && "rounded-l-md",
-                      )}
-                    >
-                      {/* Placeholder - columns handle their own rendering */}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row, i) => {
+                const problem = row.original as Problem;
+                return (
+                  <TableRow
+                    key={row.id}
+                    className="border-none h-12 cursor-pointer hover:bg-bg-light transition-all"
+                    onClick={() =>
+                      router.push(
+                        `/contests/93ad77b8-2b6e-49f7-a0b9-796efa0f08fb?problemId=${problem.id}`,
+                      )
+                    }
+                  >
+                    {row.getVisibleCells().map((cell, j) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          i % 2 === 0 && "bg-bg",
+                          j === row.getVisibleCells().length - 1 && "rounded-r-md",
+                          j === 0 && "rounded-l-md",
+                        )}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

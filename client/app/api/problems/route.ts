@@ -25,6 +25,18 @@ const VALID_SORT_FIELDS: SortableFields[] = [
   "created_at",
 ];
 
+function buildSearchQuery(searchTerm: string): string {
+  const terms = searchTerm
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, " ")
+    .split(/\s+/)
+    .filter((term) => term.length > 0);
+
+  if (terms.length === 0) return "";
+
+  return terms.map((term) => `${term}:*`).join(" & ");
+}
+
 export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
 
@@ -44,11 +56,15 @@ export async function GET(request: Request) {
   let query = supabase
     .from("problems")
     .select(
-      "id, name, submission_count, correct_submission_count, points, difficulty, likes_count, created_at ",
+      "id, name, full_name, tags, submission_count, correct_submission_count, points, difficulty, likes_count, created_at",
+      { count: "exact" },
     );
 
   if (filters.search) {
-    query = query.ilike("name", `%${filters.search}%`);
+    const searchQuery = buildSearchQuery(filters.search as string);
+    if (searchQuery) {
+      query = query.textSearch("full_name", searchQuery);
+    }
   }
 
   if (filters.difficulty_min) {

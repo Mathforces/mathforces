@@ -30,6 +30,7 @@ export interface ProblemPagination {
 export interface Problem {
   id: string;
   name: string;
+  full_name: string;
   submission_count: number;
   correct_submission_count: number;
   points: number;
