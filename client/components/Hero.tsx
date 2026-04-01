@@ -93,7 +93,9 @@ const Hero = () => {
       </p>
       <div className="flex gap-5">
         <Button link="/sign_up">Sign Up</Button>
-        <Button link="/contests">Contests</Button>
+        <Button link="/contests" variant={"outline"}>
+          Contests
+        </Button>
       </div>
 
       <MathNoise />
