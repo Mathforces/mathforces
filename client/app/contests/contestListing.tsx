@@ -21,8 +21,8 @@ function ContestListing({ contest }: Props) {
         <Image
           src={`/contest_thumbnail_${["yellow", "blue"][Math.round(Math.random())]}.png`}
           alt="contest thumbnail"
-          width={90}
-          height={90}
+          width={100}
+          height={100}
         />
       </div>
 
@@ -30,7 +30,7 @@ function ContestListing({ contest }: Props) {
       <div className="flex items-center justify-between flex-1">
         {/* Title & Date */}
         <div>
-          <h4 className="text-base !font-normal ">{contest.name}</h4>
+          <h4 className="text-lg !font-normal ">{contest.name}</h4>
           <span className="text-muted-foreground text-sm">
             {getFormattedDate(contest.start_date).fullDate} (
             {formatDistance(contest.start_date, new Date(), {

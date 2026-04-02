@@ -82,6 +82,7 @@ const SuggestedContest = ({}: Props) => {
       pastContestLoadMore();
     }
   }, [contestTypeTab]);
+
   // Handle error
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
@@ -90,7 +91,7 @@ const SuggestedContest = ({}: Props) => {
         value={contestTypeTab}
         onValueChange={(e: any) => setContestTypeTab(e)}
       >
-        <Card className="pt-3 border-none">
+        <Card className="border-none *:px-3">
           <CardHeader>
             <TabsList>
               <TabsTrigger value="upcoming_contests">
@@ -99,12 +100,12 @@ const SuggestedContest = ({}: Props) => {
               <TabsTrigger value="past_contests">Past Contests</TabsTrigger>
             </TabsList>
           </CardHeader>
-          <CardContent>
+          <CardContent className="">
             <TabsContent value="upcoming_contests">
-              <ScrollArea className="h-60">
+              <ScrollArea className="h-100">
                 <div className="">
                   {upComingContests && upComingContests.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-5">
                       {upComingContests.map((contest: Contest, i: number) => (
                         <ContestListing
                           key={contest?.id ?? i}
@@ -127,10 +128,10 @@ const SuggestedContest = ({}: Props) => {
               </ScrollArea>
             </TabsContent>
             <TabsContent value="past_contests">
-              <ScrollArea className="h-60">
+              <ScrollArea className="h-100">
                 <div className="">
                   {pastContests ? (
-                    <div className="space-y-3">
+                    <div className="space-y-5">
                       {pastContests.map((contest: Contest, i: number) => (
                         <ContestListing
                           key={contest?.id ?? i}

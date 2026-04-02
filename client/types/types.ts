@@ -156,6 +156,15 @@ export interface Ranking {
   color: string;
 }
 
+export type UserRanking = {
+  id: string;
+  username: string;
+  ranking_num: number;
+  title_short: Ranking_title_short;
+  rating: number;
+  contests_entered_count: number;
+};
+
 export const rankingsList: Ranking[] = [
   {
     title: "Legendary Grand Master",
@@ -223,3 +232,4 @@ export const rankingsList: Ranking[] = [
 //   ranking_title_short: Ranking_title_short;
 //   minRating:
 // }
+//
