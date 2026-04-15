@@ -83,6 +83,14 @@ const SuggestedContest = ({}: Props) => {
     }
   }, [contestTypeTab]);
 
+  useEffect(() => {
+    if (
+      !upComingContestsLoading &&
+      (!upComingContests || (upComingContests && upComingContests.length <= 0))
+    ) {
+      setContestTypeTab("past_contests");
+    }
+  }, [upComingContestsLoading]);
   // Handle error
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
@@ -120,7 +128,15 @@ const SuggestedContest = ({}: Props) => {
                     <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
                   ) : (
                     <div>
-                      <span>There are no contests to show</span>
+                      <span>
+                        There are no upcoming contests as of now. Please check{" "}
+                        <button
+                          className="underline text-primary cursor-pointer"
+                          onClick={() => setContestTypeTab("past_contests")}
+                        >
+                          Past contests
+                        </button>
+                      </span>
                     </div>
                   )}
                   <div ref={UpcomingContestsObserver}></div>
