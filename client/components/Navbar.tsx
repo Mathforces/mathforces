@@ -34,7 +34,9 @@ const Navbar = ({ type }: Props) => {
     <nav
       className={`fixed top-0 left-0 w-full px-4 py-2 flex  ${type === "short" ? "justify-around" : type === "long" ? "justify-between" : ""} items-center gap-5 z-50 bg-bg-dark`}
     >
+      {/* Right Side */}
       <div className="flex items-center gap-3">
+        {/* Logo */}
         <Link href="/">
           <h5 className="font-bold! flex items-end justify-end z-50">
             <div className="flex justify-end items-end">
@@ -51,6 +53,7 @@ const Navbar = ({ type }: Props) => {
           </h5>
         </Link>
 
+        {/* Nav links */}
         <div className="hidden md:flex">
           {MainLinks.map((link) => (
             <Link
@@ -68,7 +71,9 @@ const Navbar = ({ type }: Props) => {
         </div>
       </div>
 
+      {/* Left side */}
       <div className="hidden lg:flex items-center gap-4">
+        {/* Search bar */}
         <form className="relative" onSubmit={() => handleSearch()}>
           <Input
             placeholder="Search for something..."
@@ -83,20 +88,23 @@ const Navbar = ({ type }: Props) => {
           </button>
         </form>
 
+        {/* Settings */}
         <button disabled>
           <Settings className="w-4 h-4" />
         </button>
 
+        {/* Icon && Logins */}
         <UserIcon />
-
-        <Button
-          variant={"outline"}
-          onClick={() => setOpenMenu(!openMenu)}
-          className="text-primary hover:text-primary/80 md:hidden"
-        >
-          <Logs size={35} strokeWidth={3} />
-        </Button>
       </div>
+
+      {/* Mobile Menu button  */}
+      <Button
+        variant={"outline"}
+        onClick={() => setOpenMenu(!openMenu)}
+        className="text-primary absolute top-2 right-5 focus:text-primary/80 md:hidden !px-2 py-1 "
+      >
+        <Logs size={10} strokeWidth={3} />
+      </Button>
 
       {/* for mobile */}
       <div
