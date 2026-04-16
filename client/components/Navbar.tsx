@@ -109,7 +109,7 @@ const Navbar = ({ type }: Props) => {
       {/* for mobile */}
       <div
         className={`absolute top-20 left-0 w-full bg-white/10 backdrop-blur-xs flex flex-col items-center md:hidden py-5
-    transition-all duration-300 ease-out 
+    transition-all duration-300 ease-out
     ${
       openMenu
         ? "opacity-100 translate-y-0"
