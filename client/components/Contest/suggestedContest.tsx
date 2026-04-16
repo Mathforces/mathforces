@@ -1,8 +1,5 @@
 "use client";
 import { Contest } from "@/types/types";
-import { Radical } from "lucide-react";
-import Link from "next/link";
-import { Button } from "../ui/button";
 import axios from "axios";
 import { useProfile } from "@/app/store";
 import { toast } from "sonner";
@@ -12,8 +9,10 @@ import { useEffect, useState } from "react";
 import ContestListing from "@/app/contests/contestListing";
 import { ScrollArea } from "../ui/scroll-area";
 import useInfiniteScroll from "@/hook/useInfiniteScroll";
-import Loading from "../ui/Loading";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hook/useIsMobile";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import MobileContentListing from "@/app/contests/mobileContentListing";
 
 interface Props {}
 type ContestTypeTab = "upcoming_contests" | "past_contests" | "all";
@@ -21,6 +20,7 @@ const SuggestedContest = ({}: Props) => {
   const userId = useProfile((state) => state.user?.id);
   const [contestTypeTab, setContestTypeTab] =
     useState<ContestTypeTab>("upcoming_contests");
+  const isMobile = useIsMobile();
   const handleRegister = async (contestId: string) => {
     axios
       .post(`/api/contests/${contestId}/registered`, { user_id: userId })
@@ -149,10 +149,19 @@ const SuggestedContest = ({}: Props) => {
                   {pastContests ? (
                     <div className="space-y-5">
                       {pastContests.map((contest: Contest, i: number) => (
-                        <ContestListing
-                          key={contest?.id ?? i}
-                          contest={contest}
-                        />
+                        <div>
+                          {isMobile ? (
+                            <MobileContentListing
+                              key={contest?.id ?? i}
+                              contest={contest}
+                            />
+                          ) : (
+                            <ContestListing
+                              key={contest?.id ?? i}
+                              contest={contest}
+                            />
+                          )}
+                        </div>
                       ))}
                       {pastContestsLoading && (
                         <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
