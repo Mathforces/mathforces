@@ -4,7 +4,7 @@ import RegionalRanking from "./regionalRanking";
 
 export default function Page() {
   return (
-    <main className="flex flex-col md:flex-row items-center lg:justify-evenly gap-5 lg:gap-10 md:items-start overflow-hidden">
+    <main className="flex flex-col px-4 md:flex-row items-center lg:justify-evenly gap-5 lg:gap-10 md:items-start overflow-hidden">
       <RegionalRanking />
       <SuggestedContest />
 

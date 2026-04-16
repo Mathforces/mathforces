@@ -6,7 +6,7 @@ type Props = {};
 
 function RegionalRanking({}: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <RegionalRankingToggle />
       <RegionalRankingCards />
     </div>

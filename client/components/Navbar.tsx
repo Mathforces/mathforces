@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
 import UserIcon from "./header/userIcon";
+import { useIsMobile } from "@/hook/useIsMobile";
 interface Props {
   type: HeaderType;
 }
@@ -27,12 +28,13 @@ const Navbar = ({ type }: Props) => {
   const userProfile = useProfile((state) => state.userProfile);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const isMobile = useIsMobile();
   const handleSearch = () => {
     router.push(`/problemset?query=${searchQuery}`);
   };
   return (
     <nav
-      className={`fixed top-0 left-0 w-full px-4 py-2 flex  ${type === "short" ? "justify-around" : type === "long" ? "justify-between" : ""} items-center gap-5 z-50 bg-bg-dark`}
+      className={`fixed top-0 left-0 w-full px-4 py-4 flex  ${type === "short" || isMobile ? "justify-around" : type === "long" ? "justify-between" : ""} items-center gap-5 z-50 bg-bg-dark`}
     >
       {/* Right Side */}
       <div className="flex items-center gap-3">
@@ -101,7 +103,7 @@ const Navbar = ({ type }: Props) => {
       <Button
         variant={"outline"}
         onClick={() => setOpenMenu(!openMenu)}
-        className="text-primary absolute top-2 right-5 focus:text-primary/80 md:hidden !px-2 py-1 "
+        className="text-primary absolute top-1/2 -translate-y-1/2 right-5 focus:text-primary/80 md:hidden !px-2 py-1 "
       >
         <Logs size={10} strokeWidth={3} />
       </Button>

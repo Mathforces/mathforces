@@ -48,7 +48,7 @@ export const generateId = (length = 8) => {
     .join("");
 };
 
-export const HEADER_MARGIN = 56;
+export const HEADER_MARGIN = 64;
 
 export const styleUsername = (username: string, color: string) => {
   return `
