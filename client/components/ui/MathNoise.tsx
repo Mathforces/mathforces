@@ -28,7 +28,7 @@ export default function MathNoise() {
           opacity: 0.15,
           duration: 0.6,
           ease: "power2.out",
-        }
+        },
       )
         .to(
           el,
@@ -39,7 +39,7 @@ export default function MathNoise() {
             duration: item.duration * 0.4,
             ease: "sine.inOut",
           },
-          "-=0.3"
+          "-=0.3",
         )
         .to(el, {
           x: 0,
@@ -55,7 +55,7 @@ export default function MathNoise() {
             duration: 0.6,
             ease: "power2.in",
           },
-          "-=0.3"
+          "-=0.3",
         );
     });
 

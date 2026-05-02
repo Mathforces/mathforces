@@ -29,6 +29,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
 import { HEADER_MARGIN } from "@/lib/utils";
+import DatePicker from "@/components/ui/date_picker";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = Record<string, never>;
 
@@ -52,6 +61,7 @@ const CreateContest = ({}: Props) => {
       .min(8, "Topics field is too short")
       .max(100, "Topics field is too long"),
     start_date: z.date(),
+    end_date: z.date(),
     problems: problemsSchema,
   });
 
@@ -64,6 +74,7 @@ const CreateContest = ({}: Props) => {
       authors: "",
       topics: "",
       start_date: new Date(),
+      end_date: new Date(),
       problems: [],
     },
     mode: "onChange",
@@ -92,7 +103,7 @@ const CreateContest = ({}: Props) => {
       className="relative flex justify-center items-center max-w-[1444]! px-0 "
       style={{ height: `calc(100vh - ${HEADER_MARGIN}px)` }}
     >
-      <section className="w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto ">
+      <section className="z-10 w-full lg:w-2/4 px-5 md:px-10 max-w-4xl my-auto space-y-4">
         {/* Heading */}
         <div>
           <h3 className="text-text">Create your contest</h3>
@@ -109,7 +120,7 @@ const CreateContest = ({}: Props) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="name">Contest Name</FieldLabel>
-                <Input {...field} id="name" placeholder="Contest name" />
+                <Input {...field} id="name" placeholder="Algebra Blitz 201" />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -122,11 +133,16 @@ const CreateContest = ({}: Props) => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="description">Description</FieldLabel>
-                <Input
+                <FieldLabel htmlFor="description">
+                  Description{" "}
+                  <span className="text-sm text-muted-foreground">
+                    (optional)
+                  </span>
+                </FieldLabel>
+                <Textarea
                   {...field}
                   id="description"
-                  placeholder="Description (optional)"
+                  placeholder="The greatest competition to ever exist"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -141,11 +157,16 @@ const CreateContest = ({}: Props) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="difficulty">Difficulty</FieldLabel>
-                <select {...field} id="difficulty">
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose Difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -185,31 +206,27 @@ const CreateContest = ({}: Props) => {
             name="start_date"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="start_date">Start Date</FieldLabel>
-                <Input
-                  id="start_date"
-                  type="date"
-                  value={
-                    field.value instanceof Date
-                      ? field.value.toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value ? new Date(e.target.value) : null,
-                    )
-                  }
-                  onBlur={field.onBlur}
-                  ref={field.ref}
+              <Field data-invalid={fieldState?.invalid}>
+                <FieldLabel htmlFor="date-picker">Date</FieldLabel>
+
+                <DatePicker
+                  initial_date={new Date()}
+                  onChangeFunc={(date) => field.onChange(date)}
                 />
-                {fieldState.invalid && (
+                {fieldState?.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
               </Field>
             )}
           />
-
+          {/**/}
+          {/* <Controller */}
+          {/*   name="end_date" */}
+          {/*   control={form.control} */}
+          {/*   render={({ field, fieldState }) => ( */}
+          {/*     <DatePicker field={field} fieldState={fieldState} /> */}
+          {/*   )} */}
+          {/* /> */}
           <Separator className="my-4" />
           <h4 className="text-text">Problems</h4>
 
@@ -278,24 +295,6 @@ const CreateContest = ({}: Props) => {
                           e.target.value ? Number(e.target.value) : null,
                         )
                       }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name={`problems.${index}.answer`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Answer</FieldLabel>
-                    <Input
-                      {...field}
-                      placeholder="Answer"
-                      value={field.value ?? ""}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
