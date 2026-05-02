@@ -13,6 +13,8 @@ import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import MobileContentListing from "@/app/contests/mobileContentListing";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 interface Props {}
 type ContestTypeTab = "upcoming_contests" | "past_contests" | "all";
@@ -92,6 +94,7 @@ const SuggestedContest = ({}: Props) => {
     }
   }, [upComingContestsLoading]);
   // Handle error
+  const router = useRouter();
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
       <Tabs
@@ -100,13 +103,16 @@ const SuggestedContest = ({}: Props) => {
         onValueChange={(e: any) => setContestTypeTab(e)}
       >
         <Card className="border-none *:px-3">
-          <CardHeader>
+          <CardHeader className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="upcoming_contests">
                 Upcoming Contests
               </TabsTrigger>
               <TabsTrigger value="past_contests">Past Contests</TabsTrigger>
             </TabsList>
+            <Button onClick={() => router.push("/create_contest")}>
+              Create
+            </Button>
           </CardHeader>
           <CardContent className="">
             <TabsContent value="upcoming_contests">
