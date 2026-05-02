@@ -1,10 +1,16 @@
 "use client";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import MathNoise from "@/components/ui/MathNoise";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -28,8 +34,9 @@ const problemsSchema = z.array(problemSchema);
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
-import { HEADER_MARGIN } from "@/lib/utils";
+import { getFormattedDate, HEADER_MARGIN } from "@/lib/utils";
 import DatePicker from "@/components/ui/date_picker";
+import TimePicker from "@/components/ui/timePicker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -42,6 +49,9 @@ import {
 type Props = Record<string, never>;
 
 const CreateContest = ({}: Props) => {
+  const [startTime, setStartTime] = useState<string>("10:30:00");
+  const [endTime, setEndTime] = useState<string>("12:30:00");
+
   const schema = z.object({
     name: z
       .string()
@@ -61,7 +71,10 @@ const CreateContest = ({}: Props) => {
       .min(8, "Topics field is too short")
       .max(100, "Topics field is too long"),
     start_date: z.date(),
+    start_time: z.string(),
+
     end_date: z.date(),
+    end_time: z.string(),
     problems: problemsSchema,
   });
 
@@ -74,7 +87,10 @@ const CreateContest = ({}: Props) => {
       authors: "",
       topics: "",
       start_date: new Date(),
+      start_time: getFormattedDate(new Date()).timeFull,
+
       end_date: new Date(),
+      end_time: getFormattedDate(new Date()).timeFull,
       problems: [],
     },
     mode: "onChange",
@@ -202,31 +218,79 @@ const CreateContest = ({}: Props) => {
             )}
           />
 
-          <Controller
-            name="start_date"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState?.invalid}>
-                <FieldLabel htmlFor="date-picker">Date</FieldLabel>
+          <FieldGroup className="flex items-center gap-4">
+            <FieldGroup className="flex items-center flex-row gap-2">
+              <Controller
+                name="start_date"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState?.invalid}>
+                    <FieldLabel htmlFor="date-picker">Start Date</FieldLabel>
 
-                <DatePicker
-                  initial_date={new Date()}
-                  onChangeFunc={(date) => field.onChange(date)}
-                />
-                {fieldState?.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                    <DatePicker
+                      initial_date={new Date()}
+                      onChangeFunc={(date) => field.onChange(date)}
+                    />
+                    {fieldState?.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
                 )}
-              </Field>
-            )}
-          />
-          {/**/}
-          {/* <Controller */}
-          {/*   name="end_date" */}
-          {/*   control={form.control} */}
-          {/*   render={({ field, fieldState }) => ( */}
-          {/*     <DatePicker field={field} fieldState={fieldState} /> */}
-          {/*   )} */}
-          {/* /> */}
+              />
+
+              <Controller
+                name="start_time"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState?.invalid}>
+                    <FieldLabel htmlFor="date-picker">Start Time</FieldLabel>
+
+                    <TimePicker onChangeFunc={(time) => field.onChange(time)} />
+
+                    {fieldState?.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+            <FieldGroup className="flex items-center flex-row gap-2">
+              <Controller
+                name="end_date"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState?.invalid}>
+                    <FieldLabel htmlFor="date-picker">End Date</FieldLabel>
+
+                    <DatePicker
+                      initial_date={new Date()}
+                      onChangeFunc={(date) => field.onChange(date)}
+                    />
+                    {fieldState?.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="end_time"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState?.invalid}>
+                    <FieldLabel htmlFor="date-picker">End Time</FieldLabel>
+
+                    <TimePicker onChangeFunc={(time) => field.onChange(time)} />
+
+                    {fieldState?.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+          </FieldGroup>
+
           <Separator className="my-4" />
           <h4 className="text-text">Problems</h4>
 

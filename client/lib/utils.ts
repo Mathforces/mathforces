@@ -35,6 +35,7 @@ export const getFormattedDate = (date?: string | Date) => {
   };
   return {
     time: `${get("hour")}:${get("minute")}`,
+    timeFull: `${get("hour")}:${get("minute")}:${get("second")}`,
     date: `${get("month")}/${get("day")}/${get("year")}`,
     timezone: `${get("timeZoneName")}`,
     fullDate: fullDate,

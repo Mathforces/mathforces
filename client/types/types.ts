@@ -55,17 +55,20 @@ export interface UserProfile {
   image?: string;
   bio?: string;
 }
+
 export interface FormattedDate {
   time: string;
+  timeFull: string;
   date: string;
   timezone: string;
   fullDate: string;
 }
 
 export const defaultFormattedDate = {
-  time: "",
-  date: "",
-  timezone: "",
+  time: "10:30",
+  timeFull: "10:20:30",
+  date: "03/13/2026",
+  timezone: "UTC-2",
   fullDate: "",
 };
 
