@@ -1,11 +1,8 @@
 "use client";
 
-import { Dispatch, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ContestProblem } from "@/types/types";
 import { cn } from "@/lib/utils";
 import { useShownProblemId } from "@/app/store";
@@ -13,47 +10,22 @@ import { useShownProblemId } from "@/app/store";
 interface Props {
   problem: ContestProblem;
   problemsStatus: Record<string, string>;
+  onProblemSelect?: () => void;
 }
 
-const Problem_Card = ({ problem, problemsStatus }: Props) => {
+const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
   const { shownProblemId, setShownProblemId } = useShownProblemId();
-  const pathName = usePathname();
-  const isInContest = pathName.includes(`/contests/${problem.id}`);
+  const handleProblemSelect = () => {
+    setShownProblemId(problem.id);
+    onProblemSelect?.();
+  };
 
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [isTiny, setIsTiny] = useState(false);
-  const [isSoTiny, setIsSoTiny] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const RO = (window as any).ResizeObserver;
-    if (!RO) return;
-
-    let raf = 0;
-    const observer = new RO((entries: ResizeObserverEntry[]) => {
-      const entry = entries[0];
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const w = Math.round(entry.contentRect.width);
-        setIsTiny(w < 380);
-        setIsSoTiny(w < 300);
-      });
-    });
-
-    observer.observe(el);
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-    };
-  }, []);
   return (
     <div
       key={`${problem.name}-${problem.id}`}
-      onClick={() => {}}
+      onClick={handleProblemSelect}
       className={cn(
-        ` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default`,
+        ` group w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-pointer`,
         ` ${shownProblemId == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
         ` ${problemsStatus[problem.id] === "success" ? "border border-success/30" : problemsStatus[problem.id] === "failure" ? "border border-destructive/30" : ""}`,
       )}
@@ -68,7 +40,7 @@ const Problem_Card = ({ problem, problemsStatus }: Props) => {
         </h3>
 
         {/* Lower-left part (Problem details) */}
-        <div className="pl-1 flex items-center gap-3">
+        <div className="pl-1 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           {/* likess & commentss */}
           <div className="flex justify-between items-center gap-2">
             {/* likes */}
@@ -89,7 +61,7 @@ const Problem_Card = ({ problem, problemsStatus }: Props) => {
           </div>
 
           {/* People answered */}
-          <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1">
             <Progress
               value={
                 ((problem.correct_submission_count ?? 0) /
@@ -120,24 +92,33 @@ const Problem_Card = ({ problem, problemsStatus }: Props) => {
       {problemsStatus[problem.id] === "success" ? (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Review
         </Button>
       ) : problemsStatus[problem.id] === "failure" ? (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Try again
         </Button>
       ) : (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Try out
         </Button>

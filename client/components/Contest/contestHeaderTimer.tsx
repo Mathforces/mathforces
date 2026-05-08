@@ -79,9 +79,9 @@ export default function ContestHeaderTimer({ length_in_minutes }: Props) {
     }
   };
   return (
-    <div className="flex gap-1">
+    <div className="flex min-w-0 gap-1">
       {/* Timer */}
-      <div className="w-fit h-8 bg-card rounded-l-md flex items-center gap-2 p-2 px-3">
+      <div className="w-fit h-8 bg-card rounded-l-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
         <FaHourglassHalf className="text-primary" />
 
         <Countdown
@@ -93,7 +93,7 @@ export default function ContestHeaderTimer({ length_in_minutes }: Props) {
       </div>
 
       {/* Timer Controller */}
-      <div className="w-fit h-8 bg-card rounded-r-md flex items-center p-2  gap-4">
+      <div className="w-fit h-8 bg-card rounded-r-md flex items-center p-2 gap-2 md:gap-4">
         <button
           className={cn(
             "flex items-center justify-center gap-2 cursor-pointer opacity-70 hover:opacity-90",
@@ -102,7 +102,7 @@ export default function ContestHeaderTimer({ length_in_minutes }: Props) {
           onClick={() => toggleTimerStatus()}
         >
           <VscDebugStart className="" />
-          <p className={`text-base font-mono`}>{timerStatus}</p>
+          <p className="hidden sm:block text-base font-mono">{timerStatus}</p>
         </button>
         {timerStatus !== "Start" && (
           <button onClick={() => stopTimer()} className="cursor-pointer p-0 ">

@@ -182,7 +182,7 @@ const Problem_Statement_card = ({
     <ScrollArea className="h-full">
       <TabsContent
         value="problemStatement"
-        className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
+        className="w-full max-w-3xl h-full mx-auto p-3 sm:p-4 my-0 sm:my-2 flex-col gap-4 flex items-center"
         key={problemCore?.id}
       >
         {/* Problem Header */}
@@ -192,7 +192,7 @@ const Problem_Statement_card = ({
           </h1>
 
           {/* Methods to access problem */}
-          <div className="flex items-center gap-40 mx-auto text-primary">
+          <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto text-primary">
             {/* PDF access */}
             <button className="flex items-center gap-2">
               <div className="flex items-center gap-1">
@@ -227,7 +227,7 @@ const Problem_Statement_card = ({
         <form
           action=""
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full max-w-2xl flex gap-4"
+          className="w-full max-w-2xl flex flex-col sm:flex-row gap-3 sm:gap-4"
         >
           <Controller
             name="answer"
@@ -254,7 +254,11 @@ const Problem_Statement_card = ({
               </Field>
             )}
           />
-          <Button type="submit" className="w-25 text-text" variant="primary">
+          <Button
+            type="submit"
+            className="w-full sm:w-25 text-text"
+            variant="primary"
+          >
             Submit
           </Button>
         </form>

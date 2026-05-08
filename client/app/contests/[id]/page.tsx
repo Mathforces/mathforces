@@ -1,10 +1,7 @@
 "use client";
 import { Fragment, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gauge, AlertCircle } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
 import {
   ResizableHandle,
@@ -12,7 +9,6 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import ContestHeader from "@/components/Contest/Header";
-import { BsTag } from "react-icons/bs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { MainTaps, ProblemsTap } from "@/data/Contest_Content";
@@ -20,9 +16,8 @@ import GraphCalculator from "@/components/Tools/Graph_Calc";
 import Problem_Statement_card from "@/components/Contest/Problem_Statement_card";
 import { GrUploadOption } from "react-icons/gr";
 import axios from "axios";
-import { Contest, ContestProblem, FullProblem } from "@/types/types";
+import { Contest, ContestProblem } from "@/types/types";
 import Loading from "@/components/ui/Loading";
-import ProblemCard from "@/components/Contest/Problem_Card";
 import ContestSubmissions from "./submissions";
 import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
@@ -36,7 +31,6 @@ export default function Page() {
   const { id: contest_id } = useParams();
   const router = useRouter();
   const contestParams = useSearchParams();
-  const [showLevels, setShowLevels] = useState(false);
 
   const [contest, setContest] = useState<Contest | null>(null);
 
@@ -63,7 +57,15 @@ export default function Page() {
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
     useState("problemStatement");
-  const [expressions, setExpressions] = useState<any>(null);
+  const [mobileActiveTab, setMobileActiveTab] = useState("problemStatement");
+  const [expressions, setExpressions] = useState<unknown>(null);
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (axios.isAxiosError<{ message?: string }>(err)) {
+      return err.response?.data?.message || fallback;
+    }
+
+    return fallback;
+  };
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -72,11 +74,10 @@ export default function Page() {
 
         const response = await axios.get(`/api/contests/${contest_id}`);
         setContest(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching contest:", err);
         setError(
-          err.response?.data?.message ||
-            "Failed to load contest. Please try again.",
+          getErrorMessage(err, "Failed to load contest. Please try again."),
         );
       } finally {
         setLoading(false);
@@ -102,24 +103,15 @@ export default function Page() {
 
           setProblems(problemsTemp);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching problems:", err);
         setError(
-          err.response?.data?.message ||
-            "Failed to load problems. Please try again.",
+          getErrorMessage(err, "Failed to load problems. Please try again."),
         );
       }
     };
     fetchProblems();
   }, [contest_id]);
-
-  useEffect(() => {
-    if (showLevels) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-  }, [showLevels]);
 
   useEffect(() => {
     if (shownProblemId) {
@@ -153,6 +145,7 @@ export default function Page() {
 
   // logging and importing problemsStatement to and from Local Storage
   let prevLocalStorage: Record<string, string> | null = null;
+
   useEffect(() => {
     if (Object.keys(problemsStatus).length > 0) {
       if (problemsStatus === prevLocalStorage) return;
@@ -183,47 +176,88 @@ export default function Page() {
     return <ContestNotFound />;
   }
 
+  if (isMobile) {
+    return (
+      <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
+        <ContestHeader length_in_minutes={contest.length_in_minutes} />
+
+        <Tabs
+          value={mobileActiveTab}
+          onValueChange={setMobileActiveTab}
+          className="min-h-0 flex-1 flex flex-col rounded-sm bg-card"
+        >
+          <ScrollArea className="w-full shrink-0 border-b border-border/50">
+            <TabsList className="flex h-11 w-max min-w-full justify-start rounded-none bg-bg-light px-1">
+              <TabsTrigger value="problemStatement" className="h-9 shrink-0">
+                Statement
+              </TabsTrigger>
+              <TabsTrigger value="problems" className="h-9 shrink-0">
+                Problems
+              </TabsTrigger>
+              <TabsTrigger value="standings" className="h-9 shrink-0">
+                Standings
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="h-9 shrink-0">
+                Submissions
+              </TabsTrigger>
+              <TabsTrigger value="graphingCalculator" className="h-9 shrink-0">
+                Graph
+              </TabsTrigger>
+              <TabsTrigger
+                value="scientificCalculator"
+                className="h-9 shrink-0"
+              >
+                Calc
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <Problem_Statement_card
+              setProblemsStatus={setProblemsStatus}
+              problemsStatus={problemsStatus}
+            />
+
+            {mobileActiveTab == "problems" && (
+              <ScrollArea className="h-full">
+                <ContestProblems
+                  contest={contest}
+                  problems={problems}
+                  problemsStatus={problemsStatus}
+                  onProblemSelect={() => setMobileActiveTab("problemStatement")}
+                />
+              </ScrollArea>
+            )}
+
+            {mobileActiveTab == "standings" && (
+              <ScrollArea className="h-full">
+                <ContestStandings contestId={contest.id} />
+              </ScrollArea>
+            )}
+
+            <ContestSubmissions />
+
+            <TabsContent value="graphingCalculator" className="h-full m-0">
+              <GraphCalculator
+                expressions={expressions}
+                setExpressions={setExpressions}
+              />
+            </TabsContent>
+
+            <TabsContent value="scientificCalculator" className="h-full m-0">
+              <ScientificCalc />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </main>
+    );
+  }
+
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-1 flex flex-col py-1">
       {/* Contest Header */}
       <ContestHeader length_in_minutes={contest.length_in_minutes} />
-
-      {/* Problems Navigator for phones */}
-      {isMobile && (
-        <div className="fixed top-32 left-4 w-fit flex justify-center mb-3 z-50">
-          <Button
-            variant="primary"
-            onClick={() => setShowLevels((prev) => !prev)}
-          >
-            Problems
-            <Gauge size={35} strokeWidth={3} />
-          </Button>
-        </div>
-      )}
-
-      {/* Problems List Screen for phones */}
-      <div
-        className={`fixed top-0 left-0 bg-background px-4  rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
-          isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
-        }`}
-      >
-        <h2 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
-          <Gauge size={25} strokeWidth={3} className="text-primary" /> Levels
-        </h2>
-        <div className="flex flex-wrap justify-center gap-4">
-          {problems.map((problem) => (
-            <Button
-              key={problem.id}
-              onClick={() => {
-                setShowLevels(false);
-              }}
-              className="justify-start text-2xl"
-            >
-              {problem.name}
-            </Button>
-          ))}
-        </div>
-      </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex flex-1">
         {/* Left Sidebar for Desktop  */}

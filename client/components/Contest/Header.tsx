@@ -15,27 +15,27 @@ interface Props {
 }
 const ContestHeader = ({ length_in_minutes }: Props) => {
   return (
-    <nav className="h-10 bg-transparent mb-2 w-full flex justify-between items-center gap-5 px-4 my-1">
+    <nav className="min-h-10 bg-transparent mb-2 w-full grid grid-cols-[auto_1fr_auto] md:flex md:justify-between items-center gap-2 md:gap-5 px-2 md:px-4 my-1">
       {/* Left section */}
-      <section className="">
-        <div className="flex items-end gap-2 ">
-          <div className="flex items-end gap-3">
+      <section className="min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-3">
             {/* Logo */}
-            <Link href={"/"} className="flex items-center gap-2 ">
+            <Link href={"/"} className="flex shrink-0 items-center gap-2">
               <Image
                 src="/logo_mini_light_transparent.svg"
                 alt="Logo"
                 width={100}
                 height={100}
-                className="w-6 h-6"
+                className="block w-6 h-6 shrink-0"
               />
             </Link>
             <Separator
               orientation="vertical"
-              className="h-4! bg-foreground/20 "
+              className="hidden md:block h-4! bg-foreground/20"
             />
           </div>
-          <div className="flex items-end gap-2">
+          <div className="hidden md:flex items-end gap-2">
             <TfiMenu className="w-4.5 h-4.5 text-muted-foreground" />
             <span className="hidden md:inline text-base font-medium self-end leading-none">
               Contest List
@@ -45,7 +45,7 @@ const ContestHeader = ({ length_in_minutes }: Props) => {
       </section>
 
       {/* Middle section */}
-      <section className="flex gap-1">
+      <section className="flex min-w-0 justify-center gap-1">
         {/* Take notes */}
         <ComingSoon>
           <button
@@ -68,7 +68,7 @@ const ContestHeader = ({ length_in_minutes }: Props) => {
       </section>
 
       {/* Right section */}
-      <section className="flex items-center gap-3">
+      <section className="flex min-w-fit items-center justify-end gap-3">
         <ComingSoon>
           <button className="w-5 h-5 hidden md:inline hover:*:text-text cursor-pointer">
             <RiLayout2Fill className="text-muted-foreground h-full w-full" />
@@ -85,7 +85,10 @@ const ContestHeader = ({ length_in_minutes }: Props) => {
           {/* TODO: Replace with actual streak */}
           {/* <RiFireFill className="text-muted-foreground h-full w-full" /> */}
         </div>
-        <div className="">
+        <div className="md:hidden">
+          <UserIcon size="sm" />
+        </div>
+        <div className="hidden md:block">
           <UserIcon />
         </div>
       </section>
