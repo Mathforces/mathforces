@@ -10,9 +10,9 @@ import MathNoise from "@/components/ui/MathNoise";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
-import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
 
 const problemSchema = z.object({
   id: z.string(),
@@ -45,41 +45,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ProblemCard from "./problemCard";
 
 type Props = Record<string, never>;
+const contestSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name should be at least 2 characters long")
+    .max(100, "Name should be at most 100 characters long"),
+  description: z
+    .string()
+    .min(2, "Description should be at least 2 characters long")
+    .optional(),
+  difficulty: z.enum(["hard", "medium", "easy"]),
+  authors: z
+    .string()
+    .min(8, "Authors field is too short")
+    .max(100, "Authors field is too long"),
+  topics: z
+    .string()
+    .min(8, "Topics field is too short")
+    .max(100, "Topics field is too long"),
+  start_date: z.date(),
+  start_time: z.string(),
+
+  end_date: z.date(),
+  end_time: z.string(),
+  problems: problemsSchema,
+});
+
+export type CreateContestFormValues = z.infer<typeof contestSchema>;
 
 const CreateContest = ({}: Props) => {
-  const [startTime, setStartTime] = useState<string>("10:30:00");
-  const [endTime, setEndTime] = useState<string>("12:30:00");
-
-  const schema = z.object({
-    name: z
-      .string()
-      .min(2, "Name should be at least 2 characters long")
-      .max(100, "Name should be at most 100 characters long"),
-    description: z
-      .string()
-      .min(2, "Description should be at least 2 characters long")
-      .optional(),
-    difficulty: z.enum(["hard", "medium", "easy"]),
-    authors: z
-      .string()
-      .min(8, "Authors field is too short")
-      .max(100, "Authors field is too long"),
-    topics: z
-      .string()
-      .min(8, "Topics field is too short")
-      .max(100, "Topics field is too long"),
-    start_date: z.date(),
-    start_time: z.string(),
-
-    end_date: z.date(),
-    end_time: z.string(),
-    problems: problemsSchema,
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<CreateContestFormValues>({
+    resolver: zodResolver(contestSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -97,14 +96,22 @@ const CreateContest = ({}: Props) => {
     reValidateMode: "onChange",
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "problems",
   });
 
-  const onSubmit = async (data: z.infer<typeof schema>) => {
+  const onSubmit = async (data: CreateContestFormValues) => {
+    const contestData = {
+      ...data,
+      problems: data.problems.map((problem, index) => ({
+        ...problem,
+        index_in_contest: index,
+      })),
+    };
+
     axios
-      .post("/api/contests", data)
+      .post("/api/contests", contestData)
       .then(() => {
         toast.success("Contest created successfully!");
       })
@@ -114,6 +121,21 @@ const CreateContest = ({}: Props) => {
         }
       });
   };
+
+  const handleProblemDragEnd = (event: DragEndEvent) => {
+    if (event.canceled) return;
+
+    const sourceId = event.operation.source?.id;
+    const targetId = event.operation.target?.id;
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const sourceIndex = fields.findIndex((field) => field.id === sourceId);
+    const targetIndex = fields.findIndex((field) => field.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    move(sourceIndex, targetIndex);
+  };
+
   return (
     <main
       className="relative flex justify-center items-center max-w-[1444]! px-0 "
@@ -294,117 +316,17 @@ const CreateContest = ({}: Props) => {
           <Separator className="my-4" />
           <h4 className="text-text">Problems</h4>
 
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="border p-4 rounded-lg flex flex-col gap-3"
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Problem {index + 1}</span>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => remove(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-
-              <Controller
-                name={`problems.${index}.name`}
+          <DragDropProvider onDragEnd={handleProblemDragEnd}>
+            {fields.map((field, index) => (
+              <ProblemCard
+                key={field.id}
+                fieldId={field.id}
+                index={index}
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Name</FieldLabel>
-                    <Input
-                      {...field}
-                      placeholder="Problem name"
-                      value={field.value ?? ""}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                remove={remove}
               />
-
-              <Controller
-                name={`problems.${index}.editorial`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Editorial</FieldLabel>
-                    <Input {...field} placeholder="Editorial" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name={`problems.${index}.points`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Points</FieldLabel>
-                    <Input
-                      type="number"
-                      {...field}
-                      placeholder="Points"
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? Number(e.target.value) : null,
-                        )
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name={`problems.${index}.description_latex`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Description (LaTeX)</FieldLabel>
-                    <Input
-                      {...field}
-                      placeholder="LaTeX description"
-                      value={field.value ?? ""}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name={`problems.${index}.index_in_contest`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Index in Contest</FieldLabel>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-          ))}
+            ))}
+          </DragDropProvider>
 
           <Button
             type="button"
