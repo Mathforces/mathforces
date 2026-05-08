@@ -21,7 +21,7 @@ export default function LearningDashboard() {
   return (
     <main
       style={{ height: `calc(100vh - ${HEADER_MARGIN}px)` }}
-      className="max-w-full flex px-0 grid grid-cols-24 bg-background"
+      className="max-w-full overflow-y-auto grid grid-cols-1 xl:grid-cols-24 bg-background"
     >
       {/* Left side bar */}
       <aside className="bg-background hidden xl:block col-span-4 max-w-60 border-r border-foreground/20 px-2 py-2">
@@ -34,12 +34,12 @@ export default function LearningDashboard() {
       </aside>
 
       {/* Main section */}
-      <section className="px-6 py-6 col-span-16 w-full max-w-270 mx-auto">
+      <section className="px-3 sm:px-6 py-4 sm:py-6 col-span-1 xl:col-span-16 w-full max-w-270 mx-auto">
         {/* Suggested problemsets (ads) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-          <div className="bg-linear-to-br from-gray-100 to-gray-200 text-black rounded-2xl p-6 flex flex-col justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-6 sm:mb-10">
+          <div className="bg-linear-to-br from-gray-100 to-gray-200 text-black rounded-md p-4 sm:p-6 flex flex-col gap-4 justify-between">
             <div>
-              <h3 className="text-[22px] font-bold">Challenge™</h3>
+              <h3 className="text-lg sm:text-[22px] font-bold">Challenge™</h3>
               <p className="text-[14px] mt-2 text-black/60">
                 Turn calculus into gamified progress
               </p>
@@ -47,16 +47,18 @@ export default function LearningDashboard() {
             <RsvpButton name="Calculus Challenge" />
           </div>
 
-          <div className="bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-6 flex flex-col justify-between">
+          <div className="bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-md p-4 sm:p-6 flex flex-col gap-4 justify-between">
             <div>
-              <h3 className="text-[22px] font-bold">Linear Algebra</h3>
+              <h3 className="text-lg sm:text-[22px] font-bold">
+                Linear Algebra
+              </h3>
               <p className="text-[14px] mt-2">30 Days Challenge</p>
             </div>
             <RsvpButton name="30 Days Challenge " />
           </div>
-          <div className="bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-6 flex flex-col justify-between">
+          <div className="bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-md p-4 sm:p-6 flex flex-col gap-4 justify-between sm:col-span-2 lg:col-span-1">
             <div>
-              <h3 className="text-[22px] font-bold">Top SAT Questions</h3>
+              <h3 className="text-lg sm:text-[22px] font-bold">Top SAT Questions</h3>
               <div className="flex items-center gap-2 mt-2">
                 <div className="px-2 py-1 bg-white/20 rounded text-xs font-medium">
                   DAY 30
