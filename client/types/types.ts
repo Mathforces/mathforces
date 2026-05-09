@@ -95,7 +95,7 @@ export interface Submission {
 export interface ProblemCore {
   id: string;
   name: string;
-  description_html: string;
+  description_latex: string | null;
   answer: string;
 }
 

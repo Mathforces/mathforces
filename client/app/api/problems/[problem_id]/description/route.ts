@@ -10,7 +10,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("problems")
-    .select("description_html")
+    .select("description_latex")
     .eq("id", problemId)
     .single();
 

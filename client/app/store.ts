@@ -172,19 +172,27 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
   fetchCore: async (problemId: string) => {
     // Check if it exists first
     const existingProblem = get().problems[problemId];
-    if (existingProblem) {
+    if (
+      existingProblem?.core &&
+      "description_latex" in existingProblem.core
+    ) {
       return;
     }
 
     // Check if the local storage has the data first
     const cached = localStorage.getItem(`problem_${problemId}_core`);
-    if (cached) {
+    const cachedCore = cached ? JSON.parse(cached) : null;
+    if (
+      cachedCore &&
+      typeof cachedCore === "object" &&
+      "description_latex" in cachedCore
+    ) {
       set((state) => ({
         problems: {
           ...state.problems,
           [problemId]: {
             ...state.problems[problemId],
-            core: JSON.parse(cached),
+            core: cachedCore,
           },
         },
       }));

@@ -51,6 +51,12 @@
   p {
     @apply text-base md:text-lg text-black/50 dark:text-white/50;
   }
+  .problem-statement-latex mjx-container {
+    font-size: 1em !important;
+  }
+  .problem-statement-latex mjx-container[display="true"] {
+    font-size: 1.08em !important;
+  }
   .Link {
     @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300;
   }

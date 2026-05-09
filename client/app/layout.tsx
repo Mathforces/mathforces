@@ -139,7 +139,7 @@ export default function RootLayout({
           chtml: {
             // font variant
             scale: 1,
-            mtextInheritFont: true
+            mtextInheritFont: false
           },
           startup: {
             pageReady() {
