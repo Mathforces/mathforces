@@ -3,11 +3,12 @@
 import { useState } from "react";
 import {
   Controller,
+  useWatch,
   type Control,
   type UseFieldArrayRemove,
 } from "react-hook-form";
 import { useSortable } from "@dnd-kit/react/sortable";
-import { ChevronDown, GripVertical } from "lucide-react";
+import { ChevronDown, GripVertical, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,43 +41,64 @@ export default function ProblemCard({
     index,
     group: PROBLEM_SORT_GROUP,
   });
+  const problemName = useWatch({
+    control,
+    name: `problems.${index}.name`,
+  });
+  const cardTitle = `${index + 1}. ` + (problemName?.trim() || "New problem");
 
   return (
     <div
       ref={ref}
-      className={`relative border p-4 pt-12 rounded-lg flex flex-col gap-3 transition-all duration-150 ${
+      className={`relative border py-4 rounded-lg flex flex-row justify-center items-center gap-3 transition-all duration-150 ${
         isDragSource
           ? "border-primary/60 border-dashed bg-primary/15 shadow-inner"
           : "bg-background"
       }`}
     >
-      <button
-        ref={handleRef}
-        type="button"
-        aria-label={`Drag problem ${index + 1} to reorder`}
-        title="Drag to reorder"
-        className={`absolute left-3 top-3 flex h-7 w-7 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground active:cursor-grabbing ${
-          isDragSource ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-
       <Collapsible
         open={isOpen}
         onOpenChange={setIsOpen}
-        className={`flex flex-col gap-3 transition-opacity ${
+        className={`flex p-0  flex-col w-full gap-3 transition-opacity ${
           isDragSource ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex justify-between items-center gap-3">
-          <div>
-            <span className="font-semibold">Problem {index + 1}</span>
-            <p className="text-xs text-muted-foreground">
-              {isOpen ? `Contest position ${index + 1}` : "Minimized"}
-            </p>
+        <div className="flex justify-between items-center gap-3 w-full px-2">
+          <div className="flex">
+            {/* Drag */}
+            <button
+              ref={handleRef}
+              type="button"
+              aria-label={`Drag problem ${index + 1} to reorder`}
+              title="Drag to reorder"
+              className={`flex h-7 w-7 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground active:cursor-grabbing ${
+                isDragSource ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+
+            {/* Title */}
+            <div className="min-w-0">
+              <span className="block truncate font-semibold">{cardTitle}</span>
+              <p className="text-xs text-muted-foreground">
+                {isOpen ? `Contest position ${index + 1}` : "Minimized"}
+              </p>
+            </div>
           </div>
+
+          {/* Collapse & Delete */}
           <div className="flex items-center gap-2">
+            {/* Delete */}
+
+            <button
+              type="button"
+              aria-label={`Remove ${cardTitle}`}
+              onClick={() => remove(index)}
+            >
+              <Trash2 className="text-destructive/60 h-4 w-4" />
+            </button>
+            {/* Collapse */}
             <CollapsibleTrigger asChild>
               <Button
                 type="button"
@@ -91,18 +113,10 @@ export default function ProblemCard({
                 />
               </Button>
             </CollapsibleTrigger>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => remove(index)}
-            >
-              Remove
-            </Button>
           </div>
         </div>
 
-        <CollapsibleContent className="flex flex-col gap-3">
+        <CollapsibleContent className="flex flex-col gap-3 px-4">
           <Controller
             name={`problems.${index}.name`}
             control={control}
@@ -131,6 +145,32 @@ export default function ProblemCard({
                   {...field}
                   placeholder="Problem Latex"
                   value={field.value ?? ""}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
+          <Controller
+            name={`problems.${index}.difficulty`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Difficulty</FieldLabel>
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  {...field}
+                  placeholder="1400"
+                  value={field.value ?? ""}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value ? Number(event.target.value) : null,
+                    )
+                  }
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

@@ -13,68 +13,125 @@ import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
-
-const problemSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  submission_count: z.number().nullable(),
-  correct_submission_count: z.number().nullable(),
-  points: z.number().nullable(),
-  likes: z.number().nullable(),
-  comments_num: z.number().nullable(),
-  tags: z.array(z.string()).nullable(),
-  description_latex: z.string().nullable(),
-  description_html: z.string().nullable(),
-  answer: z.string().nullable(),
-  editorial: z.string(),
-  index_in_contest: z.number(),
-});
-
-const problemsSchema = z.array(problemSchema);
+import ProblemCard from "./problemCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { getFormattedDate, HEADER_MARGIN } from "@/lib/utils";
 import DatePicker from "@/components/ui/date_picker";
 import TimePicker from "@/components/ui/timePicker";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import ProblemCard from "./problemCard";
+
+const problemSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().nullable(),
+    submission_count: z.number().nullable(),
+    correct_submission_count: z.number().nullable(),
+    points: z.number().nullable(),
+    difficulty: z
+      .number()
+      .int("Difficulty must be a whole number")
+      .min(0, "Difficulty cannot be negative")
+      .max(10000, "Difficulty is too high")
+      .nullable(),
+    likes: z.number().nullable(),
+    comments_num: z.number().nullable(),
+    tags: z.array(z.string()).nullable(),
+    description_latex: z.string().nullable(),
+    description_html: z.string().nullable(),
+    answer: z.string().nullable(),
+    editorial: z.string(),
+    index_in_contest: z.number(),
+  })
+  .superRefine((problem, ctx) => {
+    if (!problem.name?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Problem name is required",
+        path: ["name"],
+      });
+    }
+
+    if (!problem.description_latex?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Problem latex is required",
+        path: ["description_latex"],
+      });
+    }
+
+    if (problem.difficulty === null) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Difficulty is required",
+        path: ["difficulty"],
+      });
+    }
+
+    if (problem.points === null) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Points are required",
+        path: ["points"],
+      });
+    }
+
+    if (!problem.editorial.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Editorial is required",
+        path: ["editorial"],
+      });
+    }
+  });
+
+const problemsSchema = z
+  .array(problemSchema)
+  .min(1, "Contest must have at least one problem");
 
 type Props = Record<string, never>;
-const contestSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name should be at least 2 characters long")
-    .max(100, "Name should be at most 100 characters long"),
-  description: z
-    .string()
-    .min(2, "Description should be at least 2 characters long")
-    .optional(),
-  difficulty: z.enum(["hard", "medium", "easy"]),
-  authors: z
-    .string()
-    .min(8, "Authors field is too short")
-    .max(100, "Authors field is too long"),
-  topics: z
-    .string()
-    .min(8, "Topics field is too short")
-    .max(100, "Topics field is too long"),
-  start_date: z.date(),
-  start_time: z.string(),
+const contestSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, "Name should be at least 2 characters long")
+      .max(100, "Name should be at most 100 characters long"),
+    description: z
+      .string()
+      .min(2, "Description should be at least 2 characters long")
+      .optional(),
+    difficulty: z
+      .number()
+      .int("Difficulty must be a whole number")
+      .min(0, "Difficulty cannot be negative")
+      .max(10000, "Difficulty is too high"),
+    start_date: z.date(),
+    start_time: z.string(),
 
-  end_date: z.date(),
-  end_time: z.string(),
-  problems: problemsSchema,
-});
+    end_date: z.date(),
+    end_time: z.string(),
+    problems: problemsSchema,
+  })
+  .refine(
+    (data) =>
+      combineDateAndTime(data.end_date, data.end_time).getTime() >
+      combineDateAndTime(data.start_date, data.start_time).getTime(),
+    {
+      message: "End date and time must be after the start date and time",
+      path: ["end_time"],
+    },
+  );
 
 export type CreateContestFormValues = z.infer<typeof contestSchema>;
+
+function combineDateAndTime(date: Date, time: string) {
+  const [hours = "0", minutes = "0", seconds = "0"] = time.split(":");
+  const result = new Date(date);
+
+  result.setHours(Number(hours), Number(minutes), Number(seconds), 0);
+  return result;
+}
 
 const CreateContest = ({}: Props) => {
   const form = useForm<CreateContestFormValues>({
@@ -82,9 +139,7 @@ const CreateContest = ({}: Props) => {
     defaultValues: {
       name: "",
       description: "",
-      difficulty: "easy",
-      authors: "",
-      topics: "",
+      difficulty: 800,
       start_date: new Date(),
       start_time: getFormattedDate(new Date()).timeFull,
 
@@ -102,24 +157,36 @@ const CreateContest = ({}: Props) => {
   });
 
   const onSubmit = async (data: CreateContestFormValues) => {
+    const startAt = combineDateAndTime(data.start_date, data.start_time);
+    const endAt = combineDateAndTime(data.end_date, data.end_time);
     const contestData = {
       ...data,
+      start_date: startAt.toISOString(),
+      end_date: endAt.toISOString(),
+      length_in_minutes: Math.round(
+        (endAt.getTime() - startAt.getTime()) / 60000,
+      ),
       problems: data.problems.map((problem, index) => ({
         ...problem,
         index_in_contest: index,
       })),
     };
 
-    axios
-      .post("/api/contests", contestData)
-      .then(() => {
-        toast.success("Contest created successfully!");
-      })
-      .catch((err) => {
-        if (err.response && err.response.data.error) {
-          toast.error(err.response.data.error);
-        }
+    try {
+      form.clearErrors("root.server");
+      await axios.post("/api/contests", contestData);
+      toast.success("Contest created successfully!");
+      form.reset();
+    } catch (err) {
+      const message = axios.isAxiosError<{ error?: string }>(err)
+        ? err.response?.data?.error || "Failed to create contest"
+        : "Failed to create contest";
+
+      form.setError("root.server", {
+        message,
       });
+      toast.error(message);
+    }
   };
 
   const handleProblemDragEnd = (event: DragEndEvent) => {
@@ -194,45 +261,21 @@ const CreateContest = ({}: Props) => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="difficulty">Difficulty</FieldLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose Difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="authors"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="authors">Authors</FieldLabel>
-                <Input {...field} id="authors" placeholder="Authors" />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="topics"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="topics">Topics</FieldLabel>
-                <Input {...field} id="topics" placeholder="Topics" />
+                <FieldLabel htmlFor="difficulty">Contest Difficulty</FieldLabel>
+                <Input
+                  {...field}
+                  id="difficulty"
+                  type="number"
+                  min={0}
+                  step={1}
+                  placeholder="800"
+                  value={field.value}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value ? Number(event.target.value) : 0,
+                    )
+                  }
+                />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -315,6 +358,11 @@ const CreateContest = ({}: Props) => {
 
           <Separator className="my-4" />
           <h4 className="text-text">Problems</h4>
+          {form.formState.errors.problems?.message && (
+            <p className="text-sm text-destructive">
+              {form.formState.errors.problems.message}
+            </p>
+          )}
 
           <DragDropProvider onDragEnd={handleProblemDragEnd}>
             {fields.map((field, index) => (
@@ -338,6 +386,7 @@ const CreateContest = ({}: Props) => {
                 submission_count: null,
                 correct_submission_count: null,
                 points: null,
+                difficulty: null,
                 likes: null,
                 comments_num: null,
                 tags: null,
@@ -353,7 +402,18 @@ const CreateContest = ({}: Props) => {
             Add Problem
           </Button>
 
-          <Button type="submit">Submit</Button>
+          {form.formState.errors.root?.server && (
+            <p className="text-sm text-destructive">
+              {form.formState.errors.root.server.message}
+            </p>
+          )}
+
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+            Submit
+          </Button>
         </form>
       </section>
       <section className="h-full absolute w-full">
