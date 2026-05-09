@@ -212,6 +212,7 @@ const Problem_Statement_card = ({
             </button>
           </div>
         </div>
+
         <Separator className="bg-bg-light h-0.5! w-full" />
 
         {/* Problem Description & Submission */}

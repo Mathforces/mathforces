@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import MathNoise from "@/components/ui/MathNoise";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -21,6 +23,8 @@ import { getFormattedDate, HEADER_MARGIN } from "@/lib/utils";
 import DatePicker from "@/components/ui/date_picker";
 import TimePicker from "@/components/ui/timePicker";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "../hooks/useUser";
+import { supabase } from "@/lib/supabase/client";
 
 const problemSchema = z
   .object({
@@ -91,6 +95,7 @@ const problemsSchema = z
   .min(1, "Contest must have at least one problem");
 
 type Props = Record<string, never>;
+const SIGN_IN_MESSAGE = "Please sign in to create a contest.";
 const contestSchema = z
   .object({
     name: z
@@ -134,6 +139,8 @@ function combineDateAndTime(date: Date, time: string) {
 }
 
 const CreateContest = ({}: Props) => {
+  const router = useRouter();
+  const { user, loading: userLoading } = useUser();
   const form = useForm<CreateContestFormValues>({
     resolver: zodResolver(contestSchema),
     defaultValues: {
@@ -156,7 +163,23 @@ const CreateContest = ({}: Props) => {
     name: "problems",
   });
 
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.replace("/sign_in");
+    }
+  }, [router, user, userLoading]);
+
   const onSubmit = async (data: CreateContestFormValues) => {
+    const {
+      data: { user: signedInUser },
+    } = await supabase.auth.getUser();
+
+    if (!signedInUser) {
+      toast.error(SIGN_IN_MESSAGE);
+      router.push("/sign_in");
+      return;
+    }
+
     const startAt = combineDateAndTime(data.start_date, data.start_time);
     const endAt = combineDateAndTime(data.end_date, data.end_time);
     const contestData = {
@@ -188,6 +211,10 @@ const CreateContest = ({}: Props) => {
       toast.error(message);
     }
   };
+
+  if (userLoading || !user) {
+    return null;
+  }
 
   const handleProblemDragEnd = (event: DragEndEvent) => {
     if (event.canceled) return;

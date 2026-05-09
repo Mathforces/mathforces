@@ -61,3 +61,7 @@ export const styleUsername = (username: string, color: string) => {
     </span>
 `;
 };
+
+export const randomNum = (start: number = 0, end: number = 0) => {
+  return Math.floor(Math.random() * (end - start + 1)) + start;
+};
