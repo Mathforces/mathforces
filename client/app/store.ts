@@ -168,14 +168,12 @@ interface ContestProblemsContext {
 export const useProblems = create<ContestProblemsContext>((set, get) => ({
   problems: {},
   coreLoading: false,
+
   // Fetch core of problem data [problem statement, problem Name, Problem Answer]
   fetchCore: async (problemId: string) => {
     // Check if it exists first
     const existingProblem = get().problems[problemId];
-    if (
-      existingProblem?.core &&
-      "description_latex" in existingProblem.core
-    ) {
+    if (existingProblem?.core && "description_latex" in existingProblem.core) {
       return;
     }
 

@@ -23,6 +23,7 @@ import Problem_Card from "./Problem_Card";
 import { useState, useEffect, use, Dispatch, SetStateAction } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
+import { LatexStatement } from "@/components/ui/LatexStatement";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -216,9 +217,10 @@ const Problem_Statement_card = ({
         {/* Problem Description & Submission */}
         <MathJaxContent className="flex flex-col gap-5 w-full">
           {/* Problem Description */}
-          <div className="problem-statement-latex text-text text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words">
-            {problemCore?.description_latex || ""}
-          </div>
+          <LatexStatement
+            className="problem-statement-latex text-text text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words"
+            value={problemCore?.description_latex || ""}
+          />
         </MathJaxContent>
         {/* Problem Submission */}
         <form
