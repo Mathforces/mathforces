@@ -9,6 +9,30 @@ import {
   parsePaginationParams,
 } from "@/lib/api/response";
 
+export const runtime = "nodejs";
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function descriptionToMathJaxHtml(description: string) {
+  const normalized = description.replace(/\r\n?/g, "\n").trim();
+
+  if (!normalized) return "";
+
+  return normalized
+    .split(/\n{2,}/)
+    .map(
+      (paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`,
+    )
+    .join("");
+}
+
 export async function GET(request: Request) {
   const rateLimitError = rateLimitPublic(request);
   if (rateLimitError) return rateLimitError;
@@ -63,39 +87,28 @@ export async function POST(request: Request) {
   if (contestError) return apiError(contestError.message, 500);
 
   if (problems.length === 0) {
-    return json({ contest, problems: [] }, 201);
+    await supabase.from("contests").delete().eq("id", contest.id);
+    return apiError("Contest must include at least one problem", 400);
   }
 
   const problemPayloads = problems.map(
     (problem: Record<string, unknown>, index: number) => {
       const name = typeof problem.name === "string" ? problem.name : null;
+      const descriptionLatex =
+        typeof problem.description_latex === "string"
+          ? problem.description_latex
+          : "";
+      const descriptionHtml = descriptionToMathJaxHtml(descriptionLatex);
 
       return {
-        id: typeof problem.id === "string" ? problem.id : undefined,
+        id: crypto.randomUUID(),
         contest_id: contest.id,
         name,
         full_name: name,
-        submission_count: Number(problem.submission_count ?? 0),
-        correct_submission_count: Number(problem.correct_submission_count ?? 0),
-        points:
-          problem.points === null || problem.points === undefined
-            ? null
-            : Number(problem.points),
-        difficulty:
-          problem.difficulty === null || problem.difficulty === undefined
-            ? null
-            : Number(problem.difficulty),
-        likes_count: 0,
-        comments_count: 0,
-        tags: Array.isArray(problem.tags) ? problem.tags : null,
-        description_latex:
-          typeof problem.description_latex === "string"
-            ? problem.description_latex
-            : null,
-        description_html:
-          typeof problem.description_html === "string"
-            ? problem.description_html
-            : null,
+        points: problem?.points ?? null,
+        difficulty: problem?.difficulty ?? null,
+        description_latex: descriptionLatex,
+        description_html: descriptionHtml,
         answer: typeof problem.answer === "string" ? problem.answer : null,
         official_editorial:
           typeof problem.editorial === "string" ? problem.editorial : "",
