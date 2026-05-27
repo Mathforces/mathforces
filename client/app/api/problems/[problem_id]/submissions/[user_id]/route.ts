@@ -1,6 +1,11 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { json, apiError, handleSupabaseError, requireFields } from "@/lib/api/response";
+import {
+  json,
+  apiError,
+  handleSupabaseError,
+  requireFields,
+} from "@/lib/api/response";
 
 export async function GET(
   request: Request,
@@ -11,7 +16,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("*, problems(name), profiles(username)")
+    .select("*")
     .eq("problem_id", problem_id)
     .eq("user_id", user_id);
 
@@ -28,11 +33,27 @@ export async function POST(
   const body = await request.json();
   const { problem_id, user_id } = await params;
 
-  const missingFields = requireFields(body, ["user_answer", "status", "display_id"]);
+  const missingFields = requireFields(body, [
+    "user_answer",
+    "status",
+    "display_id",
+  ]);
   if (missingFields) return missingFields;
 
-  const supabase = createSupabaseServiceClient();
+  const authSupabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await authSupabase.auth.getUser();
 
+  if (userError || !user) {
+    return apiError("You must be signed in to submit", 401);
+  }
+  if (user.id !== user_id) {
+    return apiError("You can only submit as the signed-in user", 403);
+  }
+
+  const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("submissions")
     .insert({
@@ -42,7 +63,7 @@ export async function POST(
       status: body.status,
       display_id: body.display_id,
     })
-    .select("*, problems(name), profiles(username)")
+    .select("*")
     .single();
 
   if (error) return apiError(error.message, 500);

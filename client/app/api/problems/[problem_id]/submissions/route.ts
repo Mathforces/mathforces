@@ -10,7 +10,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("*, problems(name), profiles(username)")
+    .select("*")
     .eq("problem_id", problemId);
 
   const err = handleSupabaseError(error, "submissions");

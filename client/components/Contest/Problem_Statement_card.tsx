@@ -1,13 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Contest,
-  ContestProblem,
-  FullProblem,
-  ProblemCore,
-  ProblemStatus,
-} from "@/types/types";
+import { ProblemStatus } from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,17 +13,15 @@ import { ChevronsUpDown } from "lucide-react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
-import Problem_Card from "./Problem_Card";
-import { useState, useEffect, use, Dispatch, SetStateAction } from "react";
+import { useEffect, Dispatch, SetStateAction } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
 import { LatexStatement } from "@/components/ui/LatexStatement";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Field, FieldError, FieldLabel } from "../ui/field";
+import { Field, FieldError } from "../ui/field";
 import { toast } from "sonner";
-import { useUser } from "@/app/hooks/useUser";
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
 import { ScrollArea } from "../ui/scroll-area";
 import { generateId } from "@/lib/utils";
@@ -77,7 +69,7 @@ const Problem_Statement_card = ({
     }
   };
 
-  const onSubmit = ({ answer: user_answer }: z.infer<typeof schema>) => {
+  const onSubmit = async ({ answer: user_answer }: z.infer<typeof schema>) => {
     if (user_answer) {
       saveInputToLocalStorage(user_answer);
       // validation
@@ -113,32 +105,45 @@ const Problem_Statement_card = ({
           },
           created_at: new Date(),
         };
-        updateSubmission(submission_data);
-        axios
-          .post(
+        try {
+          const res = await axios.post(
             `/api/problems/${problemCore.id}/submissions/${userProfile.id}`,
-            submission_data,
-          )
-          .then((res) => {
-            if (res) {
-              if (
-                status === "success" ||
-                problemsStatus[problemCore.id] === "success"
-              ) {
-                status = "success";
-              }
-              setProblemsStatus((prev) => {
-                return { ...prev, [problemCore.id]: status };
-              });
-              console.log("submission was sucessful, your status is: ", status);
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            toast.error(
-              "An Error has occured while submitting pls submit again, or try reconnecting",
-            );
+            {
+              display_id: submission_data.display_id,
+              user_answer: submission_data.user_answer,
+              status: submission_data.status,
+            },
+          );
+
+          updateSubmission({
+            ...submission_data,
+            ...res.data?.data,
+            profiles: submission_data.profiles,
+            problems: submission_data.problems,
           });
+
+          if (
+            status === "success" ||
+            problemsStatus[problemCore.id] === "success"
+          ) {
+            status = "success";
+          }
+          setProblemsStatus((prev) => {
+            return { ...prev, [problemCore.id]: status };
+          });
+          console.log("submission was sucessful, your status is: ", status);
+        } catch (err) {
+          console.error(err);
+          if (axios.isAxiosError<{ error?: string }>(err)) {
+            const message = err.response?.data?.error;
+            if (message) {
+              console.log("Submission server error:", message);
+            }
+          }
+          toast.error(
+            "An error occurred while submitting. Please submit again, or try reconnecting.",
+          );
+        }
       } else {
         toast.error(
           "Couldn't get the problem answer. Try refreshing or reconnecting",
@@ -156,7 +161,7 @@ const Problem_Statement_card = ({
         getCore();
       }
     }
-  }, [shownProblemId]);
+  }, [problemCore, shownProblemId]);
 
   useEffect(() => {
     if (problemCore) {
@@ -174,7 +179,7 @@ const Problem_Statement_card = ({
       };
       getInputFromLocalStorage();
     }
-  }, [problemCore]);
+  }, [form, problemCore]);
 
   if (!shownProblemId) return null;
 
@@ -258,6 +263,7 @@ const Problem_Statement_card = ({
             type="submit"
             className="w-full sm:w-25 text-text"
             variant="primary"
+            disabled={form.formState.isSubmitting}
           >
             Submit
           </Button>
