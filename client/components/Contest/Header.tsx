@@ -35,12 +35,14 @@ const ContestHeader = ({ length_in_minutes }: Props) => {
               className="hidden md:block h-4! bg-foreground/20"
             />
           </div>
-          <div className="hidden md:flex items-end gap-2">
-            <TfiMenu className="w-4.5 h-4.5 text-muted-foreground" />
-            <span className="hidden md:inline text-base font-medium self-end leading-none">
-              Contest List
-            </span>
-          </div>
+          <ComingSoon>
+            <div className="hidden md:flex items-end gap-2">
+              <TfiMenu className="w-4.5 h-4.5 text-muted-foreground" />
+              <span className="hidden md:inline text-base font-medium self-end leading-none">
+                Contest List
+              </span>
+            </div>
+          </ComingSoon>
         </div>
       </section>
 

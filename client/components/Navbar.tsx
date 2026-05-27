@@ -19,6 +19,7 @@ import {
 } from "./ui/dropdown-menu";
 import UserIcon from "./header/userIcon";
 import { useIsMobile } from "@/hook/useIsMobile";
+import ComingSoon from "./comingSoon";
 interface Props {
   type: HeaderType;
 }
@@ -76,24 +77,26 @@ const Navbar = ({ type }: Props) => {
       {/* Left side */}
       <div className="hidden lg:flex items-center gap-4">
         {/* Search bar */}
-        <form className="relative" onSubmit={() => handleSearch()}>
-          <Input
-            placeholder="Search for something..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="bg-primary flex items-center justify-center rounded-md absolute right-0 top-0 p-2  h-full"
-          >
-            <IoSearch className="" />
-          </button>
-        </form>
+        {/* <form className="relative" onSubmit={() => handleSearch()}> */}
+        {/*   <Input */}
+        {/*     placeholder="Search for something..." */}
+        {/*     value={searchQuery} */}
+        {/*     onChange={(e) => setSearchQuery(e.target.value)} */}
+        {/*   /> */}
+        {/*   <button */}
+        {/*     type="submit" */}
+        {/*     className="bg-primary flex items-center justify-center rounded-md absolute right-0 top-0 p-2  h-full" */}
+        {/*   > */}
+        {/*     <IoSearch className="" /> */}
+        {/*   </button> */}
+        {/* </form> */}
 
         {/* Settings */}
-        <button disabled>
-          <Settings className="w-4 h-4" />
-        </button>
+        <ComingSoon>
+          <button disabled>
+            <Settings className="w-4 h-4" />
+          </button>
+        </ComingSoon>
 
         {/* Icon && Logins */}
         <UserIcon />
