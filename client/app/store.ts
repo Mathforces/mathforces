@@ -14,6 +14,8 @@ import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import { create } from "zustand";
 
+let authListenerInitialized = false;
+
 export interface UserProfileContext {
   user: User | null;
   userProfile: UserProfile | null;
@@ -34,6 +36,26 @@ export const useProfile = create<UserProfileContext>((set, get) => ({
   isWithoutUsername: false,
 
   initialize: async () => {
+    if (!authListenerInitialized) {
+      authListenerInitialized = true;
+      supabase.auth.onAuthStateChange((_event, session) => {
+        const user = session?.user ?? null;
+        set(() => ({ user }));
+
+        if (user) {
+          setTimeout(() => {
+            void get().initialize();
+          }, 0);
+        } else {
+          set(() => ({
+            userProfile: null,
+            isWithoutUsername: false,
+            loading: false,
+          }));
+        }
+      });
+    }
+
     set(() => ({
       loading: true,
     }));
@@ -74,10 +96,6 @@ export const useProfile = create<UserProfileContext>((set, get) => ({
     set(() => ({ userProfile }));
     set(() => ({ isWithoutUsername: false }));
     set(() => ({ loading: false }));
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange((e, session) => {
-      set(() => ({ user: session?.user ?? null }));
-    });
   },
 
   createProfile: async (userProfile: UserProfile) => {
