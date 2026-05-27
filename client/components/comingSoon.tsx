@@ -1,24 +1,27 @@
-import { FaRegNoteSticky } from "react-icons/fa6";
-import { FiHelpCircle } from "react-icons/fi";
-import { LuLayoutDashboard } from "react-icons/lu";
-import ContestHeaderTimer from "./Contest/contestHeaderTimer";
 import { TooltipTrigger, TooltipContent, Tooltip } from "./ui/tooltip";
 
 type Props = {
   children: React.ReactNode;
+  disabled?: boolean;
 };
 
-export default function ComingSoon({ children }: Props) {
+export default function ComingSoon({ children, disabled }: Props) {
   return (
-    <div className="flex items-center justify-center">
-      <Tooltip>
-        <TooltipTrigger asChild className="w-full h-full">
-          {children}
-        </TooltipTrigger>
-        <TooltipContent className="bg-bg">
-          <p className="text-text text-sm">Coming soon!!...</p>
-        </TooltipContent>
-      </Tooltip>
+    <div className="inline-flex h-full items-center justify-center align-middle">
+      {!disabled ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex h-full items-center p-0 m-0">
+              {children}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="bg-bg">
+            <p className="text-text text-sm">Coming soon!!...</p>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <>{children}</>
+      )}
     </div>
   );
 }

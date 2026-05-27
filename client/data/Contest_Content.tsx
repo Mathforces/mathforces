@@ -7,24 +7,32 @@ import { GrGraphQl } from "react-icons/gr";
 import { Calculator } from "lucide-react";
 
 export const ProblemsTap = [
-  { value: "problems", label: "Problems", icon: FaBook, color: "text-primary" },
+  {
+    value: "problems",
+    label: "Problems",
+    icon: FaBook,
+    color: "text-primary",
+  },
   {
     value: "standings",
     label: "Standings",
     icon: MdLeaderboard,
     color: "text-secondary",
+    status: "coming soon",
   },
   {
     value: "editorials",
     label: "Editorial",
     icon: FaLightbulb,
     color: "text-primary",
+    status: "coming soon",
   },
   {
     value: "support",
     label: "Support",
     icon: MdContactSupport,
     color: "text-primary",
+    status: "coming soon",
   },
 ];
 
@@ -40,18 +48,21 @@ export const MainTaps = [
     label: "Latex Editor",
     icon: LuFileText,
     color: "text-secondary",
+    status: "coming soon",
   },
   {
     value: "graphingCalculator",
     label: "Graphing Calculator",
     icon: GrGraphQl,
     color: "text-primary",
+    status: "coming soon",
   },
   {
     value: "scientificCalculator",
     label: "Scientific Calculator",
     icon: Calculator,
     color: "text-primary",
+    status: "coming soon",
   },
 ];
 

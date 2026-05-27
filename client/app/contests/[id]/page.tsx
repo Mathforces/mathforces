@@ -25,6 +25,7 @@ import ContestError from "./contest_error";
 import { useShownProblemId } from "@/app/store";
 import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
+import ComingSoon from "@/components/comingSoon";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -276,16 +277,18 @@ export default function Page() {
                       <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                         {ProblemsTap.map((tab, i) => (
                           <Fragment key={tab.value}>
-                            <TabsTrigger
-                              value={tab.value}
-                              className="h-full rounded-none bg-transparent! max-w-fit"
-                            >
-                              <tab.icon className={`${tab.color} w-4 h-4`} />
-                              <span className="hidden md:inline text-xs xl:text-sm">
-                                {tab.label}
-                              </span>
-                            </TabsTrigger>
-
+                            <ComingSoon disabled={tab.status != "coming soon"}>
+                              <TabsTrigger
+                                value={tab.value}
+                                className="h-full rounded-none bg-transparent! max-w-fit"
+                                disabled={tab.status == "coming soon"}
+                              >
+                                <tab.icon className={`${tab.color} w-4 h-4`} />
+                                <span className="hidden md:inline text-xs xl:text-sm">
+                                  {tab.label}
+                                </span>
+                              </TabsTrigger>
+                            </ComingSoon>
                             {i < ProblemsTap.length - 1 && (
                               <Separator
                                 orientation="vertical"
@@ -333,21 +336,24 @@ export default function Page() {
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {MainTaps.map((tab, i) => (
                       <Fragment key={tab.value}>
-                        <TabsTrigger
-                          value={tab.value}
-                          className="h-full rounded-none bg-transparent! max-w-fit"
-                        >
-                          <tab.icon className={`${tab.color} w-4 h-4`} />
-                          <span className="hidden md:inline text-xs xl:text-sm">
-                            {tab.label}
-                          </span>
-                        </TabsTrigger>
-                        {i < MainTaps.length - 1 && (
-                          <Separator
-                            orientation="vertical"
-                            className="h-4! bg-foreground/20"
-                          />
-                        )}
+                        <ComingSoon disabled={tab.status != "coming soon"}>
+                          <TabsTrigger
+                            value={tab.value}
+                            className="h-full rounded-none bg-transparent! max-w-fit"
+                            disabled={tab.status == "coming soon"}
+                          >
+                            <tab.icon className={`${tab.color} w-4 h-4`} />
+                            <span className="hidden md:inline text-xs xl:text-sm">
+                              {tab.label}
+                            </span>
+                          </TabsTrigger>
+                          {i < MainTaps.length - 1 && (
+                            <Separator
+                              orientation="vertical"
+                              className="h-4! bg-foreground/20"
+                            />
+                          )}
+                        </ComingSoon>
                       </Fragment>
                     ))}
                   </TabsList>
