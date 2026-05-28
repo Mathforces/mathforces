@@ -8,6 +8,11 @@ type ContestProblemRow = {
   correct_submission_count: number | null;
 };
 
+type SubmissionCountRow = {
+  problem_id: string;
+  status: string | null;
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ contest_id: string }> },
@@ -24,14 +29,14 @@ export async function GET(
   const err = handleSupabaseError(error, "contest problems");
   if (err) return err;
 
-  const problems = data ?? [];
+  const problems = (data ?? []) as unknown as ContestProblemRow[];
 
   if (problems.length === 0) {
     return json([]);
   }
 
   const problemIds = problems.map((problem: ContestProblemRow) => problem.id);
-  const { data: submissions, error: submissionsError } = await supabase
+  const { data: submissionsData, error: submissionsError } = await supabase
     .from("submissions")
     .select("problem_id, status")
     .in("problem_id", problemIds);
@@ -42,12 +47,14 @@ export async function GET(
   );
   if (submissionsErr) return submissionsErr;
 
+  const submissions = (submissionsData ?? []) as SubmissionCountRow[];
+
   const countsByProblem = new Map<
     string,
     { submission_count: number; correct_submission_count: number }
   >();
 
-  for (const submission of submissions ?? []) {
+  for (const submission of submissions) {
     const current = countsByProblem.get(submission.problem_id) ?? {
       submission_count: 0,
       correct_submission_count: 0,

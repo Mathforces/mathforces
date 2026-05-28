@@ -43,7 +43,7 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
           const username =
             submission.profiles?.username ??
             (submission.user_id === userProfile?.id
-              ? userProfile.username
+              ? userProfile?.username
               : undefined);
           return (
             <div
