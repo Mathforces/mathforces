@@ -5,11 +5,8 @@ import {
   Submission,
   SubmissionsTypes,
 } from "@/types/types";
-import axios from "axios";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
-import { useRouter } from "next/navigation";
 
 interface Props {
   type: SubmissionsTypes;
@@ -36,25 +33,21 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
     if (type && problemId) {
       submissionsFetch(problemId, type, userProfile?.id);
     }
-  }, [type, problemId, userProfile]);
-  useEffect(() => {
-    console.log("userProfileLoading: ", userProfileLoading);
-    console.log("userProfile_w: ", userProfile);
-  }, [userProfileLoading]);
-  useEffect(() => {
-    if (submissions) {
-      console.log("submissions changed!!!");
-      console.log("new submissions be: ", submissions);
-    }
-  }, [submissions]);
+  }, [type, problemId, userProfile?.id, submissionsFetch]);
   return (
     <>
       {submissions.length > 0 ? (
         submissions?.map((submission, i) => {
           const { date, time, timezone } =
             submission?.formattedDate ?? defaultFormattedDate;
+          const username =
+            submission.profiles?.username ??
+            (submission.user_id === userProfile?.id
+              ? userProfile.username
+              : undefined);
           return (
             <div
+              key={submission.id ?? submission.display_id ?? i}
               className={cn(
                 i % 2 === 0 && "bg-bg-light",
                 "rounded-md flex gap-10 h-12 items-center px-3",
@@ -83,9 +76,9 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
               {/* username */}
               {/* TODO: Add user based styling */}
               <span className="text-text/60 w-30 truncate">
-                {submission?.profiles?.username?.charAt(0)}
+                {username?.charAt(0)}
                 <span className="text-orange-500">
-                  {submission?.profiles?.username?.slice(1)}
+                  {username?.slice(1)}
                 </span>
               </span>
 
@@ -130,7 +123,7 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
           (type === "your_submissions" || type === "friends_submissions") ? (
             <div className="flex items-center text-center flex-col gap-3">
               <div className="space-y-2">
-                <h4>You're not Signed in</h4>
+                <h4>You&apos;re not Signed in</h4>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">
                     pls login or sign up to view your own submissions{" "}

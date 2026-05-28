@@ -16,7 +16,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("*")
+    .select("*, profiles(username), problems(name)")
     .eq("problem_id", problem_id)
     .eq("user_id", user_id);
 
@@ -63,7 +63,7 @@ export async function POST(
       status: body.status,
       display_id: body.display_id,
     })
-    .select("*")
+    .select("*, profiles(username), problems(name)")
     .single();
 
   if (error) return apiError(error.message, 500);
