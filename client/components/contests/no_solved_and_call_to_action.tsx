@@ -18,10 +18,7 @@ function No_solved_and_call_to_action({ contest }: Props) {
   useEffect(() => {
     let ignore = false;
 
-    if (!userId) {
-      setSolvedCount(0);
-      return;
-    }
+    if (!userId) return;
 
     const fetchSolvedCount = async () => {
       try {
@@ -46,6 +43,7 @@ function No_solved_and_call_to_action({ contest }: Props) {
       ignore = true;
     };
   }, [contest.id, userId]);
+  const displayedSolvedCount = userId ? solvedCount : 0;
 
   const handleRegister = async () => {
     if (userId) {
@@ -75,7 +73,7 @@ function No_solved_and_call_to_action({ contest }: Props) {
     <div className="flex items-center gap-2">
       <div className="bg-bg-light rounded-md px-2 flex items-center">
         <span className="text-sm text-muted-foreground tracking-wider">
-          {solvedCount}/{contest.problem_count}
+          {displayedSolvedCount}/{contest.problem_count}
         </span>
       </div>
       <Button
