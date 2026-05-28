@@ -13,15 +13,15 @@ type ProblemFilters = Record<string, string | string[]>;
 type SortableFields =
   | "name"
   | "difficulty"
-  | "submissin_count"
-  | "likes"
+  | "submission_count"
+  | "likes_count"
   | "created_at";
 
 const VALID_SORT_FIELDS: SortableFields[] = [
   "name",
   "difficulty",
-  "submissin_count",
-  "likes",
+  "submission_count",
+  "likes_count",
   "created_at",
 ];
 
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("problems")
     .select(
-      "id, name, contest_id, full_name, tags, submission_count, correct_submission_count, points, difficulty, likes_count, created_at",
+      "id, name, contest_id, full_name, tags, submission_count, correct_submission_count, points, difficulty, likes_count, created_at, contests(name)",
       { count: "exact" },
     );
 

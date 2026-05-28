@@ -35,7 +35,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useProblemset, SortField, Problem } from "@/hook/useProblemset";
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -133,9 +133,6 @@ export function ProblemSetTable<TData, TValue>({
     return pages;
   };
 
-  useEffect(() => {
-    console.log("problems: ", problems);
-  }, [problems]);
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -200,10 +197,10 @@ export function ProblemSetTable<TData, TValue>({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <span className="text-xs text-primary underline">
-                      {problem.id.slice(0, 8)}
+                      {problem.displayId}
                     </span>
-                    <h3 className="mt-1 truncate font-medium">
-                      {problem.full_name}
+                    <h3 className="mt-1 max-w-[min(20rem,65vw)] truncate font-medium">
+                      {problem.displayName}
                     </h3>
                   </div>
                   <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">

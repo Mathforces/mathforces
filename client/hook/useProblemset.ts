@@ -29,18 +29,23 @@ export interface ProblemPagination {
 
 export interface Problem {
   id: string;
-  name: string;
-  full_name: string;
+  name: string | null;
+  full_name: string | null;
+  displayName: string;
+  displayId: string;
   contest_id: string;
   submission_count: number;
-  correct_submission_count: number;
+  correct_submission_count: number | null;
   points: number;
   difficulty: number;
-  likes_count: number;
+  likes_count: number | null;
   comments_count: number;
   tags: string[] | null;
   created_at: string;
+  contests?: { name: string | null } | { name: string | null }[] | null;
 }
+
+type ProblemApiRecord = Omit<Problem, "displayName" | "displayId">;
 
 interface UseProblemsetReturn {
   problems: Problem[];
@@ -94,8 +99,27 @@ export function useProblemset(defaultLimit = 20): UseProblemsetReturn {
       const queryString = buildQueryParams();
       const response = await axios.get(`/api/problems?${queryString}`);
       const result = response.data;
+      const normalizedProblems = (result.data ?? []).map((problem: ProblemApiRecord) => {
+        const contest = Array.isArray(problem.contests)
+          ? problem.contests[0]
+          : problem.contests;
+        const problemName =
+          problem.name?.trim() || problem.full_name?.trim() || "Untitled problem";
+        const contestName = contest?.name?.trim();
+        const displayName = contestName
+          ? `${problemName} - ${contestName}`
+          : problemName;
+        const displayId = problem.id ? problem.id.slice(0, 8) : "Unknown";
 
-      setProblems(result.data ?? []);
+        return {
+          ...problem,
+          displayName,
+          displayId,
+          submission_count: problem.submission_count ?? 0,
+        };
+      });
+
+      setProblems(normalizedProblems);
       setPagination(result.pagination ?? null);
     } catch (err) {
       console.error("Failed to fetch problems:", err);
