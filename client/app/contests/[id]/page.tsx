@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hook/useIsMobile";
@@ -41,6 +41,7 @@ export default function Page() {
   const [problems, setProblems] = useState<ContestProblem[]>([]);
   const { shownProblemId, setShownProblemId } = useShownProblemId();
   const problemId = contestParams.get("problemId") ?? null;
+  const previousProblemIdParam = useRef<string | null>(null);
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
   );
@@ -115,34 +116,32 @@ export default function Page() {
   }, [contest_id]);
 
   useEffect(() => {
-    if (shownProblemId) {
-      if (
-        problems.length > 0 &&
-        problems.filter((e) => e.id == shownProblemId).length < 1
-      ) {
-        setShownProblemId(problems[0].id);
-      }
-    } else if (problemId) {
-      setShownProblemId(problemId);
-    } else if (problems.length > 0) {
-      setShownProblemId(problems[0].id);
-    }
-  }, [shownProblemId, problems]);
+    if (problems.length === 0) return;
 
-  useEffect(() => {
-    if (problemId) {
-      if (
-        problems.length > 0 &&
-        problems.filter((e) => e.id == problemId).length < 1
-      ) {
-        setShownProblemId(problems[0].id);
-      }
-      if (shownProblemId != problemId) {
-        router.push(`?problemId=${shownProblemId}`);
-        setShownProblemId(problemId);
-      }
+    const hasProblem = (id: string | null) =>
+      Boolean(id && problems.some((problem) => problem.id === id));
+    const problemIdParamChanged = previousProblemIdParam.current !== problemId;
+    previousProblemIdParam.current = problemId;
+
+    const urlProblemId = hasProblem(problemId) ? problemId : null;
+    const selectedProblemId = hasProblem(shownProblemId)
+      ? shownProblemId
+      : null;
+    const nextProblemId =
+      problemIdParamChanged && urlProblemId
+        ? urlProblemId
+        : selectedProblemId ?? urlProblemId ?? problems[0].id;
+
+    if (!nextProblemId) return;
+
+    if (shownProblemId !== nextProblemId) {
+      setShownProblemId(nextProblemId);
     }
-  }, []);
+
+    if (problemId !== nextProblemId) {
+      router.replace(`?problemId=${nextProblemId}`, { scroll: false });
+    }
+  }, [problemId, problems, router, setShownProblemId, shownProblemId]);
 
   // logging and importing problemsStatement to and from Local Storage
   let prevLocalStorage: Record<string, string> | null = null;

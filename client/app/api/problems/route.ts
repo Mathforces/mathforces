@@ -9,6 +9,11 @@ import {
 } from "@/lib/api/response";
 
 type ProblemFilters = Record<string, string | string[]>;
+type ProblemListRow = {
+  id: string;
+  submission_count: number | null;
+  correct_submission_count: number | null;
+};
 
 type SortableFields =
   | "name"
@@ -92,9 +97,57 @@ export async function GET(request: Request) {
 
   const total = count ?? 0;
   const pagination = paginateOffset(page, limit, total);
+  const problems = data ?? [];
+
+  if (problems.length === 0) {
+    return json({
+      data: [],
+      pagination,
+    });
+  }
+
+  const problemIds = problems.map((problem: ProblemListRow) => problem.id);
+  const { data: submissions, error: submissionsError } = await supabase
+    .from("submissions")
+    .select("problem_id, status")
+    .in("problem_id", problemIds);
+
+  const submissionErr = handleSupabaseError(
+    submissionsError,
+    "problem submission counts",
+  );
+  if (submissionErr) return submissionErr;
+
+  const countsByProblem = new Map<
+    string,
+    { submission_count: number; correct_submission_count: number }
+  >();
+
+  for (const submission of submissions ?? []) {
+    const current = countsByProblem.get(submission.problem_id) ?? {
+      submission_count: 0,
+      correct_submission_count: 0,
+    };
+
+    current.submission_count += 1;
+    if (submission.status === "success") {
+      current.correct_submission_count += 1;
+    }
+    countsByProblem.set(submission.problem_id, current);
+  }
+
+  const dataWithCounts = problems.map((problem: ProblemListRow) => {
+    const counts = countsByProblem.get(problem.id);
+
+    return {
+      ...problem,
+      submission_count: counts?.submission_count ?? 0,
+      correct_submission_count: counts?.correct_submission_count ?? 0,
+    };
+  });
 
   return json({
-    data: data ?? [],
+    data: dataWithCounts,
     pagination,
   });
 }

@@ -68,5 +68,35 @@ export async function POST(
 
   if (error) return apiError(error.message, 500);
 
+  const [
+    { count: submissionCount, error: submissionCountError },
+    { count: correctSubmissionCount, error: correctSubmissionCountError },
+  ] = await Promise.all([
+    supabase
+      .from("submissions")
+      .select("*", { count: "exact", head: true })
+      .eq("problem_id", problem_id),
+    supabase
+      .from("submissions")
+      .select("*", { count: "exact", head: true })
+      .eq("problem_id", problem_id)
+      .eq("status", "success"),
+  ]);
+
+  if (submissionCountError) return apiError(submissionCountError.message, 500);
+  if (correctSubmissionCountError) {
+    return apiError(correctSubmissionCountError.message, 500);
+  }
+
+  const { error: updateProblemError } = await supabase
+    .from("problems")
+    .update({
+      submission_count: submissionCount ?? 0,
+      correct_submission_count: correctSubmissionCount ?? 0,
+    })
+    .eq("id", problem_id);
+
+  if (updateProblemError) return apiError(updateProblemError.message, 500);
+
   return json({ success: true, data }, 201);
 }
