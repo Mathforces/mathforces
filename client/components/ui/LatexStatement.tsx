@@ -20,6 +20,14 @@ interface TableCell {
   rowSpan: number;
 }
 
+interface AsymptoteGraph {
+  xLeft: number;
+  xRight: number;
+  yBottom: number;
+  yTop: number;
+  points: { x: number; y: number }[];
+}
+
 interface TableRow {
   bottomBorder: boolean;
   cells: TableCell[];
@@ -121,6 +129,200 @@ function readMathSegment(value: string, index: number) {
 function parseNumber(value: string) {
   const parsed = Number(value.trim());
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function readAsymptoteBlock(value: string, index: number) {
+  const open = "[asy]";
+  const close = "[/asy]";
+
+  if (!value.startsWith(open, index)) return null;
+
+  const end = value.indexOf(close, index + open.length);
+  if (end < 0) return null;
+
+  return {
+    content: value.slice(index + open.length, end),
+    end: end + close.length,
+  };
+}
+
+function getAsymptoteRealValue(source: string, name: string) {
+  const pattern = new RegExp(
+    `\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*=\\s*([-+]?\\d+(?:\\.\\d+)?)\\s*;`,
+  );
+  const match = source.match(pattern);
+
+  return match ? parseNumber(match[1]) : null;
+}
+
+function evaluateSupportedAsymptoteFunction(source: string, x: number) {
+  const functionMatch = source.match(
+    /real\s+f\s*\(\s*real\s+x\s*\)\s*\{\s*return\s+([^;]+);?\s*\}/,
+  );
+  const expression = functionMatch?.[1]?.replace(/\s+/g, "");
+
+  if (!expression) return null;
+
+  const squareShiftMatch = expression.match(
+    /^\(x([+-]\d+(?:\.\d+)?)\)\*\(x\1\)([+-]\d+(?:\.\d+)?)?$/,
+  );
+  if (squareShiftMatch) {
+    const shift = parseNumber(squareShiftMatch[1]);
+    const offset = squareShiftMatch[2] ? parseNumber(squareShiftMatch[2]) : 0;
+    return (x + shift) * (x + shift) + offset;
+  }
+
+  const shiftedSquareMatch = expression.match(
+    /^\(x([+-]\d+(?:\.\d+)?)\)\^2([+-]\d+(?:\.\d+)?)?$/,
+  );
+  if (shiftedSquareMatch) {
+    const shift = parseNumber(shiftedSquareMatch[1]);
+    const offset = shiftedSquareMatch[2] ? parseNumber(shiftedSquareMatch[2]) : 0;
+    return (x + shift) * (x + shift) + offset;
+  }
+
+  return null;
+}
+
+function parseAsymptoteGraph(source: string): AsymptoteGraph | null {
+  const yBottom = getAsymptoteRealValue(source, "lowery");
+  const yTop = getAsymptoteRealValue(source, "uppery");
+
+  if (yBottom === null || yTop === null || yTop <= yBottom) return null;
+
+  const axesMatch = source.match(/rr_cartesian_axes\(\s*([-+.\d]+)\s*,\s*([^,]+)\s*,\s*lowery\s*,\s*uppery\s*\)/);
+  const xLeft = axesMatch ? parseNumber(axesMatch[1]) : -5;
+  const xRightExpression = axesMatch?.[2]?.trim();
+  const xRight =
+    xRightExpression === "f(lowery)"
+      ? (evaluateSupportedAsymptoteFunction(source, yBottom) ?? 5)
+      : xRightExpression
+        ? parseNumber(xRightExpression)
+        : 5;
+  const reflected = /reflect\(\s*\(0\s*,\s*0\)\s*,\s*\(1\s*,\s*1\)\s*\)/.test(
+    source,
+  );
+  const points: { x: number; y: number }[] = [];
+  const steps = 120;
+
+  for (let step = 0; step <= steps; step++) {
+    const input = yBottom + ((yTop - yBottom) * step) / steps;
+    const output = evaluateSupportedAsymptoteFunction(source, input);
+    if (output === null) return null;
+    points.push(reflected ? { x: output, y: input } : { x: input, y: output });
+  }
+
+  return { xLeft, xRight, yBottom, yTop, points };
+}
+
+function renderAsymptoteDiagram(source: string, key: string) {
+  const graph = parseAsymptoteGraph(source);
+
+  if (!graph) {
+    return (
+      <pre className="my-3 overflow-x-auto rounded bg-bg-light p-3 text-xs text-muted-foreground" key={key}>
+        {source.trim()}
+      </pre>
+    );
+  }
+
+  const width = 420;
+  const height = 260;
+  const padding = 30;
+  const plotWidth = width - padding * 2;
+  const plotHeight = height - padding * 2;
+  const toSvgX = (x: number) =>
+    padding + ((x - graph.xLeft) / (graph.xRight - graph.xLeft)) * plotWidth;
+  const toSvgY = (y: number) =>
+    padding + ((graph.yTop - y) / (graph.yTop - graph.yBottom)) * plotHeight;
+  const path = graph.points
+    .map((point, index) => {
+      const command = index === 0 ? "M" : "L";
+      return `${command}${toSvgX(point.x).toFixed(2)} ${toSvgY(point.y).toFixed(2)}`;
+    })
+    .join(" ");
+  const xTicks = [];
+  const yTicks = [];
+
+  for (let x = Math.ceil(graph.xLeft); x <= Math.floor(graph.xRight); x++) {
+    if (x !== 0) xTicks.push(x);
+  }
+
+  for (let y = Math.ceil(graph.yBottom); y <= Math.floor(graph.yTop); y++) {
+    if (y !== 0) yTicks.push(y);
+  }
+
+  return (
+    <div className="my-4 flex w-full justify-center overflow-x-auto" key={key}>
+      <svg
+        aria-label="Asymptote diagram"
+        className="h-auto max-w-full rounded bg-background text-text"
+        role="img"
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+      >
+        {xTicks.map((x) => (
+          <line
+            key={`x-grid-${x}`}
+            stroke="currentColor"
+            strokeOpacity="0.18"
+            x1={toSvgX(x)}
+            x2={toSvgX(x)}
+            y1={padding}
+            y2={height - padding}
+          />
+        ))}
+        {yTicks.map((y) => (
+          <line
+            key={`y-grid-${y}`}
+            stroke="currentColor"
+            strokeOpacity="0.18"
+            x1={padding}
+            x2={width - padding}
+            y1={toSvgY(y)}
+            y2={toSvgY(y)}
+          />
+        ))}
+        <line
+          markerEnd="url(#asy-arrow)"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          x1={padding}
+          x2={width - padding + 8}
+          y1={toSvgY(0)}
+          y2={toSvgY(0)}
+        />
+        <line
+          markerEnd="url(#asy-arrow)"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          x1={toSvgX(0)}
+          x2={toSvgX(0)}
+          y1={height - padding}
+          y2={padding - 8}
+        />
+        <defs>
+          <marker
+            id="asy-arrow"
+            markerHeight="6"
+            markerWidth="6"
+            orient="auto-start-reverse"
+            refX="5"
+            refY="3"
+          >
+            <path d="M0,0 L6,3 L0,6 Z" fill="currentColor" />
+          </marker>
+        </defs>
+        <text fill="currentColor" fontSize="14" x={width - padding + 12} y={toSvgY(0) + 16}>
+          x
+        </text>
+        <text fill="currentColor" fontSize="14" x={toSvgX(0) - 18} y={padding - 12}>
+          y
+        </text>
+        <path d={path} fill="none" stroke="#ef4444" strokeLinecap="round" strokeWidth="2.5" />
+      </svg>
+    </div>
+  );
 }
 
 function parsePictureLine(x: number, y: number, dx: number, dy: number, length: number) {
@@ -715,6 +917,14 @@ export function renderLatexNodes(input: string): LatexNode[] {
   };
 
   for (let index = 0; index < value.length; index++) {
+    const asymptote = readAsymptoteBlock(value, index);
+    if (asymptote) {
+      flush(`text-${index}`);
+      nodes.push(renderAsymptoteDiagram(asymptote.content, `asy-${index}`));
+      index = asymptote.end - 1;
+      continue;
+    }
+
     const math = readMathSegment(value, index);
     if (math) {
       const picture = renderPictureDisplay(math.content, `picture-${index}`);

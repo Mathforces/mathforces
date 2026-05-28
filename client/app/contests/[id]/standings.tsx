@@ -2,6 +2,7 @@
 import { useUser } from "@/app/hooks/useUser";
 import { useProfile } from "@/app/store";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { safeNumber } from "@/lib/utils";
 import { contestProblemDefaultValues, Standing } from "@/types/types";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -34,18 +35,18 @@ const ContestStandings = ({ contestId }: Props) => {
   return (
     <div>
       <TabsContent value="standings" className="p-4 flex flex-col gap-3 w-full">
-        {standings.map((standing) => (
-          <div className="flex items-center justify-between">
+        {standings.map((standing, index) => (
+          <div key={standing.id ?? index} className="flex items-center justify-between">
             <div>
               {/* user's icon */}
               <span>{standing?.profiles?.username ?? "UNKOWN USER"}</span>
             </div>
             <div>
-              <span>{standing.score}</span>
+              <span>{safeNumber(standing.score)}</span>
             </div>
 
             <div>
-              <span>{standing.penalty}</span>
+              <span>{safeNumber(standing.penalty)}</span>
             </div>
           </div>
         ))}

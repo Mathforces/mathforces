@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
+import { safeNumber } from "@/lib/utils";
 
 export interface ProblemFilters {
   search?: string;
@@ -115,7 +116,14 @@ export function useProblemset(defaultLimit = 20): UseProblemsetReturn {
           ...problem,
           displayName,
           displayId,
-          submission_count: problem.submission_count ?? 0,
+          submission_count: safeNumber(problem.submission_count),
+          correct_submission_count: safeNumber(
+            problem.correct_submission_count,
+          ),
+          points: safeNumber(problem.points),
+          difficulty: safeNumber(problem.difficulty),
+          likes_count: safeNumber(problem.likes_count),
+          comments_count: safeNumber(problem.comments_count),
         };
       });
 

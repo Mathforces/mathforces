@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, safeNumber } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { MdOutlineSort } from "react-icons/md";
@@ -204,7 +204,7 @@ export function ProblemSetTable<TData, TValue>({
                     </h3>
                   </div>
                   <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    {problem.difficulty ?? "Unset"}
+                    {safeNumber(problem.difficulty)}
                   </span>
                 </div>
 
@@ -225,8 +225,8 @@ export function ProblemSetTable<TData, TValue>({
                 </div>
 
                 <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{problem.submission_count ?? 0} submissions</span>
-                  <span>{problem.likes_count ?? 0} likes</span>
+                  <span>{safeNumber(problem.submission_count)} submissions</span>
+                  <span>{safeNumber(problem.likes_count)} likes</span>
                 </div>
               </button>
             );

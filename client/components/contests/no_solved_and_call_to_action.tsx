@@ -6,12 +6,47 @@ import { useProfile } from "@/app/store";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Props = { contest: Contest };
 
 function No_solved_and_call_to_action({ contest }: Props) {
   const userId = useProfile((state) => state.user?.id);
   const router = useRouter();
+  const [solvedCount, setSolvedCount] = useState(0);
+
+  useEffect(() => {
+    let ignore = false;
+
+    if (!userId) {
+      setSolvedCount(0);
+      return;
+    }
+
+    const fetchSolvedCount = async () => {
+      try {
+        const res = await axios.get<{ solvedCount: number }>(
+          `/api/contests/${contest.id}/solved-count`,
+        );
+
+        if (!ignore) {
+          setSolvedCount(res.data.solvedCount);
+        }
+      } catch (error) {
+        console.error("Error while fetching solved count: ", error);
+        if (!ignore) {
+          setSolvedCount(0);
+        }
+      }
+    };
+
+    fetchSolvedCount();
+
+    return () => {
+      ignore = true;
+    };
+  }, [contest.id, userId]);
+
   const handleRegister = async () => {
     if (userId) {
       axios
@@ -39,9 +74,8 @@ function No_solved_and_call_to_action({ contest }: Props) {
   return (
     <div className="flex items-center gap-2">
       <div className="bg-bg-light rounded-md px-2 flex items-center">
-        {/* TODO: Add the actual number of problems solved */}
         <span className="text-sm text-muted-foreground tracking-wider">
-          {0}/{contest.problem_count}
+          {solvedCount}/{contest.problem_count}
         </span>
       </div>
       <Button

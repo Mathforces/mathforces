@@ -1,6 +1,7 @@
 import Problem_Card from "@/components/Contest/Problem_Card";
 import { TabsContent } from "@/components/ui/tabs";
 import { Contest, ContestProblem } from "@/types/types";
+import { safeNumber } from "@/lib/utils";
 import Image from "next/image";
 import * as React from "react";
 import { BsTag } from "react-icons/bs";
@@ -27,7 +28,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
             <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center">
               {/* TODO: Customize this to have multiple colors according to the difficulty */}
               <span className="text-destructive">
-                {contest.difficulty ?? "Unset"}
+                {safeNumber(contest.difficulty)}
               </span>
             </div>
             <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center">

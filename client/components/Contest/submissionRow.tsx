@@ -1,5 +1,5 @@
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
-import { cn } from "@/lib/utils";
+import { cn, safeNumber } from "@/lib/utils";
 import {
   defaultFormattedDate,
   Submission,
@@ -45,6 +45,7 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
             (submission.user_id === userProfile?.id
               ? userProfile?.username
               : undefined);
+          const score = safeNumber(submission.score);
           return (
             <div
               key={submission.id ?? submission.display_id ?? i}
@@ -106,12 +107,7 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
                   "font-semibold",
                 )}
               >
-                {submission.score &&
-                  (submission?.score > 0
-                    ? "+"
-                    : submission.score < 0
-                      ? "-"
-                      : "") + submission.score}
+                {score > 0 ? `+${score}` : score}
               </span>
             </div>
           );

@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
 import { ContestProblem } from "@/types/types";
-import { cn } from "@/lib/utils";
+import { cn, safeNumber, safePercent } from "@/lib/utils";
 import { useShownProblemId } from "@/app/store";
 
 interface Props {
@@ -15,6 +15,9 @@ interface Props {
 
 const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
   const { shownProblemId, setShownProblemId } = useShownProblemId();
+  const submissionCount = safeNumber(problem.submission_count);
+  const correctSubmissionCount = safeNumber(problem.correct_submission_count);
+  const solvedPercentage = safePercent(correctSubmissionCount, submissionCount);
   const handleProblemSelect = () => {
     setShownProblemId(problem.id);
     onProblemSelect?.();
@@ -47,7 +50,7 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
               <span className="text-sm font-medium">
-                {problem.likes_count ?? 0}
+                {safeNumber(problem.likes_count)}
               </span>
             </div>
 
@@ -55,7 +58,7 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <MessageSquare className="w-4 h-4" />{" "}
               <span className="text-sm font-medium">
-                {problem.comments_count ?? 0}
+                {safeNumber(problem.comments_count)}
               </span>
             </div>
           </div>
@@ -63,25 +66,15 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
           {/* People answered */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
             <Progress
-              value={
-                ((problem.correct_submission_count ?? 0) /
-                  (problem.submission_count ?? 1)) *
-                100
-              }
+              value={solvedPercentage}
               className="bg-background w-24 h-[3px] *:bg-success/50"
             />
             <div className="flex gap-1 items-center text-xs">
               <span>
-                {Math.round(
-                  ((problem.correct_submission_count ?? 0) /
-                    (problem.submission_count ?? 1)) *
-                    100,
-                )}
-                %
+                {solvedPercentage}%
               </span>
               <span className="text-muted-foreground/70">
-                ({problem.correct_submission_count ?? 0} /{" "}
-                {problem.submission_count ?? 0} submissions)
+                ({correctSubmissionCount} / {submissionCount} submissions)
               </span>
             </div>
           </div>

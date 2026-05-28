@@ -7,6 +7,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const safeNumber = (value: unknown, fallback = 0) => {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+};
+
+export const safePercent = (numerator: unknown, denominator: unknown) => {
+  const safeNumerator = safeNumber(numerator);
+  const safeDenominator = safeNumber(denominator);
+
+  if (safeDenominator <= 0) return 0;
+
+  return safeNumber(Math.round((safeNumerator / safeDenominator) * 100));
+};
+
 export const cleanStr = (str: string) => {
   str = str.trim().toLowerCase();
   return str;

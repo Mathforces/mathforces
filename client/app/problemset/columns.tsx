@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Problem } from "@/hook/useProblemset";
+import { safeNumber } from "@/lib/utils";
 
 export const columns: ColumnDef<Problem>[] = [
   {
@@ -49,7 +50,9 @@ export const columns: ColumnDef<Problem>[] = [
     header: "Submissions",
     cell: ({ row }) => {
       return (
-        <span className="text-text/60">{row.original.submission_count ?? 0}</span>
+        <span className="text-text/60">
+          {safeNumber(row.original.submission_count)}
+        </span>
       );
     },
   },
@@ -57,14 +60,22 @@ export const columns: ColumnDef<Problem>[] = [
     accessorKey: "difficulty",
     header: "Difficulty",
     cell: ({ row }) => {
-      return <span className="text-text/60">{row.original.difficulty}</span>;
+      return (
+        <span className="text-text/60">
+          {safeNumber(row.original.difficulty)}
+        </span>
+      );
     },
   },
   {
     accessorKey: "likes",
     header: "Likes",
     cell: ({ row }) => {
-      return <span className="text-text/60">{row.original.likes_count}</span>;
+      return (
+        <span className="text-text/60">
+          {safeNumber(row.original.likes_count)}
+        </span>
+      );
     },
   },
 ];

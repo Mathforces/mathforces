@@ -1,53 +1,34 @@
 "use client";
 import { Contest } from "@/types/types";
-import axios from "axios";
-import { useProfile } from "@/app/store";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ContestListing from "@/app/contests/contestListing";
 import { ScrollArea } from "../ui/scroll-area";
 import useInfiniteScroll from "@/hook/useInfiniteScroll";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import MobileContentListing from "@/app/contests/mobileContentListing";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
-interface Props {}
 type ContestTypeTab = "upcoming_contests" | "past_contests" | "all";
-const SuggestedContest = ({}: Props) => {
-  const userId = useProfile((state) => state.user?.id);
+
+const dedupeContests = (contests: Contest[] | null) => {
+  if (!contests) return null;
+
+  const seen = new Set<string>();
+  return contests.filter((contest) => {
+    if (seen.has(contest.id)) return false;
+    seen.add(contest.id);
+    return true;
+  });
+};
+
+const SuggestedContest = () => {
   const [contestTypeTab, setContestTypeTab] =
     useState<ContestTypeTab>("upcoming_contests");
   const isMobile = useIsMobile();
-  const handleRegister = async (contestId: string) => {
-    axios
-      .post(`/api/contests/${contestId}/registered`, { user_id: userId })
-      .then((res) => {
-        if (res) {
-          toast.success("Registered Successfully!");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (
-          error.response.data.error.includes(
-            "duplicate key value violates unique constraint",
-          )
-        ) {
-          console.log("You are already registered to this contest");
-          toast.error("You are already registered to this contest");
-        } else {
-          toast.error("Error Occured while registering to contest");
-        }
-      });
-  };
-  // const [upComingContests, setUpComingContests] = useState<Contest[] | null>(
-  //   null,
-  // );
 
   const {
     items: upComingContests,
@@ -70,37 +51,49 @@ const SuggestedContest = ({}: Props) => {
     apiUrl: "/api/contests/past",
     options: { limit: 5, autoFetch: false },
   });
+  const uniqueUpcomingContests = useMemo(
+    () => dedupeContests(upComingContests),
+    [upComingContests],
+  );
+  const uniquePastContests = useMemo(
+    () => dedupeContests(pastContests),
+    [pastContests],
+  );
+  const activeContestTypeTab =
+    contestTypeTab === "upcoming_contests" &&
+    upComingContestsIsInitialized &&
+    !upComingContestsLoading &&
+    uniqueUpcomingContests?.length === 0
+      ? "past_contests"
+      : contestTypeTab;
 
   useEffect(() => {
     if (
-      contestTypeTab === "upcoming_contests" &&
+      activeContestTypeTab === "upcoming_contests" &&
       !upComingContestsIsInitialized
     ) {
       upComingContestLoadMore();
     } else if (
-      contestTypeTab === "past_contests" &&
+      activeContestTypeTab === "past_contests" &&
       !pastContestsIsInitialized
     ) {
       pastContestLoadMore();
     }
-  }, [contestTypeTab]);
-
-  useEffect(() => {
-    if (
-      !upComingContestsLoading &&
-      (!upComingContests || (upComingContests && upComingContests.length <= 0))
-    ) {
-      setContestTypeTab("past_contests");
-    }
-  }, [upComingContestsLoading]);
+  }, [
+    activeContestTypeTab,
+    pastContestLoadMore,
+    pastContestsIsInitialized,
+    upComingContestLoadMore,
+    upComingContestsIsInitialized,
+  ]);
   // Handle error
   const router = useRouter();
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
       <Tabs
         defaultValue="upcoming_contests"
-        value={contestTypeTab}
-        onValueChange={(e: any) => setContestTypeTab(e)}
+        value={activeContestTypeTab}
+        onValueChange={(value) => setContestTypeTab(value as ContestTypeTab)}
       >
         <Card className="border-none *:px-3">
           <CardHeader className="flex items-center justify-between">
@@ -114,15 +107,16 @@ const SuggestedContest = ({}: Props) => {
               Create
             </Button>
           </CardHeader>
-          <CardContent className="">
+          <CardContent>
             <TabsContent value="upcoming_contests">
               <ScrollArea className="h-100">
-                <div className="">
-                  {upComingContests && upComingContests.length > 0 ? (
+                <div>
+                  {uniqueUpcomingContests &&
+                  uniqueUpcomingContests.length > 0 ? (
                     <div className="space-y-5">
-                      {upComingContests.map((contest: Contest, i: number) => (
+                      {uniqueUpcomingContests.map((contest: Contest) => (
                         <ContestListing
-                          key={contest?.id ?? i}
+                          key={contest.id}
                           contest={contest}
                         />
                       ))}
@@ -151,21 +145,17 @@ const SuggestedContest = ({}: Props) => {
             </TabsContent>
             <TabsContent value="past_contests">
               <ScrollArea className="h-100">
-                <div className="">
-                  {pastContests ? (
+                <div>
+                  {uniquePastContests ? (
                     <div className="space-y-5">
-                      {pastContests.map((contest: Contest, i: number) => (
-                        <div>
+                      {uniquePastContests.map((contest: Contest) => (
+                        <div key={contest.id}>
                           {isMobile ? (
                             <MobileContentListing
-                              key={contest?.id ?? i}
                               contest={contest}
                             />
                           ) : (
-                            <ContestListing
-                              key={contest?.id ?? i}
-                              contest={contest}
-                            />
+                            <ContestListing contest={contest} />
                           )}
                         </div>
                       ))}

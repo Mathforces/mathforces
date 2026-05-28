@@ -1,23 +1,36 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { rateLimitPublic } from "@/lib/api/auth";
-import { json, handleSupabaseError, paginate, parsePaginationParams } from "@/lib/api/response";
+import {
+  json,
+  handleSupabaseError,
+  parsePaginationParams,
+} from "@/lib/api/response";
 
 export async function GET(request: Request) {
   const rateLimitError = rateLimitPublic(request);
   if (rateLimitError) return rateLimitError;
 
   const { limit, pointer } = parsePaginationParams(request.url, 2);
+  const offset = Math.max(0, Number(pointer ?? 0) || 0);
+  const now = new Date().toISOString();
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("contests")
     .select("*")
     .order("start_date", { ascending: false })
-    .lte("start_date", (pointer ? new Date(pointer) : new Date()).toISOString())
-    .limit(limit + 1);
+    .order("id", { ascending: true })
+    .lte("start_date", now)
+    .range(offset, offset + limit);
 
   const err = handleSupabaseError(error, "past contests");
   if (err) return err;
 
-  return json(paginate(data, limit, "start_date"));
+  const safeData = data ?? [];
+  const hasMore = safeData.length > limit;
+  return json({
+    data: safeData.slice(0, limit),
+    hasMore,
+    nextPointer: hasMore ? String(offset + limit) : null,
+  });
 }
