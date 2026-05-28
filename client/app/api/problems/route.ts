@@ -34,16 +34,12 @@ const VALID_SORT_FIELDS: SortableFields[] = [
   "created_at",
 ];
 
-function buildSearchQuery(searchTerm: string): string {
-  const terms = searchTerm
+function parseSearchTerms(searchTerm: string) {
+  return searchTerm
     .toLowerCase()
     .replace(/[^\w\s-]/g, " ")
     .split(/\s+/)
     .filter((term) => term.length > 0);
-
-  if (terms.length === 0) return "";
-
-  return terms.map((term) => `${term}:*`).join(" & ");
 }
 
 export async function GET(request: Request) {
@@ -70,9 +66,32 @@ export async function GET(request: Request) {
     );
 
   if (filters.search) {
-    const searchQuery = buildSearchQuery(filters.search as string);
-    if (searchQuery) {
-      query = query.textSearch("full_name", searchQuery);
+    const terms = parseSearchTerms(filters.search as string);
+
+    for (const term of terms) {
+      const { data: matchingContests, error: matchingContestsError } =
+        await supabase
+          .from("contests")
+          .select("id")
+          .ilike("name", `%${term}%`);
+
+      const contestErr = handleSupabaseError(
+        matchingContestsError,
+        "problem search contests",
+      );
+      if (contestErr) return contestErr;
+
+      const contestIds = (matchingContests ?? []).map((contest) => contest.id);
+      const filtersForTerm = [
+        `name.ilike.%${term}%`,
+        `full_name.ilike.%${term}%`,
+      ];
+
+      if (contestIds.length > 0) {
+        filtersForTerm.push(`contest_id.in.(${contestIds.join(",")})`);
+      }
+
+      query = query.or(filtersForTerm.join(","));
     }
   }
 
