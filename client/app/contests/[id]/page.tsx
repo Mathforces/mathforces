@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hook/useIsMobile";
@@ -27,6 +27,15 @@ import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
 import ComingSoon from "@/components/comingSoon";
 
+const bottomBarTabs = [
+  {
+    value: "submissions",
+    label: "Submissions",
+    icon: GrUploadOption,
+    color: "text-secondary",
+  },
+];
+
 export default function Page() {
   const isMobile = useIsMobile();
   const { id: contest_id } = useParams();
@@ -46,21 +55,67 @@ export default function Page() {
     {},
   );
 
-  const bottomBarTabs = [
-    {
-      value: "submissions",
-      label: "Submissions",
-      icon: GrUploadOption,
-      color: "text-secondary",
-    },
-  ];
-
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
     useState("problemStatement");
   const [mobileActiveTab, setMobileActiveTab] = useState("problemStatement");
   const [expressions, setExpressions] = useState<unknown>(null);
+  const activeTabParam = contestParams.get("tab");
+  const leftBarTabValues = useMemo(
+    () =>
+      ProblemsTap.filter((tab) => tab.status !== "coming soon").map(
+        (tab) => tab.value,
+      ),
+    [],
+  );
+  const rightBarTabValues = useMemo(
+    () =>
+      MainTaps.filter((tab) => tab.status !== "coming soon").map(
+        (tab) => tab.value,
+      ),
+    [],
+  );
+  const bottomBarTabValues = useMemo(
+    () => bottomBarTabs.map((tab) => tab.value),
+    [],
+  );
+  const mobileTabValues = useMemo(
+    () => [
+      "problemStatement",
+      ...leftBarTabValues,
+      ...rightBarTabValues,
+      ...bottomBarTabValues,
+    ],
+    [bottomBarTabValues, leftBarTabValues, rightBarTabValues],
+  );
+  const prevLocalStorage = useRef<Record<string, string> | null>(null);
+
+  const pushTabParam = (tab: string) => {
+    const params = new URLSearchParams(contestParams.toString());
+    params.set("tab", tab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const changeLeftBarTab = (tab: string) => {
+    setLeftBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeRightBarTab = (tab: string) => {
+    setRightBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeBottomBarTab = (tab: string) => {
+    setBottomBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeMobileTab = (tab: string) => {
+    setMobileActiveTab(tab);
+    pushTabParam(tab);
+  };
   const getErrorMessage = (err: unknown, fallback: string) => {
     if (axios.isAxiosError<{ message?: string }>(err)) {
       return err.response?.data?.message || fallback;
@@ -87,33 +142,40 @@ export default function Page() {
     };
 
     fetchContest();
+  }, [contest_id]);
+
+
+  useEffect(() => {
+    if (!contest) return;
+
+    let ignore = false;
 
     const fetchProblems = async () => {
       try {
-        setLoading(true);
         setError(null);
 
         const response = await axios.get(
           `/api/contests/${contest_id}/problems`,
         );
-        if (response && response.data) {
-          const problemsTemp = response.data as ContestProblem[];
-
-          // problemsTemp.sort((a: ContestProblem, b: ContestProblem) => {
-          //   return a.index_in_contest - b.index_in_contest;
-          // });
-
-          setProblems(problemsTemp);
+        if (!ignore && response?.data) {
+          setProblems(response.data as ContestProblem[]);
         }
       } catch (err: unknown) {
-        console.error("Error fetching problems:", err);
-        setError(
-          getErrorMessage(err, "Failed to load problems. Please try again."),
-        );
+        if (!ignore) {
+          console.error("Error fetching problems:", err);
+          setError(
+            getErrorMessage(err, "Failed to load problems. Please try again."),
+          );
+        }
       }
     };
     fetchProblems();
-  }, [contest_id]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [contest, contest_id]);
+
 
   useEffect(() => {
     if (problems.length === 0) return;
@@ -139,16 +201,49 @@ export default function Page() {
     }
 
     if (problemId !== nextProblemId) {
-      router.replace(`?problemId=${nextProblemId}`, { scroll: false });
+      const params = new URLSearchParams(contestParams.toString());
+      params.set("problemId", nextProblemId);
+      router.replace(`?${params.toString()}`, { scroll: false });
     }
-  }, [problemId, problems, router, setShownProblemId, shownProblemId]);
-
-  // logging and importing problemsStatement to and from Local Storage
-  let prevLocalStorage: Record<string, string> | null = null;
+  }, [
+    contestParams,
+    problemId,
+    problems,
+    router,
+    setShownProblemId,
+    shownProblemId,
+  ]);
 
   useEffect(() => {
+    if (!activeTabParam) return;
+
+    if (mobileTabValues.includes(activeTabParam)) {
+      setMobileActiveTab(activeTabParam);
+    }
+
+    if (leftBarTabValues.includes(activeTabParam)) {
+      setLeftBarActiveTab(activeTabParam);
+    }
+
+    if (rightBarTabValues.includes(activeTabParam)) {
+      setRightBarActiveTab(activeTabParam);
+    }
+
+    if (bottomBarTabValues.includes(activeTabParam)) {
+      setBottomBarActiveTab(activeTabParam);
+    }
+  }, [
+    activeTabParam,
+    bottomBarTabValues,
+    leftBarTabValues,
+    mobileTabValues,
+    rightBarTabValues,
+  ]);
+
+  // logging and importing problemsStatement to and from Local Storage
+  useEffect(() => {
     if (Object.keys(problemsStatus).length > 0) {
-      if (problemsStatus === prevLocalStorage) return;
+      if (problemsStatus === prevLocalStorage.current) return;
       if (contest && typeof window !== "undefined") {
         localStorage.setItem(
           `problemsStatus-${contest.id}`,
@@ -159,7 +254,7 @@ export default function Page() {
       if (contest) {
         const data = localStorage.getItem(`problemsStatus-${contest.id}`);
         if (data) {
-          prevLocalStorage = JSON.parse(data);
+          prevLocalStorage.current = JSON.parse(data);
           setProblemsStatus(JSON.parse(data));
         }
       }
@@ -176,6 +271,8 @@ export default function Page() {
     return <ContestNotFound />;
   }
 
+
+
   if (isMobile) {
     return (
       <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
@@ -183,7 +280,7 @@ export default function Page() {
 
         <Tabs
           value={mobileActiveTab}
-          onValueChange={setMobileActiveTab}
+          onValueChange={changeMobileTab}
           className="min-h-0 flex-1 flex flex-col rounded-sm bg-card"
         >
           <ScrollArea className="w-full shrink-0 border-b border-border/50">
@@ -200,24 +297,35 @@ export default function Page() {
               <TabsTrigger value="submissions" className="h-9 shrink-0">
                 Submissions
               </TabsTrigger>
-              <TabsTrigger value="graphingCalculator" className="h-9 shrink-0">
-                Graph
-              </TabsTrigger>
-              <TabsTrigger
-                value="scientificCalculator"
-                className="h-9 shrink-0"
-              >
-                Calc
-              </TabsTrigger>
+              <ComingSoon disabled={false}>
+                <TabsTrigger
+                  value="graphingCalculator"
+                  className="h-9 shrink-0"
+                  disabled
+                >
+                  Graph
+                </TabsTrigger>
+              </ComingSoon>
+              <ComingSoon disabled={false}>
+                <TabsTrigger
+                  value="scientificCalculator"
+                  className="h-9 shrink-0"
+                  disabled
+                >
+                  Calc
+                </TabsTrigger>
+              </ComingSoon>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
 
           <div className="min-h-0 flex-1 overflow-hidden">
-            <Problem_Statement_card
-              setProblemsStatus={setProblemsStatus}
-              problemsStatus={problemsStatus}
-            />
+            {mobileActiveTab == "problemStatement" && (
+              <Problem_Statement_card
+                setProblemsStatus={setProblemsStatus}
+                problemsStatus={problemsStatus}
+              />
+            )}
 
             {mobileActiveTab == "problems" && (
               <ScrollArea className="h-full">
@@ -225,7 +333,7 @@ export default function Page() {
                   contest={contest}
                   problems={problems}
                   problemsStatus={problemsStatus}
-                  onProblemSelect={() => setMobileActiveTab("problemStatement")}
+                  onProblemSelect={() => changeMobileTab("problemStatement")}
                 />
               </ScrollArea>
             )}
@@ -271,7 +379,7 @@ export default function Page() {
                       defaultValue="problems"
                       className="w-full"
                       value={leftBarActiveTab}
-                      onValueChange={setLeftBarActiveTab}
+                      onValueChange={changeLeftBarTab}
                     >
                       <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                         {ProblemsTap.map((tab, i) => (
@@ -330,7 +438,7 @@ export default function Page() {
                   defaultValue="problemStatement"
                   className="w-full h-full"
                   value={rightBarActiveTab}
-                  onValueChange={setRightBarActiveTab}
+                  onValueChange={changeRightBarTab}
                 >
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {MainTaps.map((tab, i) => (
@@ -384,7 +492,7 @@ export default function Page() {
                   defaultValue="submissions"
                   className="w-full h-full"
                   value={bottomBarActiveTab}
-                  onValueChange={setBottomBarActiveTab}
+                  onValueChange={changeBottomBarTab}
                 >
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {bottomBarTabs.map((tab, i) => (

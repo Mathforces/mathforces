@@ -1,5 +1,3 @@
-import { MdOutlineRemoveShoppingCart } from "react-icons/md";
-
 export const contestProblemDefaultValues = {
   id: "",
   name: "",
@@ -95,8 +93,8 @@ export interface Submission {
 export interface ProblemCore {
   id: string;
   name: string;
+  answer: string | null;
   description_latex: string | null;
-  answer: string;
 }
 
 export interface Standing {

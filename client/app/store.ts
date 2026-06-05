@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase/client";
 import { getFormattedDate } from "@/lib/utils";
 import {
   ProblemCore,
-  ProblemStatus,
   Submission,
   SUBMISSION_TYPES,
   SubmissionsTypes,
@@ -113,10 +112,10 @@ export const useProfile = create<UserProfileContext>((set, get) => ({
           set(() => ({ userProfile: res.data.profileData }));
           set(() => ({ isWithoutUsername: false }));
         }
-      } catch (err: any) {
-        if (err.response && err.response.data.error) {
+      } catch (err: unknown) {
+        if (axios.isAxiosError<{ error?: string }>(err) && err.response?.data.error) {
           if (
-            err.data.error ===
+            err.response.data.error ===
             'duplicate key value violates unique constraint "profiles_pkey"'
           ) {
             profileError =
@@ -195,29 +194,9 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
       return;
     }
 
-    // Check if the local storage has the data first
-    const cached = localStorage.getItem(`problem_${problemId}_core`);
-    const cachedCore = cached ? JSON.parse(cached) : null;
-    if (
-      cachedCore &&
-      typeof cachedCore === "object" &&
-      "description_latex" in cachedCore
-    ) {
-      set((state) => ({
-        problems: {
-          ...state.problems,
-          [problemId]: {
-            ...state.problems[problemId],
-            core: cachedCore,
-          },
-        },
-      }));
-
-      return;
-    }
-
-    // Get core data from DB
-    else {
+    // Get core data from DB. Do not cache this in localStorage because live
+    // contest access can change as server time crosses start/end boundaries.
+    {
       set((state) => ({
         problems: {
           ...state.problems,
@@ -241,11 +220,6 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
               },
             },
           }));
-          // Cache the data in local storage
-          localStorage.setItem(
-            `problem_${problemId}_core`,
-            JSON.stringify(coreData),
-          );
         } else {
           console.error("Error while fetching problem core: ", response);
         }
@@ -362,12 +336,12 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
   updateProblemSubmissions: (submission: Submission) => {
     if (submission) {
       try {
-        let { problem_id: problemId } = submission;
+        const { problem_id: problemId } = submission;
         submission.formattedDate = getFormattedDate(submission.created_at);
         if (problemId) {
           console.log("submission: ", submission);
           SUBMISSION_TYPES.forEach((t) => {
-            let submissionsToUpdate =
+            const submissionsToUpdate =
               get().problems[problemId].submissions[t] ?? [];
 
             if (submissionsToUpdate) {
@@ -398,7 +372,7 @@ interface ShownProblemIdContext {
   shownProblemId: string;
   setShownProblemId: (problemId: string) => void;
 }
-export const useShownProblemId = create<ShownProblemIdContext>((set, get) => ({
+export const useShownProblemId = create<ShownProblemIdContext>((set) => ({
   shownProblemId: "",
   setShownProblemId: (problemId: string) => set({ shownProblemId: problemId }),
 }));

@@ -54,7 +54,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
         <section className="flex flex-col justify-center items-center gap-2">
           <div className="flex items-center text-xs">
             <Image
-              src="/Logo.png"
+              src="/logo_mini_light_transparent.svg"
               alt="Logo"
               width={200}
               height={200}

@@ -18,7 +18,6 @@ export const ProblemsTap = [
     label: "Standings",
     icon: MdLeaderboard,
     color: "text-secondary",
-    status: "coming soon",
   },
   {
     value: "editorials",

@@ -28,24 +28,24 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
       key={`${problem.name}-${problem.id}`}
       onClick={handleProblemSelect}
       className={cn(
-        ` group w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-pointer`,
+        `group w-full flex flex-col gap-3 rounded-md bg-muted p-3 text-xs cursor-pointer sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4`,
         ` ${shownProblemId == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
         ` ${problemsStatus[problem.id] === "success" ? "border border-success/30" : problemsStatus[problem.id] === "failure" ? "border border-destructive/30" : ""}`,
       )}
     >
       {/* Left section of problem */}
-      <div className="flex flex-col justify-between gap-2 ">
+      <div className="min-w-0 flex flex-1 flex-col justify-between gap-2">
         {/* Problem.name */}
         <h3
-          className={`text-lg ${shownProblemId == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
+          className={`break-words text-base sm:text-lg ${shownProblemId == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
         >
           Problem {problem.name}
         </h3>
 
         {/* Lower-left part (Problem details) */}
-        <div className="pl-1 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 sm:pl-1">
           {/* likess & commentss */}
-          <div className="flex justify-between items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
@@ -64,15 +64,13 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
           </div>
 
           {/* People answered */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+          <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:flex-row sm:items-center">
             <Progress
               value={solvedPercentage}
-              className="bg-background w-24 h-[3px] *:bg-success/50"
+              className="h-[3px] w-full bg-background *:bg-success/50 sm:w-24"
             />
-            <div className="flex gap-1 items-center text-xs">
-              <span>
-                {solvedPercentage}%
-              </span>
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
+              <span>{solvedPercentage}%</span>
               <span className="text-muted-foreground/70">
                 ({correctSubmissionCount} / {submissionCount} submissions)
               </span>
@@ -85,7 +83,7 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
       {problemsStatus[problem.id] === "success" ? (
         <Button
           variant={"secondary"}
-          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
           onClick={(event) => {
             event.stopPropagation();
             handleProblemSelect();
@@ -96,7 +94,7 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
       ) : problemsStatus[problem.id] === "failure" ? (
         <Button
           variant={"secondary"}
-          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
           onClick={(event) => {
             event.stopPropagation();
             handleProblemSelect();
@@ -107,7 +105,7 @@ const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
       ) : (
         <Button
           variant={"secondary"}
-          className="w-full sm:w-auto bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
           onClick={(event) => {
             event.stopPropagation();
             handleProblemSelect();
