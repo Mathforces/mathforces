@@ -68,6 +68,7 @@ export async function POST(request: Request) {
     end_date: body.end_date,
     length_in_minutes: Number(body.length_in_minutes),
     problem_count: problems.length,
+    mode: body.mode === "live" ? "live" : "practice",
   };
 
   if (!contestPayload.name) return apiError("Contest name is required", 400);

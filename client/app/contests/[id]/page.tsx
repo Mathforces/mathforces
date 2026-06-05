@@ -16,16 +16,17 @@ import GraphCalculator from "@/components/Tools/Graph_Calc";
 import Problem_Statement_card from "@/components/Contest/Problem_Statement_card";
 import { GrUploadOption } from "react-icons/gr";
 import axios from "axios";
-import { Contest, ContestProblem } from "@/types/types";
+import { Contest, ContestProblem, getContestPhase } from "@/types/types";
 import Loading from "@/components/ui/Loading";
 import ContestSubmissions from "./submissions";
 import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
-import { useShownProblemId } from "@/app/store";
+import { useShownProblemId, useProblems } from "@/app/store";
 import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
 import ComingSoon from "@/components/comingSoon";
+import { FaHourglassStart } from "react-icons/fa6";
 
 const bottomBarTabs = [
   {
@@ -261,6 +262,47 @@ export default function Page() {
     }
   }, [problemsStatus, contest]);
 
+  // Poll for phase changes every 10 seconds (MUST be before early returns — hooks rule)
+  const [pollNow, setPollNow] = useState(Date.now());
+  useEffect(() => {
+    const mode = contest?.mode;
+    if (mode !== "live") return;
+    const interval = setInterval(() => setPollNow(Date.now()), 10000);
+    return () => clearInterval(interval);
+  }, [contest?.mode]);
+
+  // Ref to track whether we've already redirected on contest end (MUST be before early returns)
+  const contestEndedRef = useRef(false);
+  useEffect(() => {
+    if (!contest || contest.mode !== "live") {
+      contestEndedRef.current = false;
+      return;
+    }
+    const phase = getContestPhase(contest);
+    if (phase === "ended" && !contestEndedRef.current) {
+      contestEndedRef.current = true;
+      // Clear localStorage caches for this contest
+      try {
+        if (typeof window !== "undefined") {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith(`input-problem-`) || key.startsWith(`problem_${contest.id}_`))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => localStorage.removeItem(key));
+          localStorage.removeItem(`problemsStatus-${contest.id}`);
+        }
+      } catch {}
+
+      // Redirect to standings
+      const params = new URLSearchParams(contestParams.toString());
+      params.set("tab", "standings");
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [contest, contestParams, router, pollNow]);
+
   if (loading) return <Loading title="Contest Problem" />;
 
   if (error) {
@@ -271,12 +313,38 @@ export default function Page() {
     return <ContestNotFound />;
   }
 
+  const contestPhase = getContestPhase(contest);
 
+  // For live upcoming contests, show a waiting state
+  if (contest.mode === "live" && contestPhase === "upcoming") {
+    return (
+      <main className="h-screen flex flex-col">
+        <ContestHeader
+          start_date={contest.start_date}
+          end_date={contest.end_date}
+          mode={contest.mode}
+        />
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
+          <FaHourglassStart className="w-16 h-16 text-amber-500 animate-pulse" />
+          <h1 className="text-3xl font-bold text-center">{contest.name}</h1>
+          <p className="text-lg text-muted-foreground text-center max-w-md">
+            This contest hasn&apos;t started yet. Check back when the countdown reaches zero!
+          </p>
+          {/* Timer already shown in the header above */}
+          <ContestStandings contestId={contest.id} />
+        </div>
+      </main>
+    );
+  }
 
   if (isMobile) {
     return (
       <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
-        <ContestHeader length_in_minutes={contest.length_in_minutes} />
+        <ContestHeader
+          start_date={contest.start_date}
+          end_date={contest.end_date}
+          mode={contest.mode}
+        />
 
         <Tabs
           value={mobileActiveTab}
@@ -324,6 +392,7 @@ export default function Page() {
               <Problem_Statement_card
                 setProblemsStatus={setProblemsStatus}
                 problemsStatus={problemsStatus}
+                contestEnded={contestPhase === "ended"}
               />
             )}
 
@@ -365,7 +434,11 @@ export default function Page() {
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-1 flex flex-col py-1">
       {/* Contest Header */}
-      <ContestHeader length_in_minutes={contest.length_in_minutes} />
+      <ContestHeader
+        start_date={contest.start_date}
+        end_date={contest.end_date}
+        mode={contest.mode}
+      />
 
       <ResizablePanelGroup direction="horizontal" className="flex flex-1">
         {/* Left Sidebar for Desktop  */}
@@ -468,6 +541,7 @@ export default function Page() {
                   <Problem_Statement_card
                     setProblemsStatus={setProblemsStatus}
                     problemsStatus={problemsStatus}
+                    contestEnded={contestPhase === "ended"}
                   />
 
                   <TabsContent value="graphingCalculator">

@@ -11,9 +11,11 @@ import ComingSoon from "../comingSoon";
 import Image from "next/image";
 import Link from "next/link";
 interface Props {
-  length_in_minutes: number;
+  start_date: string | Date;
+  end_date: string | Date;
+  mode: "practice" | "live" | null;
 }
-const ContestHeader = ({ length_in_minutes }: Props) => {
+const ContestHeader = ({ start_date, end_date, mode }: Props) => {
   return (
     <nav className="min-h-10 bg-transparent mb-2 w-full grid grid-cols-[auto_1fr_auto] md:flex md:justify-between items-center gap-2 md:gap-5 px-2 md:px-4 my-1">
       {/* Left section */}
@@ -59,7 +61,11 @@ const ContestHeader = ({ length_in_minutes }: Props) => {
         </ComingSoon>
 
         {/* Timer */}
-        <ContestHeaderTimer length_in_minutes={length_in_minutes} />
+        <ContestHeaderTimer
+          start_date={start_date}
+          end_date={end_date}
+          mode={mode}
+        />
 
         {/* Help */}
         <ComingSoon>

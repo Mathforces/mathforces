@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, dateFormatter } from "@/lib/utils";
 import { defaultFormattedDate } from "@/types/types";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import * as React from "react";
 
@@ -16,6 +16,7 @@ interface ContestSubmissionsProps {}
 const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
   props,
 ) => {
+  const { id: contest_id } = useParams();
   const [submissionType, setSubmissionType] = useState("your_submissions");
   return (
     <TabsContent
@@ -52,6 +53,7 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
             <SubmissionsTable
               type="general_submissions"
               setSubmissionType={setSubmissionType}
+              contestId={contest_id as string}
             />
           </TabsContent>
         </Tabs>

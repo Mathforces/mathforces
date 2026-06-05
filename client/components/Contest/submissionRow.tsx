@@ -12,9 +12,10 @@ import { CheckCircle2, XCircle, Clock, User } from "lucide-react";
 interface Props {
   type: SubmissionsTypes;
   setSubmissionType: Dispatch<SetStateAction<string>>;
+  contestId?: string;
 }
 
-function SubmissionsTable({ type, setSubmissionType }: Props) {
+function SubmissionsTable({ type, setSubmissionType, contestId }: Props) {
   const userProfile = useProfile((state) => state.userProfile);
   const userProfileLoading = useProfile((state) => state.loading);
   const submissionsFetch = useProblems(
@@ -32,9 +33,9 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
 
   useEffect(() => {
     if (type && problemId) {
-      submissionsFetch(problemId, type, userProfile?.id);
+      submissionsFetch(problemId, type, userProfile?.id, contestId);
     }
-  }, [type, problemId, userProfile?.id, submissionsFetch]);
+  }, [type, problemId, userProfile?.id, submissionsFetch, contestId]);
 
   return (
     <>

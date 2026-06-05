@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { json, handleSupabaseError } from "@/lib/api/response";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { json, apiError, handleSupabaseError } from "@/lib/api/response";
 
 export async function GET(
   request: Request,
@@ -24,7 +25,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
   const body = await request.json();
   const contestId = (await params).contest_id;
 
-  const { data, error } = await supabase
+  // Check if contest is live and has ended — reject registration
+  const { data: contest } = await supabase
+    .from("contests")
+    .select("mode, end_date")
+    .eq("id", contestId)
+    .single();
+
+  if (contest?.mode === "live") {
+    const now = new Date();
+    const endDate = new Date(contest.end_date);
+    if (now >= endDate) {
+      return apiError("This contest has already ended. Registration is closed.", 410);
+    }
+  }
+
+  const serviceSupabase = createSupabaseServiceClient();
+  const { data, error } = await serviceSupabase
     .from("registered_in_contest")
     .insert({ contest_id: contestId, user_id: body.user_id })
     .select();

@@ -1,113 +1,87 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { useRef, useState, useMemo } from "react";
-import Countdown, { CountdownApi } from "react-countdown";
-import { FaHourglassHalf, FaStop } from "react-icons/fa6";
-import { VscDebugStart } from "react-icons/vsc";
+import { useEffect, useMemo, useState } from "react";
+import { FaHourglassHalf, FaHourglassStart, FaHourglassEnd } from "react-icons/fa6";
+import { getContestPhase, ContestPhase } from "@/types/types";
 
 type Props = {
-  length_in_minutes: number;
+  start_date: string | Date;
+  end_date: string | Date;
+  mode: "practice" | "live" | null;
 };
 
-type TimerStatus = "Start" | "Pause" | "Resume";
-export default function ContestHeaderTimer({ length_in_minutes }: Props) {
-  const formatting_with_zeroes = (num: number) => {
-    return `${num < 10 ? "0" : ""}${Math.floor(num)}`;
-  };
-  const countDownApiRef = useRef<CountdownApi | null>(null);
-  const setRef = (countdown: Countdown | null) => {
-    countDownApiRef.current = countdown?.getApi() ?? null;
-  };
+const formatting_with_zeroes = (num: number) => {
+  return `${num < 10 ? "0" : ""}${Math.floor(num)}`;
+};
 
-  const [timerStatus, setTimerStatus] = useState<TimerStatus>("Start");
-  const [startTime, setStartTime] = useState<number | null>(null);
+export default function ContestHeaderTimer({ start_date, end_date, mode }: Props) {
+  const [now, setNow] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const targetDate = useMemo(() => {
-    if (startTime === null) {
-      return new Date().getTime() + 1000 * 60 * length_in_minutes;
-    }
-    return startTime + 1000 * 60 * length_in_minutes;
-  }, [startTime, length_in_minutes]);
+    const phase = getContestPhase({ mode, start_date, end_date });
+    if (phase === "upcoming") return new Date(start_date).getTime();
+    return new Date(end_date).getTime();
+  }, [mode, start_date, end_date]);
 
-  const toggleTimerStatus = () => {
-    if (countDownApiRef.current) {
-      if (timerStatus === "Start") {
-        setStartTime(Date.now());
-        countDownApiRef.current.start();
-        setTimerStatus("Pause");
-      } else if (timerStatus === "Pause") {
-        setTimerStatus("Resume");
-        countDownApiRef.current.pause();
-      } else if (timerStatus === "Resume") {
-        countDownApiRef.current.start();
-        setTimerStatus("Pause");
-      }
-    }
-  };
-  const CountdownRenderer = ({
-    hours,
-    minutes,
-    seconds,
-    completed,
-  }: {
-    hours: number;
-    minutes: number;
-    seconds: number;
-    completed: boolean;
-  }) => {
-    if (completed) {
-      // TODO: Add a pop up
-    } else {
-      const hrs = formatting_with_zeroes(hours);
-      const mins = formatting_with_zeroes(minutes);
-      const secs = formatting_with_zeroes(seconds);
+  const phase = useMemo(
+    () => getContestPhase({ mode, start_date, end_date }),
+    [mode, start_date, end_date, now],
+  );
 
-      const hours_minutes_seconds = `${hrs}:${mins}:${secs}`;
-      const hours_minutes = `${hrs}:${mins}`;
-      const minutes_seconds = `${mins}:${secs}`;
-      if (hours > 0) {
-        return hours_minutes;
-      }
-      return minutes_seconds;
-    }
-  };
+  const diff = useMemo(() => Math.max(0, targetDate - now), [targetDate, now]);
 
-  const stopTimer = () => {
-    if (countDownApiRef.current) {
-      countDownApiRef.current.stop();
-      setTimerStatus("Start");
+  const days = useMemo(() => Math.floor(diff / (1000 * 60 * 60 * 24)), [diff]);
+  const hours = useMemo(() => Math.floor((diff / (1000 * 60 * 60)) % 24), [diff]);
+  const minutes = useMemo(() => Math.floor((diff / (1000 * 60)) % 60), [diff]);
+  const seconds = useMemo(() => Math.floor((diff / 1000) % 60), [diff]);
+
+  const timeDisplay = useMemo(() => {
+    if (days > 0) {
+      return `${days}d ${formatting_with_zeroes(hours)}h ${formatting_with_zeroes(minutes)}m`;
     }
-  };
+    if (hours > 0) {
+      return `${formatting_with_zeroes(hours)}:${formatting_with_zeroes(minutes)}:${formatting_with_zeroes(seconds)}`;
+    }
+    return `${formatting_with_zeroes(minutes)}:${formatting_with_zeroes(seconds)}`;
+  }, [days, hours, minutes, seconds]);
+
+  if (phase === "ended") {
+    return (
+      <div className="w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3 opacity-60">
+        <FaHourglassEnd className="text-muted-foreground" />
+        <span className="text-xs font-mono text-muted-foreground">Ended</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-w-0 gap-1">
-      {/* Timer */}
-      <div className="w-fit h-8 bg-card rounded-l-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
-        <FaHourglassHalf className="text-primary" />
-
-        <Countdown
-          date={targetDate}
-          ref={setRef}
-          renderer={CountdownRenderer}
-          autoStart={false}
-        ></Countdown>
-      </div>
-
-      {/* Timer Controller */}
-      <div className="w-fit h-8 bg-card rounded-r-md flex items-center p-2 gap-2 md:gap-4">
-        <button
+      <div
+        className={cn(
+          "w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3",
+          phase === "upcoming" && "border border-dashed border-amber-500/40",
+        )}
+      >
+        {phase === "upcoming" ? (
+          <FaHourglassStart className="text-amber-500" />
+        ) : (
+          <FaHourglassHalf className="text-primary" />
+        )}
+        <span
           className={cn(
-            "flex items-center justify-center gap-2 cursor-pointer opacity-70 hover:opacity-90",
-            timerStatus === "Pause" ? "*:!text-destructive" : "*:!text-success",
+            "font-mono text-sm tabular-nums",
+            phase === "upcoming" && "text-amber-500",
           )}
-          onClick={() => toggleTimerStatus()}
         >
-          <VscDebugStart className="" />
-          <p className="hidden sm:block text-base font-mono">{timerStatus}</p>
-        </button>
-        {timerStatus !== "Start" && (
-          <button onClick={() => stopTimer()} className="cursor-pointer p-0 ">
-            <FaStop className="text-destructive text-sm" />
-          </button>
+          {timeDisplay}
+        </span>
+        {phase === "upcoming" && days === 0 && (
+          <span className="hidden sm:inline text-[10px] text-muted-foreground/60">to start</span>
         )}
       </div>
     </div>

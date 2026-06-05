@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ProblemStatus } from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -29,45 +28,15 @@ import { useRouter } from "next/navigation";
 interface Props {
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
+  contestEnded?: boolean;
 }
 
-const numericAnswerPattern = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
-const DECIMAL_ANSWER_TOLERANCE = 0.01;
-
-const isNumericAnswer = (answer: string) => {
-  return numericAnswerPattern.test(answer.trim());
-};
-
-const isAcceptedAnswer = (userAnswer: string, correctAnswer: string) => {
-  const normalizedUserAnswer = userAnswer.trim();
-  const normalizedCorrectAnswer = correctAnswer.trim();
-
-  if (
-    isNumericAnswer(normalizedUserAnswer) &&
-    isNumericAnswer(normalizedCorrectAnswer)
-  ) {
-    const userNumber = Number(normalizedUserAnswer);
-    const correctNumber = Number(normalizedCorrectAnswer);
-
-    if (userNumber === correctNumber) {
-      return true;
-    }
-
-    if (Number.isInteger(correctNumber)) {
-      return false;
-    }
-
-    const difference = Math.abs(userNumber - correctNumber);
-
-    return difference <= DECIMAL_ANSWER_TOLERANCE + Number.EPSILON;
-  }
-
-  return normalizedUserAnswer === normalizedCorrectAnswer;
-};
+// Answer checking is now done server-side in the submission POST endpoint.
 
 const Problem_Statement_card = ({
   problemsStatus,
   setProblemsStatus,
+  contestEnded = false,
 }: Props) => {
   const schema = z.object({
     // TODO: Add checkers for submission guioelines
@@ -119,18 +88,11 @@ const Problem_Statement_card = ({
             onClick: () => router.push("/sign_in"),
           },
         });
-      } else if (problemCore?.answer && problemCore.id) {
-        let status: ProblemStatus = "idle";
-        if (isAcceptedAnswer(user_answer, problemCore.answer)) {
-          status = "success";
-        } else {
-          status = "failure";
-        }
+      } else if (problemCore?.id) {
         const submission_data = {
           display_id: generateId(),
           problem_id: shownProblemId,
           user_answer,
-          status,
           profiles: {
             username: userProfile.username,
           },
@@ -145,9 +107,10 @@ const Problem_Statement_card = ({
             {
               display_id: submission_data.display_id,
               user_answer: submission_data.user_answer,
-              status: submission_data.status,
             },
           );
+
+          const serverStatus = res.data?.data?.status ?? "failure";
 
           updateSubmission({
             ...submission_data,
@@ -156,31 +119,34 @@ const Problem_Statement_card = ({
             problems: submission_data.problems,
           });
 
-          if (
-            status === "success" ||
-            problemsStatus[problemCore.id] === "success"
-          ) {
-            status = "success";
-          }
           setProblemsStatus((prev) => {
-            return { ...prev, [problemCore.id]: status };
+            const updated = {
+              ...prev,
+              [problemCore.id]: serverStatus,
+            };
+            return updated;
           });
-          console.log("submission was sucessful, your status is: ", status);
+          console.log("submission was successful, your status is: ", serverStatus);
         } catch (err) {
           console.error(err);
           if (axios.isAxiosError<{ error?: string }>(err)) {
             const message = err.response?.data?.error;
             if (message) {
-              console.log("Submission server error:", message);
+              toast.error(message);
+            } else {
+              toast.error(
+                "An error occurred while submitting. Please submit again, or try reconnecting.",
+              );
             }
+          } else {
+            toast.error(
+              "An error occurred while submitting. Please submit again, or try reconnecting.",
+            );
           }
-          toast.error(
-            "An error occurred while submitting. Please submit again, or try reconnecting.",
-          );
         }
       } else {
         toast.error(
-          "Couldn't get the problem answer. Try refreshing or reconnecting",
+          "Couldn't submit. Problem data is not available. Try refreshing.",
         );
       }
     }
@@ -297,9 +263,9 @@ const Problem_Statement_card = ({
             type="submit"
             className="w-full sm:w-25 text-text"
             variant="primary"
-            disabled={form.formState.isSubmitting}
+            disabled={form.formState.isSubmitting || contestEnded}
           >
-            Submit
+            {contestEnded ? "Contest Ended" : "Submit"}
           </Button>
         </form>
         <Separator className="bg-bg-light h-0.5! w-full" />

@@ -179,6 +179,7 @@ interface ContestProblemsContext {
     problemId: string,
     type?: SubmissionsTypes,
     userId?: string,
+    contestId?: string,
   ) => Promise<void>;
   updateProblemSubmissions: (submission: Submission) => void;
 }
@@ -243,6 +244,7 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
     problemId: string,
     type?: SubmissionsTypes,
     userId?: string,
+    contestId?: string,
   ) => {
     try {
       // check if it's saved
@@ -271,12 +273,15 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
         });
       }
       if (type) {
-        let submissions: Submission[] = [];
-
-        if (type === "general_submissions") {
+        let submissions: Submission[] = [];          if (type === "general_submissions") {
           try {
+            const params: Record<string, string> = {};
+            if (contestId) {
+              params.contest_id = contestId;
+            }
             const res = await axios.get(
               `/api/problems/${problemId}/submissions`,
+              { params },
             );
             if (res.data) {
               console.log("Got general problem Submissions successfully");
