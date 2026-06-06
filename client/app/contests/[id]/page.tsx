@@ -392,9 +392,7 @@ export default function Page() {
             )}
 
             {mobileActiveTab == "standings" && (
-              <ScrollArea className="h-full">
-                <ContestStandings contestId={contest.id} />
-              </ScrollArea>
+              <ContestStandings contestId={contest.id} problems={problems} />
             )}
 
             <ContestSubmissions contestPhase={contestPhase} />
@@ -425,56 +423,53 @@ export default function Page() {
         {!isMobile && (
           <>
             <ResizablePanel defaultSize={30}>
-              <section className="w-full h-full rounded-sm bg-card">
-                <ScrollArea className="h-full" type="always">
-                  <div className="h-full rounded-2xl w-full space-y-3">
-                    <Tabs
-                      defaultValue="problems"
-                      className="w-full"
-                      value={leftBarActiveTab}
-                      onValueChange={changeLeftBarTab}
-                    >
-                      <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
-                        {ProblemsTap.map((tab, i) => (
-                          <Fragment key={tab.value}>
-                            <ComingSoon disabled={tab.status != "coming soon"}>
-                              <TabsTrigger
-                                value={tab.value}
-                                className="h-full rounded-none bg-transparent! max-w-fit"
-                                disabled={tab.status == "coming soon"}
-                              >
-                                <tab.icon className={`${tab.color} w-4 h-4`} />
-                                <span className="hidden md:inline text-xs xl:text-sm">
-                                  {tab.label}
-                                </span>
-                              </TabsTrigger>
-                            </ComingSoon>
-                            {i < ProblemsTap.length - 1 && (
-                              <Separator
-                                orientation="vertical"
-                                className="h-4! bg-foreground/20"
-                              />
-                            )}
-                          </Fragment>
-                        ))}
-                      </TabsList>
+              <section className="w-full h-full rounded-sm bg-card flex flex-col min-h-0">
+                <Tabs
+                  defaultValue="problems"
+                  className="w-full flex flex-col min-h-0"
+                  value={leftBarActiveTab}
+                  onValueChange={changeLeftBarTab}
+                >
+                  <TabsList className="flex w-full h-10 shrink-0 justify-start bg-bg-light rounded-b-none">
+                    {ProblemsTap.map((tab, i) => (
+                      <Fragment key={tab.value}>
+                        <ComingSoon disabled={tab.status != "coming soon"}>
+                          <TabsTrigger
+                            value={tab.value}
+                            className="h-full rounded-none bg-transparent! max-w-fit"
+                            disabled={tab.status == "coming soon"}
+                          >
+                            <tab.icon className={`${tab.color} w-4 h-4`} />
+                            <span className="hidden md:inline text-xs xl:text-sm">
+                              {tab.label}
+                            </span>
+                          </TabsTrigger>
+                        </ComingSoon>
+                        {i < ProblemsTap.length - 1 && (
+                          <Separator
+                            orientation="vertical"
+                            className="h-4! bg-foreground/20"
+                          />
+                        )}
+                      </Fragment>
+                    ))}
+                  </TabsList>
 
-                      {/* Problems */}
-                      {leftBarActiveTab == "problems" && (
-                        <ContestProblems
-                          contest={contest}
-                          problems={problems}
-                          problemsStatus={problemsStatus}
-                        />
-                      )}
+                  {/* Problems */}
+                  {leftBarActiveTab == "problems" && (
+                    <div className="flex-1 min-h-0 overflow-auto">
+                      <ContestProblems
+                        contest={contest}
+                        problems={problems}
+                        problemsStatus={problemsStatus}
+                      />
+                    </div>
+                  )}
 
-                      {leftBarActiveTab == "standings" && (
-                        <ContestStandings contestId={contest.id} />
-                      )}
-                    </Tabs>
-                  </div>
-                  <ScrollBar />
-                </ScrollArea>
+                  {leftBarActiveTab == "standings" && (
+                    <ContestStandings contestId={contest.id} problems={problems} />
+                  )}
+                </Tabs>
               </section>
             </ResizablePanel>
             <ResizableHandle className="w-2 bg-transparent hover:bg-sidebar-border/60" />

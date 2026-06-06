@@ -108,9 +108,10 @@ export interface Standing {
   contest_id?: string;
   score?: number;
   penalty?: number;
+  elo_rating?: number;
+  problem_scores?: Record<string, number>;
   profiles: {
     username: string;
-    // avatar: string;
   };
 }
 
