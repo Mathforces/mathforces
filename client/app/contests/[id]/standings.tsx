@@ -36,7 +36,10 @@ const ContestStandings = ({ contestId }: Props) => {
     <div>
       <TabsContent value="standings" className="p-4 flex flex-col gap-3 w-full">
         {standings.map((standing, index) => (
-          <div key={standing.id ?? index} className="flex items-center justify-between">
+          <div
+            key={standing.id ?? index}
+            className="flex items-center justify-between"
+          >
             <div>
               {/* user's icon */}
               <span>{standing?.profiles?.username ?? "UNKOWN USER"}</span>

@@ -1,5 +1,6 @@
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
 import { cn, safeNumber } from "@/lib/utils";
+import { ContestPhase } from "@/lib/contest";
 import {
   defaultFormattedDate,
   Submission,
@@ -13,9 +14,10 @@ interface Props {
   type: SubmissionsTypes;
   setSubmissionType: Dispatch<SetStateAction<string>>;
   contestId?: string;
+  contestPhase?: ContestPhase;
 }
 
-function SubmissionsTable({ type, setSubmissionType, contestId }: Props) {
+function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: Props) {
   const userProfile = useProfile((state) => state.userProfile);
   const userProfileLoading = useProfile((state) => state.loading);
   const submissionsFetch = useProblems(
@@ -62,6 +64,9 @@ function SubmissionsTable({ type, setSubmissionType, contestId }: Props) {
             const score = safeNumber(submission.score);
             const isSuccess = submission.status === "success";
             const isFailure = submission.status === "failure";
+            const isLiveContest = contestPhase === "live";
+            const isOwnSubmission = submission.user_id === userProfile?.id;
+            const hideAnswer = isLiveContest && !isOwnSubmission;
 
             return (
               <div
@@ -92,17 +97,17 @@ function SubmissionsTable({ type, setSubmissionType, contestId }: Props) {
                         {username?.slice(1)}
                       </span>
                     </span>
-                    {submission.user_answer && (
+                    {!hideAnswer && submission.user_answer && (
                       <span className="text-[11px] text-muted-foreground/60 shrink-0">·</span>
                     )}
                     <span
                       className={cn(
                         "text-[11px] font-mono truncate min-w-0",
-                        isSuccess && "text-success",
-                        isFailure && "text-destructive",
+                        !hideAnswer && isSuccess && "text-success",
+                        !hideAnswer && isFailure && "text-destructive",
                       )}
                     >
-                      {submission.user_answer ?? ""}
+                      {hideAnswer ? "?" : (submission.user_answer ?? "")}
                     </span>
                     <span
                       className={cn(
@@ -160,11 +165,11 @@ function SubmissionsTable({ type, setSubmissionType, contestId }: Props) {
                   <span
                     className={cn(
                       "flex-1 truncate font-medium",
-                      isSuccess && "text-success",
-                      isFailure && "text-destructive",
+                      !hideAnswer && isSuccess && "text-success",
+                      !hideAnswer && isFailure && "text-destructive",
                     )}
                   >
-                    Ans: {submission.user_answer}
+                    Ans: {hideAnswer ? "?" : submission.user_answer}
                   </span>
 
                   {/* Score */}

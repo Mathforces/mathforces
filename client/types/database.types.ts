@@ -363,6 +363,7 @@ export type Database = {
           display_id: string | null
           id: number
           problem_id: string | null
+          score: number
           status: string | null
           user_answer: string | null
           user_id: string | null
@@ -372,6 +373,7 @@ export type Database = {
           display_id?: string | null
           id?: number
           problem_id?: string | null
+          score?: number
           status?: string | null
           user_answer?: string | null
           user_id?: string | null
@@ -381,6 +383,7 @@ export type Database = {
           display_id?: string | null
           id?: number
           problem_id?: string | null
+          score?: number
           status?: string | null
           user_answer?: string | null
           user_id?: string | null

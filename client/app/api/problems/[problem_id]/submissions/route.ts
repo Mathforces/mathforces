@@ -47,7 +47,7 @@ export async function GET(
     .from("submissions")
     .select(
       isLive
-        ? "id, created_at, problem_id, user_id, display_id, status, score, profiles(username), problems(name)"
+        ? "id, created_at, problem_id, user_id, display_id, status, score, user_answer, profiles(username), problems(name)"
         : "*, profiles(username), problems(name)",
     )
     .eq("problem_id", problemId);

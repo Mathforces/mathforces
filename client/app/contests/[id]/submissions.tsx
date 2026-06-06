@@ -11,11 +11,16 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import * as React from "react";
 
-interface ContestSubmissionsProps {}
+import { ContestPhase } from "@/lib/contest";
+
+interface ContestSubmissionsProps {
+  contestPhase?: ContestPhase;
+}
 
 const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
   props,
 ) => {
+  const { contestPhase } = props;
   const { id: contest_id } = useParams();
   const [submissionType, setSubmissionType] = useState("your_submissions");
   return (
@@ -46,6 +51,7 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
             <SubmissionsTable
               type="your_submissions"
               setSubmissionType={setSubmissionType}
+              contestPhase={contestPhase}
             />
           </TabsContent>
 
@@ -54,6 +60,7 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
               type="general_submissions"
               setSubmissionType={setSubmissionType}
               contestId={contest_id as string}
+              contestPhase={contestPhase}
             />
           </TabsContent>
         </Tabs>

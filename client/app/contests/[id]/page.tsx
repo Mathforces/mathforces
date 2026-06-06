@@ -397,7 +397,7 @@ export default function Page() {
               </ScrollArea>
             )}
 
-            <ContestSubmissions />
+            <ContestSubmissions contestPhase={contestPhase} />
 
             <TabsContent value="graphingCalculator" className="h-full m-0">
               <GraphCalculator
@@ -569,7 +569,7 @@ export default function Page() {
                       </Fragment>
                     ))}
                   </TabsList>
-                  <ContestSubmissions />
+                  <ContestSubmissions contestPhase={contestPhase} />
                 </Tabs>
               </section>
             </ResizablePanel>
