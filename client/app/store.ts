@@ -179,6 +179,7 @@ interface ContestProblemsContext {
     problemId: string,
     type?: SubmissionsTypes,
     userId?: string,
+    contestId?: string,
   ) => Promise<void>;
   updateProblemSubmissions: (submission: Submission) => void;
 }
@@ -243,40 +244,31 @@ export const useProblems = create<ContestProblemsContext>((set, get) => ({
     problemId: string,
     type?: SubmissionsTypes,
     userId?: string,
+    contestId?: string,
   ) => {
     try {
-      // check if it's saved
-      const problem = get().problems[problemId];
       set((state) => ({
         problems: {
           ...state.problems,
           [problemId]: {
             ...state.problems[problemId],
             submissions: {
-              ...state.problems[problemId].submissions,
+              ...(state.problems[problemId]?.submissions ?? {}),
               loading: true,
             },
           },
         },
       }));
-      if (problem?.coreLoading == true) {
-        // Check if core is still loading (in order not to interfere with the network request and give it privilege)
-        const unsubscribe = useProblems.subscribe((state, prevState) => {
-          const wasLoading = prevState.problems[problemId]?.coreLoading;
-          const isLoading = state.problems[problemId]?.coreLoading;
-          if (!isLoading && wasLoading) {
-            unsubscribe();
-            get().fetchProblemSubmissions(problemId, type, userId);
-          }
-        });
-      }
       if (type) {
-        let submissions: Submission[] = [];
-
-        if (type === "general_submissions") {
+        let submissions: Submission[] = [];          if (type === "general_submissions") {
           try {
+            const params: Record<string, string> = {};
+            if (contestId) {
+              params.contest_id = contestId;
+            }
             const res = await axios.get(
               `/api/problems/${problemId}/submissions`,
+              { params },
             );
             if (res.data) {
               console.log("Got general problem Submissions successfully");

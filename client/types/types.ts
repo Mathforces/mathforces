@@ -1,3 +1,5 @@
+import { ContestMode, ContestPhase } from "@/lib/contest";
+
 export const contestProblemDefaultValues = {
   id: "",
   name: "",
@@ -31,6 +33,9 @@ export interface Contest {
   id: string;
   name: string;
   description: string;
+  mode?: ContestMode;
+  contest_phase?: ContestPhase;
+  server_time?: string;
   like: number;
   difficulty: number;
   authors_ids: null | string;
@@ -228,9 +233,3 @@ export const rankingsList: Ranking[] = [
     color: "text-gray-700",
   },
 ];
-// export interface Ranking {
-//   ranking_title: Ranking_title;
-//   ranking_title_short: Ranking_title_short;
-//   minRating:
-// }
-//

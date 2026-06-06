@@ -6,6 +6,8 @@ import {
   handleSupabaseError,
   requireFields,
 } from "@/lib/api/response";
+import { requireContestAccess } from "@/lib/api/contestAccess";
+import { isAcceptedAnswer } from "@/lib/answers";
 
 export async function GET(
   request: Request,
@@ -33,11 +35,7 @@ export async function POST(
   const body = await request.json();
   const { problem_id, user_id } = await params;
 
-  const missingFields = requireFields(body, [
-    "user_answer",
-    "status",
-    "display_id",
-  ]);
+  const missingFields = requireFields(body, ["user_answer", "display_id"]);
   if (missingFields) return missingFields;
 
   const authSupabase = await createSupabaseServerClient();
@@ -54,13 +52,45 @@ export async function POST(
   }
 
   const supabase = createSupabaseServiceClient();
+
+  const { data: problem, error: problemError } = await supabase
+    .from("problems")
+    .select("id, answer, contest_id, contests(id, mode, start_date, end_date)")
+    .eq("id", problem_id)
+    .single();
+
+  const problemErr = handleSupabaseError(problemError, "submission problem");
+  if (problemErr) return problemErr;
+  if (!problem) return apiError("Problem not found", 404);
+
+  const contest = Array.isArray(problem.contests)
+    ? problem.contests[0]
+    : problem.contests;
+  if (contest) {
+    const accessError = await requireContestAccess({
+      supabase,
+      contest,
+      userId: user.id,
+      requireLiveWindow: true,
+    });
+    if (accessError) return accessError;
+  }
+
+  if (typeof problem.answer !== "string") {
+    return apiError("This problem cannot be graded yet", 422);
+  }
+
+  const status = isAcceptedAnswer(body.user_answer, problem.answer)
+    ? "success"
+    : "failure";
+
   const { data, error } = await supabase
     .from("submissions")
     .insert({
       user_id,
       problem_id,
       user_answer: body.user_answer,
-      status: body.status,
+      status,
       display_id: body.display_id,
     })
     .select("*, profiles(username), problems(name)")

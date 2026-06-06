@@ -1,5 +1,6 @@
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
 import { cn, safeNumber } from "@/lib/utils";
+import { ContestPhase } from "@/lib/contest";
 import {
   defaultFormattedDate,
   Submission,
@@ -7,14 +8,17 @@ import {
 } from "@/types/types";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { Button } from "../ui/button";
-import { CheckCircle2, XCircle, Clock, User } from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   type: SubmissionsTypes;
   setSubmissionType: Dispatch<SetStateAction<string>>;
+  contestId?: string;
+  contestPhase?: ContestPhase;
 }
 
-function SubmissionsTable({ type, setSubmissionType }: Props) {
+function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: Props) {
   const userProfile = useProfile((state) => state.userProfile);
   const userProfileLoading = useProfile((state) => state.loading);
   const submissionsFetch = useProblems(
@@ -32,9 +36,9 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
 
   useEffect(() => {
     if (type && problemId) {
-      submissionsFetch(problemId, type, userProfile?.id);
+      submissionsFetch(problemId, type, userProfile?.id, contestId);
     }
-  }, [type, problemId, userProfile?.id, submissionsFetch]);
+  }, [type, problemId, userProfile?.id, submissionsFetch, contestId]);
 
   return (
     <>
@@ -61,6 +65,9 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
             const score = safeNumber(submission.score);
             const isSuccess = submission.status === "success";
             const isFailure = submission.status === "failure";
+            const isLiveContest = contestPhase === "live";
+            const isOwnSubmission = submission.user_id === userProfile?.id;
+            const hideAnswer = isLiveContest && !isOwnSubmission;
 
             return (
               <div
@@ -91,17 +98,17 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
                         {username?.slice(1)}
                       </span>
                     </span>
-                    {submission.user_answer && (
+                    {!hideAnswer && submission.user_answer && (
                       <span className="text-[11px] text-muted-foreground/60 shrink-0">·</span>
                     )}
                     <span
                       className={cn(
                         "text-[11px] font-mono truncate min-w-0",
-                        isSuccess && "text-success",
-                        isFailure && "text-destructive",
+                        !hideAnswer && isSuccess && "text-success",
+                        !hideAnswer && isFailure && "text-destructive",
                       )}
                     >
-                      {submission.user_answer ?? ""}
+                      {hideAnswer ? "?" : (submission.user_answer ?? "")}
                     </span>
                     <span
                       className={cn(
@@ -159,11 +166,11 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
                   <span
                     className={cn(
                       "flex-1 truncate font-medium",
-                      isSuccess && "text-success",
-                      isFailure && "text-destructive",
+                      !hideAnswer && isSuccess && "text-success",
+                      !hideAnswer && isFailure && "text-destructive",
                     )}
                   >
-                    Ans: {submission.user_answer}
+                    Ans: {hideAnswer ? "?" : submission.user_answer}
                   </span>
 
                   {/* Score */}
@@ -217,9 +224,47 @@ function SubmissionsTable({ type, setSubmissionType }: Props) {
               </div>
             </div>
           ) : SubmissionsLoading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Clock className="w-5 h-5 animate-pulse text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Loading submissions...</p>
+            <div className="flex flex-col gap-2 sm:gap-0 w-full">
+              {/* Desktop header row */}
+              <div className="hidden sm:flex gap-10 h-8 items-center px-3 text-xs text-muted-foreground font-medium">
+                <Skeleton className="w-22 h-4" />
+                <Skeleton className="w-20 h-4" />
+                <Skeleton className="w-30 h-4" />
+                <Skeleton className="w-20 h-4" />
+                <Skeleton className="flex-1 h-4" />
+                <Skeleton className="w-16 h-4" />
+              </div>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="hidden sm:flex gap-10 h-12 items-center px-3 py-2">
+                  <Skeleton className="w-22 h-6 rounded-md" />
+                  <Skeleton className="w-20 h-8" />
+                  <Skeleton className="w-30 h-4" />
+                  <Skeleton className="w-20 h-4" />
+                  <Skeleton className="flex-1 h-4" />
+                  <Skeleton className="w-16 h-4" />
+                </div>
+              ))}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={`m-${i}`}
+                  className={cn(
+                    i % 2 === 0 && "bg-bg-light",
+                    "rounded-sm shadow-sm px-2 py-1.5",
+                  )}
+                >
+                  <div className="flex items-center gap-1 min-w-0">
+                    <Skeleton className="w-3.5 h-3.5 rounded-full shrink-0" />
+                    <Skeleton className="h-3.5 w-16" />
+                    <span className="text-[11px] text-muted-foreground/60 shrink-0">·</span>
+                    <Skeleton className="h-3.5 flex-1" />
+                    <Skeleton className="h-3.5 w-6" />
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Skeleton className="h-2.5 w-20" />
+                    <Skeleton className="h-2.5 w-24" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 text-center">

@@ -6,13 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 import ContestListing from "@/app/contests/contestListing";
 import { ScrollArea } from "../ui/scroll-area";
 import useInfiniteScroll from "@/hook/useInfiniteScroll";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hook/useIsMobile";
 import MobileContentListing from "@/app/contests/mobileContentListing";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
-type ContestTypeTab = "upcoming_contests" | "past_contests" | "all";
+type ContestTypeTab = "live_contests" | "upcoming_contests" | "past_contests";
 
 const dedupeContests = (contests: Contest[] | null) => {
   if (!contests) return null;
@@ -29,6 +29,17 @@ const SuggestedContest = () => {
   const [contestTypeTab, setContestTypeTab] =
     useState<ContestTypeTab>("upcoming_contests");
   const isMobile = useIsMobile();
+
+  const {
+    items: liveContests,
+    loading: liveContestsLoading,
+    observerTarget: liveContestsObserver,
+    loadMore: liveContestLoadMore,
+    isInitialized: liveContestsIsInitialized,
+  } = useInfiniteScroll({
+    apiUrl: "/api/contests/live",
+    options: { limit: 5, autoFetch: false },
+  });
 
   const {
     items: upComingContests,
@@ -51,6 +62,10 @@ const SuggestedContest = () => {
     apiUrl: "/api/contests/past",
     options: { limit: 5, autoFetch: false },
   });
+  const uniqueLiveContests = useMemo(
+    () => dedupeContests(liveContests),
+    [liveContests],
+  );
   const uniqueUpcomingContests = useMemo(
     () => dedupeContests(upComingContests),
     [upComingContests],
@@ -68,7 +83,9 @@ const SuggestedContest = () => {
       : contestTypeTab;
 
   useEffect(() => {
-    if (
+    if (activeContestTypeTab === "live_contests" && !liveContestsIsInitialized) {
+      liveContestLoadMore();
+    } else if (
       activeContestTypeTab === "upcoming_contests" &&
       !upComingContestsIsInitialized
     ) {
@@ -81,6 +98,8 @@ const SuggestedContest = () => {
     }
   }, [
     activeContestTypeTab,
+    liveContestLoadMore,
+    liveContestsIsInitialized,
     pastContestLoadMore,
     pastContestsIsInitialized,
     upComingContestLoadMore,
@@ -98,16 +117,58 @@ const SuggestedContest = () => {
         <Card className="border-none *:px-3">
           <CardHeader className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="upcoming_contests">
-                Upcoming Contests
+              <TabsTrigger value="live_contests" className="relative">
+                <span className="relative flex items-center gap-1.5">
+                  Live
+                  <span className="absolute -right-2 -top-1 w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                </span>
               </TabsTrigger>
-              <TabsTrigger value="past_contests">Past Contests</TabsTrigger>
+              <TabsTrigger value="upcoming_contests">
+                Upcoming
+              </TabsTrigger>
+              <TabsTrigger value="past_contests">Past</TabsTrigger>
             </TabsList>
             <Button onClick={() => router.push("/create_contest")}>
               Create
             </Button>
           </CardHeader>
           <CardContent>
+            <TabsContent value="live_contests">
+              <ScrollArea className="h-100">
+                <div>
+                  {uniqueLiveContests &&
+                  uniqueLiveContests.length > 0 ? (
+                    <div className="space-y-5">
+                      {uniqueLiveContests.map((contest: Contest) => (
+                        <div key={contest.id}>
+                          {isMobile ? (
+                            <MobileContentListing
+                              contest={contest}
+                            />
+                          ) : (
+                            <ContestListing contest={contest} />
+                          )}
+                        </div>
+                      ))}
+                      {liveContestsLoading && (
+                        <Skeleton className="h-20 w-full" />
+                      )}
+                    </div>
+                  ) : liveContestsLoading ? (
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <span>No contests are currently live.</span>
+                    </div>
+                  )}
+                  <div ref={liveContestsObserver}></div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
             <TabsContent value="upcoming_contests">
               <ScrollArea className="h-100">
                 <div>
@@ -121,11 +182,15 @@ const SuggestedContest = () => {
                         />
                       ))}
                       {upComingContestsLoading && (
-                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                        <Skeleton className="h-20 w-full" />
                       )}
                     </div>
                   ) : upComingContestsLoading ? (
-                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
                   ) : (
                     <div>
                       <span>
@@ -160,11 +225,15 @@ const SuggestedContest = () => {
                         </div>
                       ))}
                       {pastContestsLoading && (
-                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                        <Skeleton className="h-20 w-full" />
                       )}
                     </div>
                   ) : pastContestsLoading ? (
-                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
                   ) : (
                     <div>
                       <span>There are no contests to show</span>

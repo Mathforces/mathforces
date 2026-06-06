@@ -26,6 +26,7 @@ import { useShownProblemId } from "@/app/store";
 import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
 import ComingSoon from "@/components/comingSoon";
+import { getContestMode, getContestPhase } from "@/lib/contest";
 
 const bottomBarTabs = [
   {
@@ -61,6 +62,7 @@ export default function Page() {
     useState("problemStatement");
   const [mobileActiveTab, setMobileActiveTab] = useState("problemStatement");
   const [expressions, setExpressions] = useState<unknown>(null);
+  const [now, setNow] = useState(() => new Date());
   const activeTabParam = contestParams.get("tab");
   const leftBarTabValues = useMemo(
     () =>
@@ -90,6 +92,13 @@ export default function Page() {
     [bottomBarTabValues, leftBarTabValues, rightBarTabValues],
   );
   const prevLocalStorage = useRef<Record<string, string> | null>(null);
+  const contestPhase = contest
+    ? getContestPhase(contest, now)
+    : "practice";
+  const contestMode = getContestMode(contest);
+  const isEndedLiveContest = contestMode === "live" && contestPhase === "ended";
+  const canLoadContestProblems =
+    contestMode === "practice" || contestPhase === "live";
 
   const pushTabParam = (tab: string) => {
     const params = new URLSearchParams(contestParams.toString());
@@ -144,9 +153,18 @@ export default function Page() {
     fetchContest();
   }, [contest_id]);
 
+  useEffect(() => {
+    if (!contest || contestMode !== "live") return;
+
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [contest, contestMode]);
 
   useEffect(() => {
-    if (!contest) return;
+    if (!contest || !canLoadContestProblems) return;
 
     let ignore = false;
 
@@ -174,11 +192,29 @@ export default function Page() {
     return () => {
       ignore = true;
     };
-  }, [contest, contest_id]);
-
+  }, [canLoadContestProblems, contest, contest_id]);
 
   useEffect(() => {
-    if (problems.length === 0) return;
+    if (!contest || !isEndedLiveContest) return;
+
+    setProblemsStatus({});
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`problemsStatus-${contest.id}`);
+      for (const problem of problems) {
+        localStorage.removeItem(`input-problem-${problem.id}`);
+        localStorage.removeItem(`problem_${problem.id}_core`);
+      }
+    }
+
+    if (activeTabParam !== "standings") {
+      router.replace(`/contests/${contest.id}?tab=standings`, {
+        scroll: false,
+      });
+    }
+  }, [activeTabParam, contest, isEndedLiveContest, problems, router]);
+
+  useEffect(() => {
+    if (!canLoadContestProblems || problems.length === 0) return;
 
     const hasProblem = (id: string | null) =>
       Boolean(id && problems.some((problem) => problem.id === id));
@@ -206,6 +242,7 @@ export default function Page() {
       router.replace(`?${params.toString()}`, { scroll: false });
     }
   }, [
+    canLoadContestProblems,
     contestParams,
     problemId,
     problems,
@@ -271,12 +308,27 @@ export default function Page() {
     return <ContestNotFound />;
   }
 
-
+  // For live upcoming contests, show a waiting state
+  if (contestMode === "live" && contestPhase === "upcoming") {
+    return (
+      <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
+        <ContestHeader contest={contest} />
+        <section className="flex flex-1 items-center justify-center rounded-sm bg-card">
+          <div className="max-w-md text-center space-y-2">
+            <h1 className="text-2xl font-bold">{contest.name}</h1>
+            <p className="text-muted-foreground">
+              This live contest has not started yet.
+            </p>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   if (isMobile) {
     return (
       <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
-        <ContestHeader length_in_minutes={contest.length_in_minutes} />
+        <ContestHeader contest={contest} />
 
         <Tabs
           value={mobileActiveTab}
@@ -324,6 +376,7 @@ export default function Page() {
               <Problem_Statement_card
                 setProblemsStatus={setProblemsStatus}
                 problemsStatus={problemsStatus}
+                contestPhase={contestPhase}
               />
             )}
 
@@ -344,7 +397,7 @@ export default function Page() {
               </ScrollArea>
             )}
 
-            <ContestSubmissions />
+            <ContestSubmissions contestPhase={contestPhase} />
 
             <TabsContent value="graphingCalculator" className="h-full m-0">
               <GraphCalculator
@@ -365,7 +418,7 @@ export default function Page() {
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-1 flex flex-col py-1">
       {/* Contest Header */}
-      <ContestHeader length_in_minutes={contest.length_in_minutes} />
+      <ContestHeader contest={contest} />
 
       <ResizablePanelGroup direction="horizontal" className="flex flex-1">
         {/* Left Sidebar for Desktop  */}
@@ -468,6 +521,7 @@ export default function Page() {
                   <Problem_Statement_card
                     setProblemsStatus={setProblemsStatus}
                     problemsStatus={problemsStatus}
+                    contestPhase={contestPhase}
                   />
 
                   <TabsContent value="graphingCalculator">
@@ -515,7 +569,7 @@ export default function Page() {
                       </Fragment>
                     ))}
                   </TabsList>
-                  <ContestSubmissions />
+                  <ContestSubmissions contestPhase={contestPhase} />
                 </Tabs>
               </section>
             </ResizablePanel>

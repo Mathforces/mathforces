@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { contestProblemDefaultValues } from "@/types/types";
-import { json, handleSupabaseError } from "@/lib/api/response";
+import { json, apiError, handleSupabaseError } from "@/lib/api/response";
+import { requireContestAccess } from "@/lib/api/contestAccess";
 
 type ContestProblemRow = {
   id: string;
@@ -17,8 +19,29 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ contest_id: string }> },
 ) {
-  const supabase = await createSupabaseServerClient();
+  const authSupabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceClient();
   const contestId = (await params).contest_id;
+  const {
+    data: { user },
+  } = await authSupabase.auth.getUser();
+
+  const { data: contest, error: contestError } = await supabase
+    .from("contests")
+    .select("id, mode, start_date, end_date")
+    .eq("id", contestId)
+    .single();
+
+  const contestErr = handleSupabaseError(contestError, "contest");
+  if (contestErr) return contestErr;
+  if (!contest) return apiError("Contest not found", 404);
+
+  const accessError = await requireContestAccess({
+    supabase,
+    contest,
+    userId: user?.id,
+  });
+  if (accessError) return accessError;
 
   const { data, error } = await supabase
     .from("problems")
