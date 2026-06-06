@@ -1,13 +1,12 @@
 "use client";
 import { safeNumber } from "@/lib/utils";
 import { getRankingColor } from "@/lib/ranking";
-import { calculateOpacity } from "@/lib/score";
 import { useVirtualList } from "@/hook/useVirtualList";
 import { ContestProblem, Standing } from "@/types/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ROW_HEIGHT = 44;
 const NARROW_THRESHOLD = 300;
@@ -22,6 +21,18 @@ const ContestStandings = ({ contestId, problems }: Props) => {
   const [standingsLoading, setStandingsLoading] = useState(true);
   const [isNarrow, setIsNarrow] = useState(false);
   const outerRef = useRef<HTMLDivElement>(null);
+  const scoresScrollRef = useRef<HTMLDivElement>(null);
+  const rowScrollRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollLeftRef = useRef(0);
+
+  const syncScroll = useCallback((source: HTMLDivElement) => {
+    const newLeft = source.scrollLeft;
+    if (newLeft === scrollLeftRef.current) return;
+    scrollLeftRef.current = newLeft;
+    [scoresScrollRef.current, ...rowScrollRefs.current].forEach((el) => {
+      if (el && el !== source) el.scrollLeft = newLeft;
+    });
+  }, []);
 
   useEffect(() => {
     const el = outerRef.current;
@@ -69,9 +80,9 @@ const ContestStandings = ({ contestId, problems }: Props) => {
           <div key={i} className="flex items-center gap-3" style={{ height: ROW_HEIGHT }}>
             <Skeleton className="h-5 w-6 shrink-0" />
             <Skeleton className="h-5 w-24 shrink-0" />
-            <div className="flex gap-1 flex-1">
+            <div className="flex gap-2 flex-1">
               {problems.map((_, j) => (
-                <Skeleton key={j} className="h-5 w-5 shrink-0" />
+                <Skeleton key={j} className="h-5 w-8 shrink-0" />
               ))}
             </div>
             <Skeleton className="h-5 w-12 shrink-0" />
@@ -95,22 +106,28 @@ const ContestStandings = ({ contestId, problems }: Props) => {
         <span className="w-5 shrink-0 text-center">#</span>
         <span className="w-28 shrink-0">Username</span>
         {!isNarrow && (
-          <div className="flex gap-1 overflow-hidden shrink min-w-0">
-            {problems.map((p) => {
-              const letter = p.index_in_contest != null
-                ? String.fromCharCode(65 + p.index_in_contest)
-                : "?";
-              const label = p.name && p.name.length <= 4 ? p.name : letter;
-              return (
-                <span
-                  key={p.id}
-                  className="w-5 shrink-0 text-center truncate"
-                  title={p.name || letter}
-                >
-                  {label}
-                </span>
-              );
-            })}
+          <div
+            ref={scoresScrollRef}
+            onScroll={(e) => syncScroll(e.currentTarget)}
+            className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink min-w-0"
+          >
+            <div className="flex gap-2">
+              {problems.map((p) => {
+                const letter = p.index_in_contest != null
+                  ? String.fromCharCode(65 + p.index_in_contest)
+                  : "?";
+                const label = p.name.length > 0 && p.name.length <= 4 ? p.name : letter;
+                return (
+                  <span
+                    key={p.id}
+                    className="w-8 shrink-0 text-center truncate"
+                    title={p.name || letter}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         )}
         <span className="w-12 shrink-0 text-right">Score</span>
@@ -154,22 +171,25 @@ const ContestStandings = ({ contestId, problems }: Props) => {
                   </Link>
 
                   {!isNarrow && (
-                    <div className="flex gap-1 overflow-hidden shrink min-w-0">
-                      {problems.map((problem) => {
-                        const myScore =
-                          standing.problem_scores?.[problem.id] ?? 0;
-                        const baseScore = problem.points ?? 0;
-
-                        const opacity = calculateOpacity(myScore, baseScore) / 100;
-                        return (
-                          <div
-                            key={problem.id}
-                            className="w-5 h-5 shrink-0 rounded-sm bg-primary"
-                            style={{ opacity: Math.max(0.35, opacity) }}
-                            title={`${problem.name}: ${myScore}/${baseScore}`}
-                          />
-                        );
-                      })}
+                    <div
+                      ref={(el) => { rowScrollRefs.current[i] = el; }}
+                      onScroll={(e) => syncScroll(e.currentTarget)}
+                      className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink min-w-0"
+                    >
+                      <div className="flex gap-2">
+                        {problems.map((problem) => {
+                          const myScore =
+                            standing.problem_scores?.[problem.id] ?? 0;
+                          return (
+                            <span
+                              key={problem.id}
+                              className="w-8 shrink-0 text-right text-xs text-muted-foreground tabular-nums"
+                            >
+                              {myScore}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
