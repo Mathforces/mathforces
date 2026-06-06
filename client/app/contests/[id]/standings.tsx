@@ -7,9 +7,10 @@ import { ContestProblem, Standing } from "@/types/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const ROW_HEIGHT = 44;
+const NARROW_THRESHOLD = 300;
 
 type Props = {
   contestId: string;
@@ -19,6 +20,18 @@ type Props = {
 const ContestStandings = ({ contestId, problems }: Props) => {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [standingsLoading, setStandingsLoading] = useState(true);
+  const [isNarrow, setIsNarrow] = useState(false);
+  const outerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
+    const update = () => setIsNarrow(el.clientWidth < NARROW_THRESHOLD);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const getStandings = async () => {
     setStandingsLoading(true);
@@ -77,24 +90,30 @@ const ContestStandings = ({ contestId, problems }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center gap-3 px-4 py-2 text-xs font-medium text-muted-foreground bg-card border-b border-border/50 shrink-0">
-        <span className="w-6 shrink-0 text-center">#</span>
+    <div ref={outerRef} className="flex flex-col h-full min-h-0">
+      <div className="flex items-center gap-2 px-2 py-2 text-xs font-medium text-muted-foreground bg-card border-b border-border/50 shrink-0">
+        <span className="w-5 shrink-0 text-center">#</span>
         <span className="w-28 shrink-0">Username</span>
-        <div className="flex-1 flex gap-1.5">
-          {problems.map((p) => (
-            <span
-              key={p.id}
-              className="w-5 shrink-0 text-center truncate"
-              title={p.name}
-            >
-              {p.index_in_contest != null
+        {!isNarrow && (
+          <div className="flex gap-1 overflow-hidden shrink min-w-0">
+            {problems.map((p) => {
+              const letter = p.index_in_contest != null
                 ? String.fromCharCode(65 + p.index_in_contest)
-                : "?"}
-            </span>
-          ))}
-        </div>
-        <span className="w-14 shrink-0 text-right">Score</span>
+                : "?";
+              const label = p.name && p.name.length <= 4 ? p.name : letter;
+              return (
+                <span
+                  key={p.id}
+                  className="w-5 shrink-0 text-center truncate"
+                  title={p.name || letter}
+                >
+                  {label}
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <span className="w-12 shrink-0 text-right">Score</span>
       </div>
 
       <div
@@ -120,10 +139,10 @@ const ContestStandings = ({ contestId, problems }: Props) => {
               return (
                 <div
                   key={standing.id ?? globalIndex}
-                  className="flex items-center gap-3 px-4 hover:bg-muted/40 transition-colors"
+                  className="flex items-center gap-2 px-2 hover:bg-muted/40 transition-colors"
                   style={{ height: ROW_HEIGHT }}
                 >
-                  <span className="w-6 shrink-0 text-xs text-muted-foreground text-center">
+                  <span className="w-5 shrink-0 text-xs text-muted-foreground text-center">
                     {rank}
                   </span>
 
@@ -134,25 +153,27 @@ const ContestStandings = ({ contestId, problems }: Props) => {
                     {username}
                   </Link>
 
-                  <div className="flex-1 flex items-center gap-1.5">
-                    {problems.map((problem) => {
-                      const myScore =
-                        standing.problem_scores?.[problem.id] ?? 0;
-                      const baseScore = problem.points ?? 0;
+                  {!isNarrow && (
+                    <div className="flex gap-1 overflow-hidden shrink min-w-0">
+                      {problems.map((problem) => {
+                        const myScore =
+                          standing.problem_scores?.[problem.id] ?? 0;
+                        const baseScore = problem.points ?? 0;
 
-                      const opacity = calculateOpacity(myScore, baseScore) / 100;
-                      return (
-                        <div
-                          key={problem.id}
-                          className="w-5 h-5 shrink-0 rounded-sm bg-primary"
-                          style={{ opacity: Math.max(0.35, opacity) }}
-                          title={`${problem.name}: ${myScore}/${baseScore}`}
-                        />
-                      );
-                    })}
-                  </div>
+                        const opacity = calculateOpacity(myScore, baseScore) / 100;
+                        return (
+                          <div
+                            key={problem.id}
+                            className="w-5 h-5 shrink-0 rounded-sm bg-primary"
+                            style={{ opacity: Math.max(0.35, opacity) }}
+                            title={`${problem.name}: ${myScore}/${baseScore}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
 
-                  <span className="w-14 shrink-0 text-sm font-semibold text-right tabular-nums">
+                  <span className="w-12 shrink-0 text-sm font-semibold text-right tabular-nums">
                     {safeNumber(standing.score)}
                   </span>
                 </div>
