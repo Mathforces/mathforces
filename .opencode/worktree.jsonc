@@ -18,16 +18,16 @@
     "symlinkDirs": [],
 
     // Patterns to exclude from copying
-    "exclude": []
+    "exclude": [],
   },
 
   "hooks": {
     // Commands to run after worktree creation
     // Example: ["pnpm install", "docker compose up -d"]
-    "postCreate": [],
+    "postCreate": ["./scripts/dev-launch.sh"],
 
     // Commands to run before worktree deletion
     // Example: ["docker compose down"]
-    "preDelete": []
-  }
+    "preDelete": [],
+  },
 }
