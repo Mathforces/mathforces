@@ -23,7 +23,9 @@ import * as z from "zod";
 import { Field, FieldError } from "../ui/field";
 import { toast } from "sonner";
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "../ui/scroll-area";
+import ComingSoon from "../comingSoon";
 import { generateId } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ContestPhase } from "@/lib/contest";
@@ -61,6 +63,9 @@ const Problem_Statement_card = ({
   const shownProblemId = useShownProblemId((state) => state.shownProblemId);
   const problemCore = useProblems(
     (state) => state.problems[shownProblemId]?.core,
+  );
+  const coreLoading = useProblems(
+    (state) => state.problems[shownProblemId]?.coreLoading ?? false,
   );
   const router = useRouter();
   const updateSubmission = useProblems(
@@ -196,30 +201,46 @@ const Problem_Statement_card = ({
       >
         {/* Problem Header */}
         <div className="flex flex-col gap-2 mb-2 w-full">
-          <h1 className="text-2xl font-bold text-center">
-            Problem {problemCore?.name ?? "UNKNOWN"}
-          </h1>
-
-          {/* Methods to access problem */}
-          <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto text-primary">
-            {/* PDF access */}
-            <button className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <FaRegFilePdf />
-                <span>PDF</span>
+          {coreLoading && !problemCore ? (
+            <div className="flex flex-col items-center gap-2">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
               </div>
-              <FaExternalLinkAlt className="w-3 h-3" />
-            </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-center">
+                Problem {problemCore?.name ?? "UNKNOWN"}
+              </h1>
 
-            {/* Latex access */}
-            <button className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <LuFileText />
-                <span>Latex</span>
+              {/* Methods to access problem */}
+              <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto text-primary">
+                {/* PDF access */}
+                <ComingSoon>
+                  <button className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <FaRegFilePdf />
+                      <span>PDF</span>
+                    </div>
+                    <FaExternalLinkAlt className="w-3 h-3" />
+                  </button>
+                </ComingSoon>
+
+                {/* Latex access */}
+                <ComingSoon>
+                  <button className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <LuFileText />
+                      <span>Latex</span>
+                    </div>
+                    <FaExternalLinkAlt className="w-3 h-3" />
+                  </button>
+                </ComingSoon>
               </div>
-              <FaExternalLinkAlt className="w-3 h-3" />
-            </button>
-          </div>
+            </>
+          )}
         </div>
 
         <Separator className="bg-bg-light h-0.5! w-full" />
@@ -227,10 +248,20 @@ const Problem_Statement_card = ({
         {/* Problem Description & Submission */}
         <MathJaxContent className="flex flex-col gap-5 w-full">
           {/* Problem Description */}
-          <LatexStatement
-            className="problem-statement-latex text-text text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words"
-            value={problemCore?.description_latex || ""}
-          />
+          {coreLoading && !problemCore ? (
+            <div className="flex flex-col gap-3 w-full">
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-11/12" />
+              <Skeleton className="h-5 w-4/5" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-3/4" />
+            </div>
+          ) : (
+            <LatexStatement
+              className="problem-statement-latex text-text text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words"
+              value={problemCore?.description_latex || ""}
+            />
+          )}
         </MathJaxContent>
         {/* Problem Submission */}
         <form
@@ -278,7 +309,9 @@ const Problem_Statement_card = ({
         {/* Help */}
         <div className="w-full flex flex-col items-start gap-4 ">
           {/* Show calculator */}
-          <button className="text-primary underline">Show calculator</button>
+          <ComingSoon>
+            <button className="text-primary underline">Show calculator</button>
+          </ComingSoon>
           {/* How to submit */}
           <Collapsible className="flex flex-col gap-1">
             <CollapsibleTrigger className="" asChild>

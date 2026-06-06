@@ -10,6 +10,7 @@ import ProblemSetsLeftBarBottomSection from "./leftBarBottomSection";
 import ProblemSetLeftBarTopSection from "./leftBarTopSection";
 import RsvpButton from "@/components/rsvpButton";
 import { Suspense } from "react";
+import { SkeletonTable } from "./SkeletonTable";
 
 export default function LearningDashboard() {
   const trendingCompetitions = [
@@ -70,7 +71,7 @@ export default function LearningDashboard() {
         </div>
 
         <div className="space-y-1.5">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<SkeletonTable />}>
             <ProblemSetTable columns={columns} />
           </Suspense>
         </div>

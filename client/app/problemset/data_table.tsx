@@ -26,7 +26,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -180,8 +181,26 @@ export function ProblemSetTable<TData, TValue>({
 
       <div className="md:hidden space-y-3">
         {loading ? (
-          <div className="h-28 rounded-md bg-bg flex items-center justify-center">
-            <Loader2 className="w-7 h-7 animate-spin text-primary" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-md bg-bg p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                  <Skeleton className="h-6 w-12 rounded-md" />
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Skeleton className="h-5 w-14 rounded" />
+                  <Skeleton className="h-5 w-10 rounded" />
+                </div>
+                <div className="mt-3 flex gap-4">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-14" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : problems.length ? (
           problems.map((problem) => {
@@ -258,14 +277,19 @@ export function ProblemSetTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 8 }).map((_, i) => (
+                <TableRow key={i} className="border-none">
+                  <TableCell colSpan={columns.length} className="py-2">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : problems.length ? (
               table.getRowModel().rows.map((row, i) => {
                 const problem = row.original as Problem;

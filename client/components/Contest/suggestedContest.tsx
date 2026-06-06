@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import ContestListing from "@/app/contests/contestListing";
 import { ScrollArea } from "../ui/scroll-area";
 import useInfiniteScroll from "@/hook/useInfiniteScroll";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hook/useIsMobile";
 import MobileContentListing from "@/app/contests/mobileContentListing";
 import { Button } from "../ui/button";
@@ -151,11 +151,15 @@ const SuggestedContest = () => {
                         </div>
                       ))}
                       {liveContestsLoading && (
-                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                        <Skeleton className="h-20 w-full" />
                       )}
                     </div>
                   ) : liveContestsLoading ? (
-                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
                   ) : (
                     <div>
                       <span>No contests are currently live.</span>
@@ -178,11 +182,15 @@ const SuggestedContest = () => {
                         />
                       ))}
                       {upComingContestsLoading && (
-                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                        <Skeleton className="h-20 w-full" />
                       )}
                     </div>
                   ) : upComingContestsLoading ? (
-                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
                   ) : (
                     <div>
                       <span>
@@ -217,11 +225,15 @@ const SuggestedContest = () => {
                         </div>
                       ))}
                       {pastContestsLoading && (
-                        <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                        <Skeleton className="h-20 w-full" />
                       )}
                     </div>
                   ) : pastContestsLoading ? (
-                    <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
                   ) : (
                     <div>
                       <span>There are no contests to show</span>
