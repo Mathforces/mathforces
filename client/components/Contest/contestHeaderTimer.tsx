@@ -1,20 +1,19 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import Countdown, { CountdownApi } from "react-countdown";
+import { CountdownApi } from "react-countdown";
 import { FaHourglassHalf, FaStop } from "react-icons/fa6";
 import { VscDebugStart } from "react-icons/vsc";
 import { cn } from "@/lib/utils";
 import { getContestMode, getContestPhase } from "@/lib/contest";
 import { Contest } from "@/types/types";
+import CountdownTimer from "@/components/ui/countdownTimer";
 
 type Props = {
   contest: Contest;
 };
 
 type TimerStatus = "Start" | "Pause" | "Resume";
-
-const formatWithZeroes = (num: number) => `${num < 10 ? "0" : ""}${Math.floor(num)}`;
 
 function LiveTimer({ contest }: { contest: Contest }) {
   const phase = contest.contest_phase ?? getContestPhase(contest);
@@ -28,28 +27,18 @@ function LiveTimer({ contest }: { contest: Contest }) {
     <div className="flex min-w-0 gap-1">
       <div className="w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
         <FaHourglassHalf className="text-primary" />
-        <span className="hidden sm:inline text-xs text-muted-foreground">
-          {label}
-        </span>
         {phase === "ended" ? (
-          <span className="font-mono text-sm">00:00</span>
+          <>
+            <span className="hidden sm:inline text-xs text-muted-foreground">
+              {label}
+            </span>
+            <span className="font-mono text-sm">00m:00s</span>
+          </>
         ) : (
-          <Countdown
+          <CountdownTimer
             date={targetDate}
-            renderer={({ hours, minutes, seconds, completed, days }) => {
-              if (completed) return <span className="font-mono text-sm">00:00</span>;
-
-              const totalHours = hours + days * 24;
-              const hrs = formatWithZeroes(totalHours);
-              const mins = formatWithZeroes(minutes);
-              const secs = formatWithZeroes(seconds);
-
-              return (
-                <span className="font-mono text-sm">
-                  {totalHours > 0 ? `${hrs}:${mins}` : `${mins}:${secs}`}
-                </span>
-              );
-            }}
+            label={label}
+            className="hidden sm:inline"
           />
         )}
       </div>
@@ -69,10 +58,6 @@ function PracticeTimer({ contest }: { contest: Contest }) {
 
     return startTime + 1000 * 60 * contest.length_in_minutes;
   }, [contest.length_in_minutes, startTime]);
-
-  const setRef = (countdown: Countdown | null) => {
-    countdownApiRef.current = countdown?.getApi() ?? null;
-  };
 
   const toggleTimerStatus = () => {
     if (!countdownApiRef.current) return;
@@ -97,36 +82,14 @@ function PracticeTimer({ contest }: { contest: Contest }) {
     setTimerStatus("Start");
   };
 
-  const CountdownRenderer = ({
-    hours,
-    minutes,
-    seconds,
-  }: {
-    hours: number;
-    minutes: number;
-    seconds: number;
-    completed: boolean;
-  }) => {
-    const hrs = formatWithZeroes(hours);
-    const mins = formatWithZeroes(minutes);
-    const secs = formatWithZeroes(seconds);
-
-    if (hours > 0) {
-      return `${hrs}:${mins}`;
-    }
-
-    return `${mins}:${secs}`;
-  };
-
   return (
     <div className="flex min-w-0 gap-1">
       <div className="w-fit h-8 bg-card rounded-l-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
         <FaHourglassHalf className="text-primary" />
-        <Countdown
+        <CountdownTimer
           date={targetDate}
-          ref={setRef}
-          renderer={CountdownRenderer}
           autoStart={false}
+          countdownApiRef={countdownApiRef}
         />
       </div>
 
