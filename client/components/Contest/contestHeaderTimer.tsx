@@ -38,7 +38,6 @@ function LiveTimer({ contest }: { contest: Contest }) {
           <CountdownTimer
             date={targetDate}
             label={label}
-            className="hidden sm:inline"
           />
         )}
       </div>
