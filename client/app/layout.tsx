@@ -9,6 +9,7 @@ import Proivders from "./providers";
 import NavigationListener from "@/components/navigationListener";
 import localFont from "next/font/local";
 import ContentLayout from "@/components/contentLayout";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -160,6 +161,7 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
           strategy="afterInteractive"
         />
+        <Analytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
