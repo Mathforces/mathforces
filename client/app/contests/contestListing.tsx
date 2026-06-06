@@ -4,12 +4,24 @@ import Image from "next/image";
 import { formatDistance } from "date-fns";
 import No_solved_and_call_to_action from "@/components/contests/no_solved_and_call_to_action";
 import Link from "next/link";
+import { getContestPhase } from "@/lib/contest";
 
 type Props = {
   contest: Contest;
 };
 
 function ContestListing({ contest }: Props) {
+  const phase = contest.contest_phase ?? getContestPhase(contest);
+  const thumbnailColor = contest.id.charCodeAt(0) % 2 === 0 ? "yellow" : "blue";
+  const phaseLabel =
+    phase === "live"
+      ? "Live"
+      : phase === "upcoming"
+        ? "Upcoming"
+        : phase === "ended"
+          ? "Ended"
+          : "Practice";
+
   return (
     <Link href={`/contests/${contest.id}`}>
       <div className="flex items-center gap-3">
@@ -17,7 +29,7 @@ function ContestListing({ contest }: Props) {
         <div className="w-fit">
           {/* TODO: Add actual thumbnails or more options */}
           <Image
-            src={`/contest_thumbnail_${["yellow", "blue"][Math.round(Math.random())]}.png`}
+            src={`/contest_thumbnail_${thumbnailColor}.png`}
             alt="contest thumbnail"
             width={100}
             height={100}
@@ -28,7 +40,12 @@ function ContestListing({ contest }: Props) {
         <div className="flex items-center justify-between flex-1">
           {/* Title & Date */}
           <div className="text-left">
-            <h4 className="text-lg !font-normal ">{contest.name}</h4>
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-lg !font-normal ">{contest.name}</h4>
+              <span className="rounded-sm bg-bg-light px-1.5 py-0.5 text-xs text-muted-foreground">
+                {phaseLabel}
+              </span>
+            </div>
             <span className="text-muted-foreground text-sm">
               {getFormattedDate(contest.start_date).fullDate} (
               {formatDistance(contest.start_date, new Date(), {

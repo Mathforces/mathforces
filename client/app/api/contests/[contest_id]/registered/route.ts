@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { json, apiError, handleSupabaseError } from "@/lib/api/response";
+import { getContestPhase } from "@/lib/contest";
 
 export async function GET(
   request: Request,
@@ -21,29 +22,38 @@ export async function GET(
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ contest_id: string }> }) {
-  const supabase = await createSupabaseServerClient();
+  const authSupabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceClient();
   const body = await request.json();
   const contestId = (await params).contest_id;
+  const {
+    data: { user },
+    error: userError,
+  } = await authSupabase.auth.getUser();
 
-  // Check if contest is live and has ended — reject registration
-  const { data: contest } = await supabase
+  if (userError || !user) {
+    return apiError("You must be signed in to register", 401);
+  }
+  if (body.user_id && body.user_id !== user.id) {
+    return apiError("You can only register as the signed-in user", 403);
+  }
+
+  const { data: contest, error: contestError } = await supabase
     .from("contests")
-    .select("mode, end_date")
+    .select("id, mode, start_date, end_date")
     .eq("id", contestId)
     .single();
 
-  if (contest?.mode === "live") {
-    const now = new Date();
-    const endDate = new Date(contest.end_date);
-    if (now >= endDate) {
-      return apiError("This contest has already ended. Registration is closed.", 410);
-    }
+  const contestErr = handleSupabaseError(contestError, "contest");
+  if (contestErr) return contestErr;
+
+  if (getContestPhase(contest) === "ended") {
+    return apiError("This live contest has ended", 410);
   }
 
-  const serviceSupabase = createSupabaseServiceClient();
-  const { data, error } = await serviceSupabase
+  const { data, error } = await supabase
     .from("registered_in_contest")
-    .insert({ contest_id: contestId, user_id: body.user_id })
+    .insert({ contest_id: contestId, user_id: user.id })
     .select();
 
   const err = handleSupabaseError(error, "register");

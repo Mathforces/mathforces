@@ -10,12 +10,11 @@ import { IoIosSettings } from "react-icons/io";
 import ComingSoon from "../comingSoon";
 import Image from "next/image";
 import Link from "next/link";
+import { Contest } from "@/types/types";
 interface Props {
-  start_date: string | Date;
-  end_date: string | Date;
-  mode: "practice" | "live" | null;
+  contest: Contest;
 }
-const ContestHeader = ({ start_date, end_date, mode }: Props) => {
+const ContestHeader = ({ contest }: Props) => {
   return (
     <nav className="min-h-10 bg-transparent mb-2 w-full grid grid-cols-[auto_1fr_auto] md:flex md:justify-between items-center gap-2 md:gap-5 px-2 md:px-4 my-1">
       {/* Left section */}
@@ -61,11 +60,7 @@ const ContestHeader = ({ start_date, end_date, mode }: Props) => {
         </ComingSoon>
 
         {/* Timer */}
-        <ContestHeaderTimer
-          start_date={start_date}
-          end_date={end_date}
-          mode={mode}
-        />
+        <ContestHeaderTimer contest={contest} />
 
         {/* Help */}
         <ComingSoon>
@@ -88,7 +83,7 @@ const ContestHeader = ({ start_date, end_date, mode }: Props) => {
         </button>
 
         <div className="hidden md:flex items-center gap-1">
-          <img src={"/flame.svg"} className="w-5 h-5" />
+          <Image src="/flame.svg" alt="" width={20} height={20} />
           <span className="text-sm text-muted-foreground">1</span>
           {/* TODO: Replace with actual streak */}
           {/* <RiFireFill className="text-muted-foreground h-full w-full" /> */}

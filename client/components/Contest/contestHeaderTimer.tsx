@@ -1,89 +1,162 @@
 "use client";
+
+import { useMemo, useRef, useState } from "react";
+import Countdown, { CountdownApi } from "react-countdown";
+import { FaHourglassHalf, FaStop } from "react-icons/fa6";
+import { VscDebugStart } from "react-icons/vsc";
 import { cn } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
-import { FaHourglassHalf, FaHourglassStart, FaHourglassEnd } from "react-icons/fa6";
-import { getContestPhase, ContestPhase } from "@/types/types";
+import { getContestMode, getContestPhase } from "@/lib/contest";
+import { Contest } from "@/types/types";
 
 type Props = {
-  start_date: string | Date;
-  end_date: string | Date;
-  mode: "practice" | "live" | null;
+  contest: Contest;
 };
 
-const formatting_with_zeroes = (num: number) => {
-  return `${num < 10 ? "0" : ""}${Math.floor(num)}`;
-};
+type TimerStatus = "Start" | "Pause" | "Resume";
 
-export default function ContestHeaderTimer({ start_date, end_date, mode }: Props) {
-  const [now, setNow] = useState<number>(Date.now());
+const formatWithZeroes = (num: number) => `${num < 10 ? "0" : ""}${Math.floor(num)}`;
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const targetDate = useMemo(() => {
-    const phase = getContestPhase({ mode, start_date, end_date });
-    if (phase === "upcoming") return new Date(start_date).getTime();
-    return new Date(end_date).getTime();
-  }, [mode, start_date, end_date]);
-
-  const phase = useMemo(
-    () => getContestPhase({ mode, start_date, end_date }),
-    [mode, start_date, end_date, now],
-  );
-
-  const diff = useMemo(() => Math.max(0, targetDate - now), [targetDate, now]);
-
-  const days = useMemo(() => Math.floor(diff / (1000 * 60 * 60 * 24)), [diff]);
-  const hours = useMemo(() => Math.floor((diff / (1000 * 60 * 60)) % 24), [diff]);
-  const minutes = useMemo(() => Math.floor((diff / (1000 * 60)) % 60), [diff]);
-  const seconds = useMemo(() => Math.floor((diff / 1000) % 60), [diff]);
-
-  const timeDisplay = useMemo(() => {
-    if (days > 0) {
-      return `${days}d ${formatting_with_zeroes(hours)}h ${formatting_with_zeroes(minutes)}m`;
-    }
-    if (hours > 0) {
-      return `${formatting_with_zeroes(hours)}:${formatting_with_zeroes(minutes)}:${formatting_with_zeroes(seconds)}`;
-    }
-    return `${formatting_with_zeroes(minutes)}:${formatting_with_zeroes(seconds)}`;
-  }, [days, hours, minutes, seconds]);
-
-  if (phase === "ended") {
-    return (
-      <div className="w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3 opacity-60">
-        <FaHourglassEnd className="text-muted-foreground" />
-        <span className="text-xs font-mono text-muted-foreground">Ended</span>
-      </div>
-    );
-  }
+function LiveTimer({ contest }: { contest: Contest }) {
+  const phase = contest.contest_phase ?? getContestPhase(contest);
+  const targetDate =
+    phase === "upcoming"
+      ? new Date(contest.start_date).getTime()
+      : new Date(contest.end_date).getTime();
+  const label = phase === "upcoming" ? "Starts" : phase === "ended" ? "Ended" : "Ends";
 
   return (
     <div className="flex min-w-0 gap-1">
-      <div
-        className={cn(
-          "w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3",
-          phase === "upcoming" && "border border-dashed border-amber-500/40",
-        )}
-      >
-        {phase === "upcoming" ? (
-          <FaHourglassStart className="text-amber-500" />
-        ) : (
-          <FaHourglassHalf className="text-primary" />
-        )}
-        <span
-          className={cn(
-            "font-mono text-sm tabular-nums",
-            phase === "upcoming" && "text-amber-500",
-          )}
-        >
-          {timeDisplay}
+      <div className="w-fit h-8 bg-card rounded-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
+        <FaHourglassHalf className="text-primary" />
+        <span className="hidden sm:inline text-xs text-muted-foreground">
+          {label}
         </span>
-        {phase === "upcoming" && days === 0 && (
-          <span className="hidden sm:inline text-[10px] text-muted-foreground/60">to start</span>
+        {phase === "ended" ? (
+          <span className="font-mono text-sm">00:00</span>
+        ) : (
+          <Countdown
+            date={targetDate}
+            renderer={({ hours, minutes, seconds, completed, days }) => {
+              if (completed) return <span className="font-mono text-sm">00:00</span>;
+
+              const totalHours = hours + days * 24;
+              const hrs = formatWithZeroes(totalHours);
+              const mins = formatWithZeroes(minutes);
+              const secs = formatWithZeroes(seconds);
+
+              return (
+                <span className="font-mono text-sm">
+                  {totalHours > 0 ? `${hrs}:${mins}` : `${mins}:${secs}`}
+                </span>
+              );
+            }}
+          />
         )}
       </div>
     </div>
   );
+}
+
+function PracticeTimer({ contest }: { contest: Contest }) {
+  const countdownApiRef = useRef<CountdownApi | null>(null);
+  const [timerStatus, setTimerStatus] = useState<TimerStatus>("Start");
+  const [startTime, setStartTime] = useState<number | null>(null);
+
+  const targetDate = useMemo(() => {
+    if (startTime === null) {
+      return new Date().getTime() + 1000 * 60 * contest.length_in_minutes;
+    }
+
+    return startTime + 1000 * 60 * contest.length_in_minutes;
+  }, [contest.length_in_minutes, startTime]);
+
+  const setRef = (countdown: Countdown | null) => {
+    countdownApiRef.current = countdown?.getApi() ?? null;
+  };
+
+  const toggleTimerStatus = () => {
+    if (!countdownApiRef.current) return;
+
+    if (timerStatus === "Start") {
+      setStartTime(Date.now());
+      countdownApiRef.current.start();
+      setTimerStatus("Pause");
+    } else if (timerStatus === "Pause") {
+      setTimerStatus("Resume");
+      countdownApiRef.current.pause();
+    } else {
+      countdownApiRef.current.start();
+      setTimerStatus("Pause");
+    }
+  };
+
+  const stopTimer = () => {
+    if (!countdownApiRef.current) return;
+
+    countdownApiRef.current.stop();
+    setTimerStatus("Start");
+  };
+
+  const CountdownRenderer = ({
+    hours,
+    minutes,
+    seconds,
+  }: {
+    hours: number;
+    minutes: number;
+    seconds: number;
+    completed: boolean;
+  }) => {
+    const hrs = formatWithZeroes(hours);
+    const mins = formatWithZeroes(minutes);
+    const secs = formatWithZeroes(seconds);
+
+    if (hours > 0) {
+      return `${hrs}:${mins}`;
+    }
+
+    return `${mins}:${secs}`;
+  };
+
+  return (
+    <div className="flex min-w-0 gap-1">
+      <div className="w-fit h-8 bg-card rounded-l-md flex items-center gap-1.5 md:gap-2 p-2 px-2 md:px-3">
+        <FaHourglassHalf className="text-primary" />
+        <Countdown
+          date={targetDate}
+          ref={setRef}
+          renderer={CountdownRenderer}
+          autoStart={false}
+        />
+      </div>
+
+      <div className="w-fit h-8 bg-card rounded-r-md flex items-center p-2 gap-2 md:gap-4">
+        <button
+          className={cn(
+            "flex items-center justify-center gap-2 cursor-pointer opacity-70 hover:opacity-90",
+            timerStatus === "Pause" ? "*:!text-destructive" : "*:!text-success",
+          )}
+          onClick={() => toggleTimerStatus()}
+        >
+          <VscDebugStart />
+          <p className="hidden sm:block text-base font-mono">{timerStatus}</p>
+        </button>
+        {timerStatus !== "Start" && (
+          <button onClick={() => stopTimer()} className="cursor-pointer p-0">
+            <FaStop className="text-destructive text-sm" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function ContestHeaderTimer({ contest }: Props) {
+  const mode = getContestMode(contest);
+
+  if (mode === "live") {
+    return <LiveTimer contest={contest} />;
+  }
+
+  return <PracticeTimer contest={contest} />;
 }

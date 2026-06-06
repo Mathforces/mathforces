@@ -1,3 +1,5 @@
+import { ContestMode, ContestPhase } from "@/lib/contest";
+
 export const contestProblemDefaultValues = {
   id: "",
   name: "",
@@ -27,34 +29,13 @@ export interface FullProblem {
   editorial: string;
   index_in_contest: number;
 }
-export type ContestMode = "practice" | "live";
-
-export type ContestPhase = "upcoming" | "live" | "ended";
-
-/**
- * Determine the phase of a contest based on server timestamps.
- * Practice contests always return "live" for backward-compatible access.
- */
-export function getContestPhase(contest: {
-  mode?: ContestMode | null;
-  start_date: Date | string;
-  end_date: Date | string;
-}): ContestPhase {
-  if (contest.mode !== "live") return "live";
-
-  const now = new Date();
-  const start = new Date(contest.start_date);
-  const end = new Date(contest.end_date);
-
-  if (now < start) return "upcoming";
-  if (now >= end) return "ended";
-  return "live";
-}
-
 export interface Contest {
   id: string;
   name: string;
   description: string;
+  mode?: ContestMode;
+  contest_phase?: ContestPhase;
+  server_time?: string;
   like: number;
   difficulty: number;
   authors_ids: null | string;
@@ -65,7 +46,6 @@ export interface Contest {
   created_at: Date;
   length_in_minutes: number;
   problem_count: number;
-  mode: ContestMode | null;
 }
 
 export interface UserProfile {
@@ -253,9 +233,3 @@ export const rankingsList: Ranking[] = [
     color: "text-gray-700",
   },
 ];
-// export interface Ranking {
-//   ranking_title: Ranking_title;
-//   ranking_title_short: Ranking_title_short;
-//   minRating:
-// }
-//

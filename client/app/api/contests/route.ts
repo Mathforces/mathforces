@@ -8,6 +8,7 @@ import {
   paginate,
   parsePaginationParams,
 } from "@/lib/api/response";
+import { getContestPhase, getContestMode } from "@/lib/contest";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ function escapeHtml(value: string) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
 
@@ -50,7 +51,15 @@ export async function GET(request: Request) {
   const err = handleSupabaseError(error, "contests");
   if (err) return err;
 
-  return json(paginate(data, limit, "start_date"));
+  const serverNow = new Date();
+  const enrichedData = (data ?? []).map((contest) => ({
+    ...contest,
+    mode: getContestMode(contest),
+    contest_phase: getContestPhase(contest, serverNow),
+    server_time: serverNow.toISOString(),
+  }));
+
+  return json(paginate(enrichedData, limit, "start_date"));
 }
 
 export async function POST(request: Request) {

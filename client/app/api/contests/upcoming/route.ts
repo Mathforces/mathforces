@@ -5,6 +5,7 @@ import {
   handleSupabaseError,
   parsePaginationParams,
 } from "@/lib/api/response";
+import { getContestPhase, getContestMode } from "@/lib/contest";
 
 export async function GET(request: Request) {
   const rateLimitError = rateLimitPublic(request);
@@ -12,7 +13,8 @@ export async function GET(request: Request) {
 
   const { limit, pointer } = parsePaginationParams(request.url, 2);
   const offset = Math.max(0, Number(pointer ?? 0) || 0);
-  const now = new Date().toISOString();
+  const serverNow = new Date();
+  const now = serverNow.toISOString();
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -20,16 +22,22 @@ export async function GET(request: Request) {
     .select("*")
     .order("start_date", { ascending: false })
     .order("id", { ascending: true })
-    .gte("start_date", now)
+    .or(`start_date.gte.${now},end_date.gt.${now}`)
     .range(offset, offset + limit);
 
   const err = handleSupabaseError(error, "upcoming contests");
   if (err) return err;
 
   const safeData = data ?? [];
+  const enrichedData = safeData.map((contest) => ({
+    ...contest,
+    mode: getContestMode(contest),
+    contest_phase: getContestPhase(contest, serverNow),
+    server_time: serverNow.toISOString(),
+  }));
   const hasMore = safeData.length > limit;
   return json({
-    data: safeData.slice(0, limit),
+    data: enrichedData.slice(0, limit),
     hasMore,
     nextPointer: hasMore ? String(offset + limit) : null,
   });

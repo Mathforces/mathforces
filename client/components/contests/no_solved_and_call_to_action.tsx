@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getContestPhase } from "@/lib/contest";
 
 type Props = { contest: Contest };
 
@@ -14,6 +15,7 @@ function No_solved_and_call_to_action({ contest }: Props) {
   const userId = useProfile((state) => state.user?.id);
   const router = useRouter();
   const [solvedCount, setSolvedCount] = useState(0);
+  const phase = contest.contest_phase ?? getContestPhase(contest);
 
   useEffect(() => {
     let ignore = false;
@@ -67,7 +69,11 @@ function No_solved_and_call_to_action({ contest }: Props) {
           }
         });
     }
-    router.push(`/contests/${contest.id}`);
+    router.push(
+      phase === "ended"
+        ? `/contests/${contest.id}?tab=standings`
+        : `/contests/${contest.id}`,
+    );
   };
   return (
     <div className="flex items-center gap-2">
@@ -80,7 +86,7 @@ function No_solved_and_call_to_action({ contest }: Props) {
         className="bg-primary/25 border border-primary/75"
         onClick={() => handleRegister()}
       >
-        Practice
+        {phase === "live" ? "Enter" : phase === "upcoming" ? "Register" : "Practice"}
       </Button>
     </div>
   );

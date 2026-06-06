@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProblemStatus } from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,18 +26,17 @@ import { useProblems, useProfile, useShownProblemId } from "@/app/store";
 import { ScrollArea } from "../ui/scroll-area";
 import { generateId } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { ContestPhase } from "@/lib/contest";
 interface Props {
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
-  contestEnded?: boolean;
+  contestPhase?: ContestPhase;
 }
-
-// Answer checking is now done server-side in the submission POST endpoint.
 
 const Problem_Statement_card = ({
   problemsStatus,
   setProblemsStatus,
-  contestEnded = false,
+  contestPhase = "practice",
 }: Props) => {
   const schema = z.object({
     // TODO: Add checkers for submission guioelines
@@ -66,6 +66,7 @@ const Problem_Statement_card = ({
   const updateSubmission = useProblems(
     (state) => state.updateProblemSubmissions,
   );
+  const submissionsClosed = contestPhase === "ended" || contestPhase === "upcoming";
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${problemCore?.id}`, value);
@@ -88,11 +89,14 @@ const Problem_Statement_card = ({
             onClick: () => router.push("/sign_in"),
           },
         });
+      } else if (submissionsClosed) {
+        toast.error("Submissions are closed for this contest.");
       } else if (problemCore?.id) {
         const submission_data = {
           display_id: generateId(),
           problem_id: shownProblemId,
           user_answer,
+          status: "idle" as ProblemStatus,
           profiles: {
             username: userProfile.username,
           },
@@ -110,7 +114,7 @@ const Problem_Statement_card = ({
             },
           );
 
-          const serverStatus = res.data?.data?.status ?? "failure";
+          let status = res.data?.data?.status as ProblemStatus;
 
           updateSubmission({
             ...submission_data,
@@ -122,11 +126,11 @@ const Problem_Statement_card = ({
           setProblemsStatus((prev) => {
             const updated = {
               ...prev,
-              [problemCore.id]: serverStatus,
+              [problemCore.id]: status,
             };
             return updated;
           });
-          console.log("submission was successful, your status is: ", serverStatus);
+          console.log("submission was successful, your status is: ", status);
         } catch (err) {
           console.error(err);
           if (axios.isAxiosError<{ error?: string }>(err)) {
@@ -146,7 +150,7 @@ const Problem_Statement_card = ({
         }
       } else {
         toast.error(
-          "Couldn't submit. Problem data is not available. Try refreshing.",
+          "Couldn't get the problem statement. Try refreshing or reconnecting",
         );
       }
     }
@@ -245,6 +249,7 @@ const Problem_Statement_card = ({
                   aria-invalid={fieldState.invalid}
                   placeholder="Answer here..."
                   className="flex-1 border-none bg-bg-light! text-text-muted"
+                  disabled={submissionsClosed || form.formState.isSubmitting}
                   onChange={(e) => {
                     field.onChange(e);
                   }}
@@ -263,9 +268,9 @@ const Problem_Statement_card = ({
             type="submit"
             className="w-full sm:w-25 text-text"
             variant="primary"
-            disabled={form.formState.isSubmitting || contestEnded}
+            disabled={submissionsClosed || form.formState.isSubmitting}
           >
-            {contestEnded ? "Contest Ended" : "Submit"}
+            {contestPhase === "ended" ? "Contest Ended" : "Submit"}
           </Button>
         </form>
         <Separator className="bg-bg-light h-0.5! w-full" />

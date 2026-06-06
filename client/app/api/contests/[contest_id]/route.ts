@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
 import { json, apiError, handleSupabaseError } from "@/lib/api/response";
+import { getContestPhase, getContestMode } from "@/lib/contest";
 
 export async function GET(
   request: Request,
@@ -22,7 +23,14 @@ export async function GET(
   const err = handleSupabaseError(error, "contest");
   if (err) return err;
 
-  return json(data);
+  const serverNow = new Date();
+
+  return json({
+    ...data,
+    mode: getContestMode(data),
+    contest_phase: getContestPhase(data, serverNow),
+    server_time: serverNow.toISOString(),
+  });
 }
 
 export async function POST(request: Request) {
@@ -34,7 +42,12 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("contests")
-    .insert([body])
+    .insert([
+      {
+        ...body,
+        mode: body.mode === "live" ? "live" : "practice",
+      },
+    ])
     .select()
     .single();
 

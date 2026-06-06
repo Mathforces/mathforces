@@ -25,6 +25,13 @@ import TimePicker from "@/components/ui/timePicker";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "../hooks/useUser";
 import { supabase } from "@/lib/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const problemSchema = z
   .object({
@@ -111,6 +118,7 @@ const contestSchema = z
       .int("Difficulty must be a whole number")
       .min(0, "Difficulty cannot be negative")
       .max(10000, "Difficulty is too high"),
+    mode: z.enum(["practice", "live"]),
     start_date: z.date(),
     start_time: z.string(),
 
@@ -147,6 +155,7 @@ const CreateContest = ({}: Props) => {
       name: "",
       description: "",
       difficulty: 800,
+      mode: "practice",
       start_date: new Date(),
       start_time: getFormattedDate(new Date()).timeFull,
 
@@ -303,6 +312,28 @@ const CreateContest = ({}: Props) => {
                     )
                   }
                 />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
+          <Controller
+            name="mode"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="mode">Contest Mode</FieldLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="mode" className="w-full">
+                    <SelectValue placeholder="Select contest mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="practice">Practice</SelectItem>
+                    <SelectItem value="live">Live</SelectItem>
+                  </SelectContent>
+                </Select>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
