@@ -54,7 +54,7 @@ export async function GET(
       contest_id: s.contest_id as string | undefined,
       score: s.score as number | undefined,
       penalty: s.penalty as number | undefined,
-      elo_rating: profiles?.elo_rating ?? null,
+      elo_rating: profiles?.elo_rating ?? undefined,
       problem_scores: submissionsByUser[s.user_id as string] ?? {},
       profiles: {
         username: profiles?.username ?? "UNKNOWN",
