@@ -46,14 +46,14 @@ export async function GET(
     }
   }
 
-  const standings = (standingsData ?? []).map((s: Record<string, unknown>) => {
+  const standings: Standing[] = (standingsData ?? []).map((s: Record<string, unknown>) => {
     const profiles = s.profiles as { username: string; elo_rating: number } | null;
     return {
-      id: s.id,
-      user_id: s.user_id,
-      contest_id: s.contest_id,
-      score: s.score,
-      penalty: s.penalty,
+      id: s.id as string | undefined,
+      user_id: s.user_id as string | undefined,
+      contest_id: s.contest_id as string | undefined,
+      score: s.score as number | undefined,
+      penalty: s.penalty as number | undefined,
       elo_rating: profiles?.elo_rating ?? null,
       problem_scores: submissionsByUser[s.user_id as string] ?? {},
       profiles: {
@@ -62,7 +62,7 @@ export async function GET(
     };
   });
 
-  standings.sort((a, b) => (b?.score ?? 0) - (a?.score ?? 0));
+  standings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
   return json(standings);
 }
