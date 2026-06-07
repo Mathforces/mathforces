@@ -129,8 +129,8 @@ export default function Page() {
     pushTabParam(tab);
   };
   const getErrorMessage = (err: unknown, fallback: string) => {
-    if (axios.isAxiosError<{ message?: string }>(err)) {
-      return err.response?.data?.message || fallback;
+    if (axios.isAxiosError<{ message?: string; error?: string }>(err)) {
+      return err.response?.data?.message || err.response?.data?.error || fallback;
     }
 
     return fallback;
