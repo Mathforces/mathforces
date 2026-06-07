@@ -27,21 +27,22 @@ export async function GET(
 
   const { data: submissionsData, error: submissionsError } = await supabase
     .from("submissions")
-    .select("user_id, problem_id, score")
+    .select("user_id, problem_id, score, created_at")
     .in("user_id", userIds);
 
   const submissionsErr = handleSupabaseError(submissionsError, "submissions");
   if (submissionsErr) return submissionsErr;
 
-  const submissionsByUser: Record<string, Record<string, number>> = {};
+  const submissionsByUser: Record<string, Record<string, { score: number; created_at: string }>> = {};
   for (const sub of (submissionsData ?? []) as Array<Record<string, unknown>>) {
     const uid = sub.user_id as string;
     const pid = sub.problem_id as string;
     const score = sub.score as number;
+    const created_at = sub.created_at as string;
     if (!submissionsByUser[uid]) submissionsByUser[uid] = {};
-    const existing = submissionsByUser[uid][pid] ?? 0;
-    if (score > existing) {
-      submissionsByUser[uid][pid] = score;
+    const existing = submissionsByUser[uid][pid];
+    if (!existing || score > existing.score) {
+      submissionsByUser[uid][pid] = { score, created_at };
     }
   }
 

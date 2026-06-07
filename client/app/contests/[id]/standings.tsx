@@ -1,7 +1,8 @@
 "use client";
 import { safeNumber } from "@/lib/utils";
+import { getRankingColor } from "@/lib/ranking";
 import { useVirtualList } from "@/hook/useVirtualList";
-import { ContestProblem, Standing, rankingsList } from "@/types/types";
+import { ContestProblem, Standing } from "@/types/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import Link from "next/link";
@@ -13,9 +14,10 @@ const NARROW_THRESHOLD = 300;
 type Props = {
   contestId: string;
   problems: ContestProblem[];
+  contestStartDate: string;
 };
 
-const ContestStandings = ({ contestId, problems }: Props) => {
+const ContestStandings = ({ contestId, problems, contestStartDate }: Props) => {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [standingsLoading, setStandingsLoading] = useState(true);
   const [isNarrow, setIsNarrow] = useState(false);
@@ -151,10 +153,7 @@ const ContestStandings = ({ contestId, problems }: Props) => {
               const rank = globalIndex + 1;
               const username = standing?.profiles?.username ?? "UNKNOWN";
               const elo = standing.elo_rating ?? 0;
-              let color = "text-gray-500";
-              for (const r of rankingsList) {
-                if ((r.rating ?? 0) <= elo) color = r.color;
-              }
+              const color = getRankingColor(elo);
 
               return (
                 <div
@@ -168,7 +167,7 @@ const ContestStandings = ({ contestId, problems }: Props) => {
 
                   <Link
                     href={`/profile/${username}`}
-                    className={`w-28 shrink-0 text-sm font-medium truncate ${color} hover:underline`}
+                    className={`w-28 shrink-0 text-sm font-bold truncate ${color} hover:underline`}
                   >
                     {username}
                   </Link>
@@ -181,15 +180,34 @@ const ContestStandings = ({ contestId, problems }: Props) => {
                     >
                       <div className="flex gap-2">
                         {problems.map((problem) => {
-                          const myScore =
-                            standing.problem_scores?.[problem.id] ?? 0;
+                          const info = standing.problem_scores?.[problem.id];
+                          const myScore = info?.score ?? 0;
+                          let timeStr = "";
+                          if (info?.created_at && myScore > 0) {
+                            const elapsed =
+                              new Date(info.created_at).getTime() -
+                              new Date(contestStartDate).getTime();
+                            const totalMinutes = Math.floor(
+                              elapsed / 60000
+                            );
+                            const h = Math.floor(totalMinutes / 60);
+                            const m = totalMinutes % 60;
+                            timeStr = `(${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")})`;
+                          }
                           return (
-                            <span
+                            <div
                               key={problem.id}
-                              className="w-8 shrink-0 text-right text-xs text-muted-foreground tabular-nums"
+                              className="w-8 shrink-0 flex flex-col items-center leading-tight"
                             >
-                              {myScore}
-                            </span>
+                              <span className="text-xs font-semibold tabular-nums leading-tight data-[solved=true]:text-green-600 data-[solved=false]:text-muted-foreground/40" data-solved={myScore > 0}>
+                                {myScore > 0 ? myScore : "–"}
+                              </span>
+                              {timeStr && (
+                                <span className="text-[9px] text-muted-foreground/60 tabular-nums leading-none">
+                                  {timeStr}
+                                </span>
+                              )}
+                            </div>
                           );
                         })}
                       </div>

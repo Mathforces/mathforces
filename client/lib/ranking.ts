@@ -5,6 +5,7 @@ export function getRanking(eloRating: number): Ranking {
   for (const r of rankingsList) {
     if (r.rating !== undefined && r.rating <= eloRating) {
       userRanking = r;
+      break;
     }
   }
   return userRanking;

@@ -103,6 +103,11 @@ export interface ProblemCore {
   description_latex: string | null;
 }
 
+export type ProblemScoreInfo = {
+  score: number;
+  created_at: string;
+};
+
 export interface Standing {
   id?: string;
   user_id?: string;
@@ -110,7 +115,7 @@ export interface Standing {
   score?: number;
   penalty?: number;
   elo_rating?: number;
-  problem_scores?: Record<string, number>;
+  problem_scores?: Record<string, ProblemScoreInfo>;
   profiles: {
     username: string;
   };
