@@ -16,9 +16,10 @@ interface Props {
   setSubmissionType: Dispatch<SetStateAction<string>>;
   contestId?: string;
   contestPhase?: ContestPhase;
+  officialOnly?: boolean;
 }
 
-function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: Props) {
+function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase, officialOnly }: Props) {
   const userProfile = useProfile((state) => state.userProfile);
   const userProfileLoading = useProfile((state) => state.loading);
   const submissionsFetch = useProblems(
@@ -34,6 +35,10 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
     (state) => state.problems[problemId]?.submissions?.loading ?? true,
   );
 
+  const filteredSubmissions = officialOnly
+    ? submissions.filter((s) => s.is_official !== false)
+    : submissions;
+
   useEffect(() => {
     if (type && problemId) {
       submissionsFetch(problemId, type, userProfile?.id, contestId);
@@ -42,7 +47,7 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
 
   return (
     <>
-      {submissions.length > 0 ? (
+      {filteredSubmissions.length > 0 ? (
         <div className="flex flex-col gap-1 sm:gap-0">
           {/* Desktop header row */}
           <div className="hidden sm:flex gap-10 h-8 items-center px-3 text-xs text-muted-foreground font-medium">
@@ -54,7 +59,7 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
             <div className="w-16 text-right">Score</div>
           </div>
 
-          {submissions?.map((submission, i) => {
+          {filteredSubmissions?.map((submission, i) => {
             const { date, time, timezone } =
               submission?.formattedDate ?? defaultFormattedDate;
             const username =
@@ -68,6 +73,7 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
             const isLiveContest = contestPhase === "live";
             const isOwnSubmission = submission.user_id === userProfile?.id;
             const hideAnswer = isLiveContest && !isOwnSubmission;
+            const isUnofficial = submission.is_official === false;
 
             return (
               <div
@@ -125,6 +131,11 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
                     <span className="text-[10px] text-muted-foreground/50 truncate">
                       {submission.problems?.name ?? "Unknown"}
                     </span>
+                    {isUnofficial && (
+                      <span className="text-[9px] px-1 rounded bg-yellow-500/20 text-yellow-600 shrink-0">
+                        Unofficial
+                      </span>
+                    )}
                     <span className="text-[10px] text-muted-foreground/50 shrink-0">
                       {date} {time}
                     </span>
@@ -161,6 +172,11 @@ function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase }: 
                   <span className="text-text/60 w-20 truncate">
                     {submission.problems?.name}
                   </span>
+                  {isUnofficial && (
+                    <span className="text-[9px] px-1 rounded bg-yellow-500/20 text-yellow-600 shrink-0">
+                      Unofficial
+                    </span>
+                  )}
 
                   {/* Answer */}
                   <span

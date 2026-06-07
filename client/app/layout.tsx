@@ -9,6 +9,8 @@ import Proivders from "./providers";
 import NavigationListener from "@/components/navigationListener";
 import localFont from "next/font/local";
 import ContentLayout from "@/components/contentLayout";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -160,6 +162,11 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
           strategy="afterInteractive"
         />
+
+        {/* Deployment components */}
+        <Analytics />
+        <SpeedInsights />
+
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

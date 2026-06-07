@@ -13,6 +13,12 @@ export function apiError(message: string, status = 500): Response {
   return json({ error: message }, status);
 }
 
+export function redirectToSignIn(request: Request): Response {
+  const url = new URL(request.url);
+  const redirectUrl = encodeURIComponent(url.pathname + url.search);
+  return Response.redirect(new URL(`/sign_in?redirect_url=${redirectUrl}`, url), 302);
+}
+
 export function handleSupabaseError(
   error: { message: string } | null,
   context: string,

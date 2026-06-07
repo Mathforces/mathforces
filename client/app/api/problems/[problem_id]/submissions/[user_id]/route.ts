@@ -7,6 +7,7 @@ import {
   requireFields,
 } from "@/lib/api/response";
 import { requireContestAccess } from "@/lib/api/contestAccess";
+import { getContestPhase } from "@/lib/contest";
 import { isAcceptedAnswer } from "@/lib/answers";
 
 export async function GET(
@@ -66,14 +67,24 @@ export async function POST(
   const contest = Array.isArray(problem.contests)
     ? problem.contests[0]
     : problem.contests;
+
+  let isOfficial = true;
+
   if (contest) {
     const accessError = await requireContestAccess({
       supabase,
       contest,
       userId: user.id,
-      requireLiveWindow: true,
     });
     if (accessError) return accessError;
+
+    const phase = getContestPhase(contest);
+    if (phase === "upcoming") {
+      return apiError("This live contest has not started yet", 403);
+    }
+    if (phase === "ended") {
+      isOfficial = false;
+    }
   }
 
   if (typeof problem.answer !== "string") {
@@ -92,6 +103,7 @@ export async function POST(
       user_answer: body.user_answer,
       status,
       display_id: body.display_id,
+      is_official: isOfficial,
     })
     .select("*, profiles(username), problems(name)")
     .single();

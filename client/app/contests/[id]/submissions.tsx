@@ -23,11 +23,36 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
   const { contestPhase } = props;
   const { id: contest_id } = useParams();
   const [submissionType, setSubmissionType] = useState("your_submissions");
+  const [officialOnly, setOfficialOnly] = useState(false);
   return (
     <TabsContent
       value="submissions"
       className="w-full h-full p-2 flex flex-col gap-4"
     >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 rounded-md bg-bg-light p-0.5">
+          <button
+            onClick={() => setOfficialOnly(false)}
+            className={`px-2.5 py-1 text-xs rounded-sm transition-colors ${
+              !officialOnly
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setOfficialOnly(true)}
+            className={`px-2.5 py-1 text-xs rounded-sm transition-colors ${
+              officialOnly
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Official
+          </button>
+        </div>
+      </div>
       <ScrollArea className="h-full">
         <Tabs
           className="h-full"
@@ -52,6 +77,7 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
               type="your_submissions"
               setSubmissionType={setSubmissionType}
               contestPhase={contestPhase}
+              officialOnly={officialOnly}
             />
           </TabsContent>
 
@@ -61,16 +87,11 @@ const ContestSubmissions: React.FunctionComponent<ContestSubmissionsProps> = (
               setSubmissionType={setSubmissionType}
               contestId={contest_id as string}
               contestPhase={contestPhase}
+              officialOnly={officialOnly}
             />
           </TabsContent>
         </Tabs>
       </ScrollArea>
-      {/* {yourSubmissions?.map((submission) => ( */}
-      {/*   <div key={submission.id}> */}
-      {/*     <p>{submission.user_answer}</p> */}
-      {/*     <p>{submission.status}</p> */}
-      {/*   </div> */}
-      {/* ))} */}
     </TabsContent>
   );
 };

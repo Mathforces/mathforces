@@ -22,7 +22,7 @@ import ContestSubmissions from "./submissions";
 import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
-import { useShownProblemId } from "@/app/store";
+import { useShownProblemId, useProfile } from "@/app/store";
 import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
 import ComingSoon from "@/components/comingSoon";
@@ -42,6 +42,8 @@ export default function Page() {
   const { id: contest_id } = useParams();
   const router = useRouter();
   const contestParams = useSearchParams();
+
+  const user = useProfile((state) => state.user);
 
   const [contest, setContest] = useState<Contest | null>(null);
 
@@ -96,9 +98,9 @@ export default function Page() {
     ? getContestPhase(contest, now)
     : "practice";
   const contestMode = getContestMode(contest);
-  const isEndedLiveContest = contestMode === "live" && contestPhase === "ended";
+  const needsAuth = contestMode === "live" && contestPhase === "live";
   const canLoadContestProblems =
-    contestMode === "practice" || contestPhase === "live";
+    contestMode === "practice" || (contestPhase === "live" && !!user) || contestPhase === "ended";
 
   const pushTabParam = (tab: string) => {
     const params = new URLSearchParams(contestParams.toString());
@@ -126,8 +128,8 @@ export default function Page() {
     pushTabParam(tab);
   };
   const getErrorMessage = (err: unknown, fallback: string) => {
-    if (axios.isAxiosError<{ message?: string }>(err)) {
-      return err.response?.data?.message || fallback;
+    if (axios.isAxiosError<{ message?: string; error?: string }>(err)) {
+      return err.response?.data?.message || err.response?.data?.error || fallback;
     }
 
     return fallback;
@@ -156,12 +158,16 @@ export default function Page() {
   useEffect(() => {
     if (!contest || contestMode !== "live") return;
 
+    if (needsAuth && !user) {
+      router.push("/sign_in");
+    }
+
     const intervalId = window.setInterval(() => {
       setNow(new Date());
     }, 1000);
 
     return () => window.clearInterval(intervalId);
-  }, [contest, contestMode]);
+  }, [contest, contestMode, needsAuth, user, router]);
 
   useEffect(() => {
     if (!contest || !canLoadContestProblems) return;
@@ -194,24 +200,7 @@ export default function Page() {
     };
   }, [canLoadContestProblems, contest, contest_id]);
 
-  useEffect(() => {
-    if (!contest || !isEndedLiveContest) return;
 
-    setProblemsStatus({});
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(`problemsStatus-${contest.id}`);
-      for (const problem of problems) {
-        localStorage.removeItem(`input-problem-${problem.id}`);
-        localStorage.removeItem(`problem_${problem.id}_core`);
-      }
-    }
-
-    if (activeTabParam !== "standings") {
-      router.replace(`/contests/${contest.id}?tab=standings`, {
-        scroll: false,
-      });
-    }
-  }, [activeTabParam, contest, isEndedLiveContest, problems, router]);
 
   useEffect(() => {
     if (!canLoadContestProblems || problems.length === 0) return;

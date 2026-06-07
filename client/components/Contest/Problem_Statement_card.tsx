@@ -71,7 +71,7 @@ const Problem_Statement_card = ({
   const updateSubmission = useProblems(
     (state) => state.updateProblemSubmissions,
   );
-  const submissionsClosed = contestPhase === "ended" || contestPhase === "upcoming";
+  const submissionsClosed = contestPhase === "upcoming";
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${problemCore?.id}`, value);
@@ -84,7 +84,7 @@ const Problem_Statement_card = ({
       // validation
       // TODO: Make this a pop up
       if (!userProfile?.id) {
-        toast("You need to sign up first before submitting", {
+        toast("You need to sign up first before completing this action", {
           action: {
             label: "Signup",
             onClick: () => router.push("/sign_up"),
@@ -301,7 +301,7 @@ const Problem_Statement_card = ({
             variant="primary"
             disabled={submissionsClosed || form.formState.isSubmitting}
           >
-            {contestPhase === "ended" ? "Contest Ended" : "Submit"}
+            Submit
           </Button>
         </form>
         <Separator className="bg-bg-light h-0.5! w-full" />

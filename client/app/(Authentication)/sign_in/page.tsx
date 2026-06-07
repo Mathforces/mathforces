@@ -28,10 +28,14 @@ import React from "react";
 import { signIn } from "../utils";
 import { FaXTwitter } from "react-icons/fa6";
 import { supabase } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { HEADER_MARGIN } from "@/lib/utils";
-export default function Page() {
+import { Suspense } from "react";
+
+function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect_url") ?? "/";
   const schema = z.object({
     usernameOrEmail: z
       .string()
@@ -73,8 +77,7 @@ export default function Page() {
         } = await supabase.auth.getSession();
         if (currentSession) {
           toast.success("Successfully signed in!");
-          // Redirect to home page or dashboard
-          router.push("/");
+          router.push(redirectUrl);
           router.refresh();
         } else {
           toast.error("Session not found. Please try again.");
@@ -221,5 +224,13 @@ export default function Page() {
         <MathNoise />
       </section>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

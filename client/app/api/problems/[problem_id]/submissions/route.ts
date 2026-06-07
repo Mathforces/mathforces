@@ -12,6 +12,7 @@ export async function GET(
   const problemId = (await params).problem_id;
   const url = new URL(request.url);
   const contestId = url.searchParams.get("contest_id");
+  const officialOnly = url.searchParams.get("official_only") === "true";
 
   const {
     data: { user },
@@ -43,14 +44,20 @@ export async function GET(
     }
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("submissions")
     .select(
       isLive
-        ? "id, created_at, problem_id, user_id, display_id, status, score, user_answer, profiles(username), problems(name)"
+        ? "id, created_at, problem_id, user_id, display_id, status, score, is_official, user_answer, profiles(username), problems(name)"
         : "*, profiles(username), problems(name)",
     )
     .eq("problem_id", problemId);
+
+  if (officialOnly) {
+    query = query.eq("is_official", true);
+  }
+
+  const { data, error } = await query;
 
   const err = handleSupabaseError(error, "submissions");
   if (err) return err;

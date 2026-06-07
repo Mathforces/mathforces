@@ -48,27 +48,31 @@ function No_solved_and_call_to_action({ contest }: Props) {
   const displayedSolvedCount = userId ? solvedCount : 0;
 
   const handleRegister = async () => {
-    if (userId) {
-      axios
-        .post(`/api/contests/${contest.id}/registered`, { user_id: userId })
-        .then((res) => {
-          if (res) {
-            toast.success("Registered Successfully!");
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          if (
-            error.response.data.error.includes(
-              "duplicate key value violates unique constraint",
-            )
-          ) {
-            console.log("You are already registered to this contest");
-          } else {
-            console.error("Error Occured while registering to contest");
-          }
-        });
+    if (!userId) {
+      router.push("/sign_in");
+      return;
     }
+
+    axios
+      .post(`/api/contests/${contest.id}/registered`, { user_id: userId })
+      .then((res) => {
+        if (res) {
+          toast.success("Registered Successfully!");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        if (
+          error.response.data.error.includes(
+            "duplicate key value violates unique constraint",
+          )
+        ) {
+          console.log("You are already registered to this contest");
+        } else {
+          console.error("Error Occured while registering to contest");
+        }
+      });
+
     router.push(
       phase === "ended"
         ? `/contests/${contest.id}?tab=standings`
