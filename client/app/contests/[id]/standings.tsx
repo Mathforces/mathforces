@@ -1,8 +1,7 @@
 "use client";
 import { safeNumber } from "@/lib/utils";
-import { getRankingColor } from "@/lib/ranking";
 import { useVirtualList } from "@/hook/useVirtualList";
-import { ContestProblem, Standing } from "@/types/types";
+import { ContestProblem, Standing, rankingsList } from "@/types/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import Link from "next/link";
@@ -151,7 +150,11 @@ const ContestStandings = ({ contestId, problems }: Props) => {
               const globalIndex = startIndex + i;
               const rank = globalIndex + 1;
               const username = standing?.profiles?.username ?? "UNKNOWN";
-              const color = getRankingColor(standing.elo_rating ?? 0);
+              const elo = standing.elo_rating ?? 0;
+              let color = "text-gray-500";
+              for (const r of rankingsList) {
+                if ((r.rating ?? 0) <= elo) color = r.color;
+              }
 
               return (
                 <div
