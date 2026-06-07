@@ -39,6 +39,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      blogs: {
+        Row: {
+          comments_count: number
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          published: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          published?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          published?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blogs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contests: {
         Row: {
           authors_ids: string[] | null
@@ -166,6 +210,42 @@ export type Database = {
           },
         ]
       }
+      followers: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       problems: {
         Row: {
           answer: string | null
@@ -251,33 +331,99 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          contribution_rating: number
+          country: string | null
           created_at: string
+          elo_rating: number
           email: string | null
           first_name: string | null
+          followers_count: number
+          following_count: number
           id: string
+          image_url: string | null
           last_name: string | null
+          math_club: string | null
           ranking: string | null
           username: string | null
         }
         Insert: {
+          bio?: string | null
+          contribution_rating?: number
+          country?: string | null
           created_at?: string
+          elo_rating?: number
           email?: string | null
           first_name?: string | null
+          followers_count?: number
+          following_count?: number
           id?: string
+          image_url?: string | null
           last_name?: string | null
+          math_club?: string | null
           ranking?: string | null
           username?: string | null
         }
         Update: {
+          bio?: string | null
+          contribution_rating?: number
+          country?: string | null
           created_at?: string
+          elo_rating?: number
           email?: string | null
           first_name?: string | null
+          followers_count?: number
+          following_count?: number
           id?: string
+          image_url?: string | null
           last_name?: string | null
+          math_club?: string | null
           ranking?: string | null
           username?: string | null
         }
         Relationships: []
+      }
+      rating_history: {
+        Row: {
+          contest_id: string | null
+          created_at: string
+          id: string
+          rank_in_contest: number | null
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          rank_in_contest?: number | null
+          rating: number
+          user_id: string
+        }
+        Update: {
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          rank_in_contest?: number | null
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rating_history_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rating_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registered_in_contest: {
         Row: {
@@ -362,6 +508,7 @@ export type Database = {
           created_at: string
           display_id: string | null
           id: number
+          is_official: boolean
           problem_id: string | null
           score: number
           status: string | null
@@ -372,6 +519,7 @@ export type Database = {
           created_at?: string
           display_id?: string | null
           id?: number
+          is_official?: boolean
           problem_id?: string | null
           score?: number
           status?: string | null
@@ -382,6 +530,7 @@ export type Database = {
           created_at?: string
           display_id?: string | null
           id?: number
+          is_official?: boolean
           problem_id?: string | null
           score?: number
           status?: string | null

@@ -98,10 +98,9 @@ export default function Page() {
     ? getContestPhase(contest, now)
     : "practice";
   const contestMode = getContestMode(contest);
-  const isEndedLiveContest = contestMode === "live" && contestPhase === "ended";
   const needsAuth = contestMode === "live" && contestPhase === "live";
   const canLoadContestProblems =
-    contestMode === "practice" || (contestPhase === "live" && !!user);
+    contestMode === "practice" || (contestPhase === "live" && !!user) || contestPhase === "ended";
 
   const pushTabParam = (tab: string) => {
     const params = new URLSearchParams(contestParams.toString());
@@ -201,24 +200,7 @@ export default function Page() {
     };
   }, [canLoadContestProblems, contest, contest_id]);
 
-  useEffect(() => {
-    if (!contest || !isEndedLiveContest) return;
 
-    setProblemsStatus({});
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(`problemsStatus-${contest.id}`);
-      for (const problem of problems) {
-        localStorage.removeItem(`input-problem-${problem.id}`);
-        localStorage.removeItem(`problem_${problem.id}_core`);
-      }
-    }
-
-    if (activeTabParam !== "standings") {
-      router.replace(`/contests/${contest.id}?tab=standings`, {
-        scroll: false,
-      });
-    }
-  }, [activeTabParam, contest, isEndedLiveContest, problems, router]);
 
   useEffect(() => {
     if (!canLoadContestProblems || problems.length === 0) return;

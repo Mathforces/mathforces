@@ -85,6 +85,7 @@ export interface Submission {
   display_id?: string;
   user_answer?: string;
   status?: ProblemStatus;
+  is_official?: boolean;
   problems?: {
     name?: string;
   };
