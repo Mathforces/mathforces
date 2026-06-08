@@ -300,7 +300,7 @@ export default function Page() {
   // For live upcoming contests, show a waiting state
   if (contestMode === "live" && contestPhase === "upcoming") {
     return (
-      <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
+      <main className="h-[100svh] w-full flex flex-col overflow-hidden">
         <ContestHeader contest={contest} />
         <section className="flex flex-1 items-center justify-center rounded-sm bg-card">
           <div className="max-w-md text-center space-y-2">
@@ -316,7 +316,7 @@ export default function Page() {
 
   if (isMobile) {
     return (
-      <main className="h-[100svh] max-w-full px-2 py-1 flex flex-col overflow-hidden">
+      <main className="h-[100svh] w-full flex flex-col overflow-hidden">
         <ContestHeader contest={contest} />
 
         <Tabs
