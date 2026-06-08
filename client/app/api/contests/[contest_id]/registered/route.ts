@@ -1,73 +1,63 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
-import axios from "axios";
+import { json, apiError, handleSupabaseError } from "@/lib/api/response";
+import { getContestPhase } from "@/lib/contest";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ contest_id: string }> }
 ) {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const contestId = (await params).contest_id;
-    const { data: registeredIncontest, error } = await supabase
-      .from("registered_in_contest")
-      .select("*, profiles(name)")
-      .eq("contest_id", contestId);
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(JSON.stringify(registeredIncontest), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const supabase = await createSupabaseServerClient();
+  const contestId = (await params).contest_id;
+
+  const { data, error } = await supabase
+    .from("registered_in_contest")
+    .select("*, profiles(name)")
+    .eq("contest_id", contestId);
+
+  const err = handleSupabaseError(error, "registered users");
+  if (err) return err;
+
+  return json(data);
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ contest_id: string }> }) {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const body = await request.json();
-    const { user_id } = body;
-    const contest_id = (await params).contest_id;
+  const authSupabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceClient();
+  const body = await request.json();
+  const contestId = (await params).contest_id;
+  const {
+    data: { user },
+    error: userError,
+  } = await authSupabase.auth.getUser();
 
-    // When user doesn't exist add them 
-    const { data: registered_users, error } = await supabase
-      .from("registered_in_contest")
-      .insert({ contest_id, user_id })
-      .select();
-
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-
-    return new Response(JSON.stringify(registered_users), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+  if (userError || !user) {
+    return apiError("You must be signed in to register", 401);
   }
+  if (body.user_id && body.user_id !== user.id) {
+    return apiError("You can only register as the signed-in user", 403);
+  }
+
+  const { data: contest, error: contestError } = await supabase
+    .from("contests")
+    .select("id, mode, start_date, end_date")
+    .eq("id", contestId)
+    .single();
+
+  const contestErr = handleSupabaseError(contestError, "contest");
+  if (contestErr) return contestErr;
+
+  if (getContestPhase(contest) === "ended") {
+    return apiError("This live contest has ended", 410);
+  }
+
+  const { data, error } = await supabase
+    .from("registered_in_contest")
+    .insert({ contest_id: contestId, user_id: user.id })
+    .select();
+
+  const err = handleSupabaseError(error, "register");
+  if (err) return err;
+
+  return json(data, 201);
 }

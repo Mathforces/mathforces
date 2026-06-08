@@ -1,23 +1,24 @@
-import { MdOutlineRemoveShoppingCart } from "react-icons/md";
+import { ContestMode, ContestPhase } from "@/lib/contest";
 
 export const contestProblemDefaultValues = {
   id: "",
   name: "",
-  num_submissions: 0,
-  num_correct_submissions: 0,
+  submission_count: 0,
+  correct_submission_count: 0,
   points: 0,
-  likes: 0,
-  comments_num: 0,
+  difficulty: 1400,
+  likes_count: 0,
+  comments_count: 0,
   index_in_contest: 0,
 } as const;
-export type contestProblem = {
+export type ContestProblem = {
   [k in keyof typeof contestProblemDefaultValues]: (typeof contestProblemDefaultValues)[k];
 };
 export interface FullProblem {
   id: string;
   name: string | null;
-  num_submissions: number | null;
-  num_correct_submissions: number | null;
+  submission_count: number | null;
+  correct_submission_count: number | null;
   points: number | null;
   likes: number | null;
   comments_num: number | null;
@@ -32,6 +33,9 @@ export interface Contest {
   id: string;
   name: string;
   description: string;
+  mode?: ContestMode;
+  contest_phase?: ContestPhase;
+  server_time?: string;
   like: number;
   difficulty: number;
   authors_ids: null | string;
@@ -40,6 +44,8 @@ export interface Contest {
   end_date: Date;
   start_date: Date;
   created_at: Date;
+  length_in_minutes: number;
+  problem_count: number;
 }
 
 export interface UserProfile {
@@ -52,17 +58,20 @@ export interface UserProfile {
   image?: string;
   bio?: string;
 }
+
 export interface FormattedDate {
   time: string;
+  timeFull: string;
   date: string;
   timezone: string;
   fullDate: string;
 }
 
 export const defaultFormattedDate = {
-  time: "",
-  date: "",
-  timezone: "",
+  time: "10:30",
+  timeFull: "10:20:30",
+  date: "03/13/2026",
+  timezone: "UTC-2",
   fullDate: "",
 };
 
@@ -76,6 +85,7 @@ export interface Submission {
   display_id?: string;
   user_answer?: string;
   status?: ProblemStatus;
+  is_official?: boolean;
   problems?: {
     name?: string;
   };
@@ -89,9 +99,14 @@ export interface Submission {
 export interface ProblemCore {
   id: string;
   name: string;
-  description_html: string;
-  answer: string;
+  answer: string | null;
+  description_latex: string | null;
 }
+
+export type ProblemScoreInfo = {
+  score: number;
+  created_at: string;
+};
 
 export interface Standing {
   id?: string;
@@ -99,9 +114,10 @@ export interface Standing {
   contest_id?: string;
   score?: number;
   penalty?: number;
+  elo_rating?: number;
+  problem_scores?: Record<string, ProblemScoreInfo>;
   profiles: {
     username: string;
-    // avatar: string;
   };
 }
 
@@ -152,6 +168,15 @@ export interface Ranking {
   rating?: number;
   color: string;
 }
+
+export type UserRanking = {
+  id: string;
+  username: string;
+  ranking_num: number;
+  title_short: Ranking_title_short;
+  rating: number;
+  contests_entered_count: number;
+};
 
 export const rankingsList: Ranking[] = [
   {
@@ -215,8 +240,3 @@ export const rankingsList: Ranking[] = [
     color: "text-gray-700",
   },
 ];
-// export interface Ranking {
-//   ranking_title: Ranking_title;
-//   ranking_title_short: Ranking_title_short;
-//   minRating:
-// }

@@ -7,6 +7,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const safeNumber = (value: unknown, fallback = 0) => {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+};
+
+export const safePercent = (numerator: unknown, denominator: unknown) => {
+  const safeNumerator = safeNumber(numerator);
+  const safeDenominator = safeNumber(denominator);
+
+  if (safeDenominator <= 0) return 0;
+
+  return safeNumber(Math.round((safeNumerator / safeDenominator) * 100));
+};
+
 export const cleanStr = (str: string) => {
   str = str.trim().toLowerCase();
   return str;
@@ -35,6 +49,7 @@ export const getFormattedDate = (date?: string | Date) => {
   };
   return {
     time: `${get("hour")}:${get("minute")}`,
+    timeFull: `${get("hour")}:${get("minute")}:${get("second")}`,
     date: `${get("month")}/${get("day")}/${get("year")}`,
     timezone: `${get("timeZoneName")}`,
     fullDate: fullDate,
@@ -48,7 +63,7 @@ export const generateId = (length = 8) => {
     .join("");
 };
 
-export const HEADER_MARGIN = 56;
+export const HEADER_MARGIN = 64;
 
 export const styleUsername = (username: string, color: string) => {
   return `
@@ -59,4 +74,8 @@ export const styleUsername = (username: string, color: string) => {
       <span className=${color}>${username.slice(1)}</span>
     </span>
 `;
+};
+
+export const randomNum = (start: number = 0, end: number = 0) => {
+  return Math.floor(Math.random() * (end - start + 1)) + start;
 };

@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url("/fonts/satoshi/stylesheet.css") @import
-  url("/fonts/rawkner/stylesheet.css") @custom-variant dark (&: is(.dark *));
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   main {
@@ -50,6 +49,12 @@
   }
   p {
     @apply text-base md:text-lg text-black/50 dark:text-white/50;
+  }
+  .problem-statement-latex mjx-container {
+    font-size: 1em !important;
+  }
+  .problem-statement-latex mjx-container[display="true"] {
+    font-size: 1.08em !important;
   }
   .Link {
     @apply font-semibold text-primary/50 border-b border-primary/50 hover:text-primary hover:border-primary duration-300;
@@ -161,80 +166,51 @@
 :root {
   --radius: 0.625rem;
 
-  --background: #efefef;
+  /* Custom color palette - Dark mode */
+  --bg-dark: oklch(15.39% 0.013 292.47);
+  --bg: oklch(22.25% 0.016 290.81);
+  --bg-light: oklch(26.06% 0.019 285.04);
+  --text: oklch(95.21% 0 0);
+  --text-muted: oklch(58.49% 0.009 286.12);
+  --highlight: oklch(0.5 0.04 253);
+  --border: oklch(88.53% 0 0);
+  --border-muted: oklch(58.49% 0.009 286.12);
+  --primary: oklch(51.39% 0.237 268.18);
+  --secondary: oklch(82.83% 0.253 141.11);
+  --danger: oklch(61.85% 0.219 19.04);
+  --warning: oklch(79.495% 0.14952 81.663);
+  --success: oklch(0.7667 0.2499 141.52);
+  --info: oklch(0.7 0.05 260);
 
-  --foreground: #0c0b11;
-
-  --card: oklch(100% 0.00011 271.152 / 0.377);
-
-  --card-foreground: oklch(0.145 0 0);
-
-  --popover: oklch(100% 0.00011 271.152 / 0.377);
-
-  --popover-foreground: oklch(0.145 0 0);
-
-  --primary: #324eec;
-
-  --primary-foreground: oklch(0.985 0 0);
-
-  --secondary: #4eec32;
-
-  --secondary-foreground: oklch(0.205 0 0);
-
-  --muted: oklch(0.97 0 0);
-
-  --muted-foreground: oklch(0.556 0 0);
-
-  --accent: oklch(0.97 0 0);
-
-  --accent-foreground: oklch(0.205 0 0);
-
-  --destructive: oklch(0.577 0.245 27.325);
-
-  --border: oklch(92.191% 0.0001 271.152);
-
-  --input: oklch(0.922 0 0);
-
-  --ring: oklch(0.708 0 0);
-
-  --chart-1: oklch(0.646 0.222 41.116);
-
-  --chart-2: oklch(0.6 0.118 184.704);
-
-  --chart-3: oklch(0.398 0.07 227.392);
-
-  --chart-4: oklch(0.828 0.189 84.429);
-
-  --chart-5: oklch(0.769 0.188 70.08);
-
-  --sidebar: oklch(0.985 0 0);
-
-  --sidebar-foreground: oklch(0.145 0 0);
-
-  --sidebar-primary: oklch(0.205 0 0);
-
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-
-  --sidebar-accent: oklch(0.97 0 0);
-
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-
-  --sidebar-border: oklch(0.922 0 0);
-
-  --sidebar-ring: oklch(0.708 0 0);
-
-  /* Custom color palette - Light mode */
-  --bg-dark: oklch(0.95 0 0);
-  --bg: var(--background);
-  --bg-light: oklch(0.98 0 0);
-  --text: var(--foreground);
-  --text-muted: oklch(0.556 0 0);
-  --highlight: oklch(0.92 0.02 260);
-  --border-muted: oklch(0.85 0 0);
-  --danger: var(--destructive);
-  --warning: oklch(0.75 0.15 70);
-  --success: oklch(0.65 0.22 141);
-  --info: oklch(0.65 0.15 240);
+  /* Map to shadcn/ui variables for compatibility */
+  --background: var(--bg-dark);
+  --foreground: var(--text);
+  --card: var(--bg);
+  --card-foreground: var(--text);
+  --popover: var(--bg-light);
+  --popover-foreground: var(--text);
+  --primary-foreground: var(--text);
+  --secondary-foreground: var(--bg-dark);
+  --muted: var(--bg-light);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--highlight);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --input: var(--bg-light);
+  --ring: var(--border);
+  --chart-1: var(--info);
+  --chart-2: var(--success);
+  --chart-3: var(--warning);
+  --chart-4: var(--danger);
+  --chart-5: var(--secondary);
+  --sidebar: var(--bg);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--bg-dark);
+  --sidebar-accent: var(--bg-light);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border-muted);
+  --sidebar-ring: var(--border);
 }
 
 .dark {
@@ -261,7 +237,7 @@
   --card-foreground: var(--text);
   --popover: var(--bg-light);
   --popover-foreground: var(--text);
-  --primary-foreground: var(--text-text);
+  --primary-foreground: var(--text);
   --secondary-foreground: var(--bg-dark);
   --muted: var(--bg-light);
   --muted-foreground: var(--text-muted);

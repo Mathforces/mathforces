@@ -1,37 +1,29 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Google, FaceBook } from "@/components/ui/Custom_Icons";
+import { Google } from "@/components/ui/Custom_Icons";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import MathNoise from "@/components/ui/MathNoise";
 import { Separator } from "@/components/ui/separator";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import {
   Field,
-  FieldContent,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-  FieldTitle,
 } from "@/components/ui/field";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
-import { useEffect, useMemo, useState } from "react";
-import { BsExclamationCircle } from "react-icons/bs";
-import { TiTick } from "react-icons/ti";
+import { useState } from "react";
 import axios from "axios";
 import { debouncedIsUsernameUnique, signIn } from "../utils";
-import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
 import { HEADER_MARGIN } from "@/lib/utils";
 export default function Page() {
+  const [isUsernameUnique] = useState(debouncedIsUsernameUnique);
+
   const schema = z
     .object({
       username: z
@@ -54,9 +46,8 @@ export default function Page() {
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: "Passwords don't match",
-      path: ["confirmPassword", "password"],
+      path: ["confirmPassword"],
     });
-  const isUsernameUnique = useMemo(() => debouncedIsUsernameUnique(), []);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -68,14 +59,13 @@ export default function Page() {
     mode: "onChange",
     reValidateMode: "onChange",
   });
-  const [usernameExists, setUsernameExists] = useState<boolean | null>(null);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     axios
       .post("/api/auth/signup", data)
-      .then((res) => {
+      .then(() => {
         toast.success(
-          "Successfully signed up, check your email to activate your account",
+          "Successfully signed up, Check your email to confirm your account.",
         );
       })
       .catch((err) => {
@@ -84,15 +74,7 @@ export default function Page() {
         }
       });
   };
-  useEffect(() => {
-    if (usernameExists === true) {
-      form.setError("username", {
-        message: "Username is already taken",
-      });
-    } else if (usernameExists === false) {
-      form.clearErrors("username");
-    }
-  }, [usernameExists]);
+
   return (
     <main
       className="flex justify-center items-center max-w-[1444]! px-0 "
@@ -155,21 +137,7 @@ export default function Page() {
                       id="username"
                       aria-invalid={fieldState.invalid}
                       placeholder="e.g. piKiller2000"
-                      className={
-                        usernameExists === true
-                          ? "border-destructive dark:destructive/40"
-                          : usernameExists === false
-                            ? "border-success dark:ring-success/40"
-                            : ""
-                      }
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      {usernameExists ? (
-                        <BsExclamationCircle className="w-5 h-5 text-red-500" />
-                      ) : usernameExists === false ? (
-                        <TiTick className="w-5 h-5 text-success" />
-                      ) : null}
-                    </div>
                   </div>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -209,6 +177,12 @@ export default function Page() {
                     type="password"
                     aria-invalid={fieldState.invalid}
                     placeholder="*********"
+                    onChange={(event) => {
+                      field.onChange(event);
+                      if (form.getValues("confirmPassword")) {
+                        void form.trigger("confirmPassword");
+                      }
+                    }}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />

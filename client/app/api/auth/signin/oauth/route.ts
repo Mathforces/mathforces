@@ -1,53 +1,27 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { json, apiError } from "@/lib/api/response";
 
 export async function POST(request: Request) {
-  try {
-    const formData = await request.json();
-    const { provider } = formData;
-    if (!formData || !provider) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+  const body = await request.json();
+  if (!body?.provider) return apiError("Missing required field: provider", 400);
 
-    const supabaseServer = createSupabaseServerClient();
+  const supabaseServer = createSupabaseServerClient();
+  const origin = request.headers.get("origin") ?? new URL(request.url).origin;
+  const redirectPath =
+    typeof body.redirectPath === "string" && body.redirectPath.startsWith("/")
+      ? body.redirectPath
+      : "/";
 
-    const { data: signinData, error: signinError } = await (
-      await supabaseServer
-    ).auth.signInWithOAuth({
-      provider: provider,
-    });
+  const { data, error } = await (
+    await supabaseServer
+  ).auth.signInWithOAuth({
+    provider: body.provider,
+    options: {
+      redirectTo: `${origin}${redirectPath}`,
+    },
+  });
 
-    if (signinError) {
-      console.error("Sign in Error: ", signinError);
+  if (error) return apiError(error.message, 500);
 
-      return new Response(JSON.stringify({ error: signinError.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(
-      JSON.stringify({ success: true, url: signinData.url }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  } catch (error) {
-    console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
+  return json({ success: true, url: data.url }, 201);
 }

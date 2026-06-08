@@ -1,88 +1,39 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { json, apiError, requireFields } from "@/lib/api/response";
 
 export async function POST(request: Request) {
-  try {
-    const formData = await request.json();
+  const body = await request.json();
+  const missingFields = requireFields(body, ["usernameOrEmail", "password"]);
+  if (missingFields) return missingFields;
 
-    if (!formData || !formData.usernameOrEmail || !formData.password) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
+  const isEmail = (txt: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(txt);
 
-    const isEmail = (txt: string) => {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailPattern.test(txt);
-    }
-    const supabaseService = createSupabaseServiceClient();
-    const getEmailFromUsername = async(txt: string) => {
-        const { data, error } = await supabaseService
-          .from("profiles")
-          .select("email")
-          .eq("username", txt)
-          .single();
+  const supabaseService = createSupabaseServiceClient();
+  const getEmailFromUsername = async (txt: string) => {
+    const { data, error } = await supabaseService
+      .from("profiles")
+      .select("email")
+      .eq("username", txt)
+      .single();
 
-        if (error) {
-          console.error("Error fetching email:", error);
-          return null;
-        }
+    if (error) return null;
+    return data?.email || null;
+  };
 
-        return data?.email || null;
-    }
-    const email = isEmail(formData.usernameOrEmail) ? formData.usernameOrEmail : (await getEmailFromUsername(formData.usernameOrEmail));
+  const email = isEmail(body.usernameOrEmail)
+    ? body.usernameOrEmail
+    : await getEmailFromUsername(body.usernameOrEmail);
 
-    if (!email) {
-      return new Response(
-        JSON.stringify({ error: "User not found" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
+  if (!email) return apiError("User not found", 404);
 
-    const supabase = await createSupabaseServerClient();
-    const {data: signinData, error: signinError} =  await supabase.auth.signInWithPassword({
-        email: email, 
-        password: formData.password
-    })
-    if (signinError) {
-      console.error("Sign in Error: ", signinError);
-       
-      return new Response(
-        JSON.stringify({ error: signinError.message }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
+  const supabase = await createSupabaseServerClient();
+  const { data: signinData, error: signinError } = await supabase.auth.signInWithPassword({
+    email,
+    password: body.password,
+  });
 
-    // Return both user and session so client can verify
-    return new Response(JSON.stringify({ 
-      success: true, 
-      user: signinData.user,
-      session: signinData.session 
-    }), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
+  if (signinError) return apiError(signinError.message, 500);
+
+  return json({ success: true, user: signinData.user, session: signinData.session }, 201);
 }

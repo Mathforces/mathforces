@@ -1,80 +1,251 @@
+"use client";
 import { Contest } from "@/types/types";
-import { Radical } from "lucide-react";
-import Link from "next/link";
+import { Card, CardContent, CardHeader } from "../ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { useEffect, useMemo, useState } from "react";
+import ContestListing from "@/app/contests/contestListing";
+import { ScrollArea } from "../ui/scroll-area";
+import useInfiniteScroll from "@/hook/useInfiniteScroll";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hook/useIsMobile";
+import MobileContentListing from "@/app/contests/mobileContentListing";
 import { Button } from "../ui/button";
-import axios from "axios";
-import { useProfile } from "@/app/store";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-interface Props {
-  contests: Contest[];
-}
-const SuggestedContest = ({ contests }: Props) => {
-  const userId = useProfile((state) => state.user?.id)
-  const handleRegister = async (contestId: string) => {
-    axios.post(`/api/contests/${contestId}/registered`, { user_id: userId })
-      .then((res) => {
-        if (res) {
-          toast.success("Registered Successfully!")
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if(error.response.data.error.includes("duplicate key value violates unique constraint")){
-          console.log("You are already registered to this contest")
-          toast.error("You are already registered to this contest")
-        }
-        else{
-          toast.error("Error Occured while registering to contest")
-        }
-      })
-  }
+type ContestTypeTab = "live_contests" | "upcoming_contests" | "past_contests";
 
+const dedupeContests = (contests: Contest[] | null) => {
+  if (!contests) return null;
 
-  if (!contests || contests.length === 0) {
-    return (
-      <section className="flex flex-col justify-center items-center h-screen gap-4 px-3 text-center">
-        <div className="text-[150px] md:text-[200px] font-bold text-primary/20">
-          404
-        </div>
-        <h1 className="mb-2">Contest Not Found</h1>
+  const seen = new Set<string>();
+  return contests.filter((contest) => {
+    if (seen.has(contest.id)) return false;
+    seen.add(contest.id);
+    return true;
+  });
+};
 
-        <div className="mt-5 flex justify-center items-center gap-4">
-          <Link href={"/"}>
-            <Button variant="primary">Home</Button>
-          </Link>
-          <Link href={"/contests"}>
-            <Button variant="outline">Contests</Button>
-          </Link>
-        </div>
-      </section>
-    );
-  }
+const SuggestedContest = () => {
+  const [contestTypeTab, setContestTypeTab] =
+    useState<ContestTypeTab>("upcoming_contests");
+  const isMobile = useIsMobile();
+
+  const {
+    items: liveContests,
+    loading: liveContestsLoading,
+    observerTarget: liveContestsObserver,
+    loadMore: liveContestLoadMore,
+    isInitialized: liveContestsIsInitialized,
+  } = useInfiniteScroll({
+    apiUrl: "/api/contests/live",
+    options: { limit: 5, autoFetch: false },
+  });
+
+  const {
+    items: upComingContests,
+    loading: upComingContestsLoading,
+    observerTarget: UpcomingContestsObserver,
+    loadMore: upComingContestLoadMore,
+    isInitialized: upComingContestsIsInitialized,
+  } = useInfiniteScroll({
+    apiUrl: "/api/contests/upcoming",
+    options: { limit: 5, autoFetch: false },
+  });
+
+  const {
+    items: pastContests,
+    loading: pastContestsLoading,
+    observerTarget: pastContestsObserver,
+    loadMore: pastContestLoadMore,
+    isInitialized: pastContestsIsInitialized,
+  } = useInfiniteScroll({
+    apiUrl: "/api/contests/past",
+    options: { limit: 5, autoFetch: false },
+  });
+  const uniqueLiveContests = useMemo(
+    () => dedupeContests(liveContests),
+    [liveContests],
+  );
+  const uniqueUpcomingContests = useMemo(
+    () => dedupeContests(upComingContests),
+    [upComingContests],
+  );
+  const uniquePastContests = useMemo(
+    () => dedupeContests(pastContests),
+    [pastContests],
+  );
+  const activeContestTypeTab =
+    contestTypeTab === "upcoming_contests" &&
+    upComingContestsIsInitialized &&
+    !upComingContestsLoading &&
+    uniqueUpcomingContests?.length === 0
+      ? "past_contests"
+      : contestTypeTab;
+
+  useEffect(() => {
+    if (activeContestTypeTab === "live_contests" && !liveContestsIsInitialized) {
+      liveContestLoadMore();
+    } else if (
+      activeContestTypeTab === "upcoming_contests" &&
+      !upComingContestsIsInitialized
+    ) {
+      upComingContestLoadMore();
+    } else if (
+      activeContestTypeTab === "past_contests" &&
+      !pastContestsIsInitialized
+    ) {
+      pastContestLoadMore();
+    }
+  }, [
+    activeContestTypeTab,
+    liveContestLoadMore,
+    liveContestsIsInitialized,
+    pastContestLoadMore,
+    pastContestsIsInitialized,
+    upComingContestLoadMore,
+    upComingContestsIsInitialized,
+  ]);
+  // Handle error
+  const router = useRouter();
   return (
     <section className="w-full md:w-3/4 max-w-xl flex flex-col gap-5 my-5">
-      <h4 className=" flex items-center gap-2">
-        <Radical size={30} strokeWidth={3} className="text-primary" />
-        Suggested Contests
-      </h4>
-      <div className="flex flex-col gap-5">
-        {contests.map((contest, i) => (
-          <Link
-            key={contest.name + i}
-            href={`/contests/${contest.id}`}
-            className="p-6 rounded-2xl bg-card hover:-translate-y-0.5 duration-100 cursor-pointer flex justify-between"
-          >
-            <div>
-              <h4 className="text-primary text-xl font-semibold mb-2">
-                {contest.name}
-              </h4>
-              <p>{contest.description}</p>
-            </div>
-            <Button onClick={() => handleRegister(contest.id)}>Register</Button>
-          </Link>
-
-
-        ))}
-      </div>
+      <Tabs
+        defaultValue="upcoming_contests"
+        value={activeContestTypeTab}
+        onValueChange={(value) => setContestTypeTab(value as ContestTypeTab)}
+      >
+        <Card className="border-none *:px-3">
+          <CardHeader className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="live_contests" className="relative">
+                <span className="relative flex items-center gap-1.5">
+                  Live
+                  <span className="absolute -right-2 -top-1 w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="upcoming_contests">
+                Upcoming
+              </TabsTrigger>
+              <TabsTrigger value="past_contests">Past</TabsTrigger>
+            </TabsList>
+            <Button onClick={() => router.push("/create_contest")}>
+              Create
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <TabsContent value="live_contests">
+              <ScrollArea className="h-100">
+                <div>
+                  {uniqueLiveContests &&
+                  uniqueLiveContests.length > 0 ? (
+                    <div className="space-y-5">
+                      {uniqueLiveContests.map((contest: Contest) => (
+                        <div key={contest.id}>
+                          {isMobile ? (
+                            <MobileContentListing
+                              contest={contest}
+                            />
+                          ) : (
+                            <ContestListing contest={contest} />
+                          )}
+                        </div>
+                      ))}
+                      {liveContestsLoading && (
+                        <Skeleton className="h-20 w-full" />
+                      )}
+                    </div>
+                  ) : liveContestsLoading ? (
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <span>No contests are currently live.</span>
+                    </div>
+                  )}
+                  <div ref={liveContestsObserver}></div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+            <TabsContent value="upcoming_contests">
+              <ScrollArea className="h-100">
+                <div>
+                  {uniqueUpcomingContests &&
+                  uniqueUpcomingContests.length > 0 ? (
+                    <div className="space-y-5">
+                      {uniqueUpcomingContests.map((contest: Contest) => (
+                        <ContestListing
+                          key={contest.id}
+                          contest={contest}
+                        />
+                      ))}
+                      {upComingContestsLoading && (
+                        <Skeleton className="h-20 w-full" />
+                      )}
+                    </div>
+                  ) : upComingContestsLoading ? (
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <span>
+                        There are no upcoming contests as of now. Please check{" "}
+                        <button
+                          className="underline text-primary cursor-pointer"
+                          onClick={() => setContestTypeTab("past_contests")}
+                        >
+                          Past contests
+                        </button>
+                      </span>
+                    </div>
+                  )}
+                  <div ref={UpcomingContestsObserver}></div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+            <TabsContent value="past_contests">
+              <ScrollArea className="h-100">
+                <div>
+                  {uniquePastContests ? (
+                    <div className="space-y-5">
+                      {uniquePastContests.map((contest: Contest) => (
+                        <div key={contest.id}>
+                          {isMobile ? (
+                            <MobileContentListing
+                              contest={contest}
+                            />
+                          ) : (
+                            <ContestListing contest={contest} />
+                          )}
+                        </div>
+                      ))}
+                      {pastContestsLoading && (
+                        <Skeleton className="h-20 w-full" />
+                      )}
+                    </div>
+                  ) : pastContestsLoading ? (
+                    <div className="space-y-5">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <span>There are no contests to show</span>
+                    </div>
+                  )}
+                  <div ref={pastContestsObserver}></div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </CardContent>
+        </Card>
+      </Tabs>
     </section>
   );
 };

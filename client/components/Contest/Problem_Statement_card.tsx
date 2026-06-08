@@ -1,13 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Contest,
-  contestProblem,
-  FullProblem,
-  ProblemCore,
-  ProblemStatus,
-} from "@/types/types";
+import { ProblemStatus } from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,28 +13,32 @@ import { ChevronsUpDown } from "lucide-react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { LuFileText } from "react-icons/lu";
-import Problem_Card from "./Problem_Card";
-import { useState, useEffect, use, Dispatch, SetStateAction } from "react";
+import { useEffect, Dispatch, SetStateAction } from "react";
 import axios from "axios";
 import { MathJaxContent } from "@/components/ui/MathJaxContent";
-import parse from "html-react-parser";
+import { LatexStatement } from "@/components/ui/LatexStatement";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Field, FieldError, FieldLabel } from "../ui/field";
+import { Field, FieldError } from "../ui/field";
 import { toast } from "sonner";
-import { useUser } from "@/app/hooks/useUser";
 import { useProblems, useProfile, useShownProblemId } from "@/app/store";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "../ui/scroll-area";
+import ComingSoon from "../comingSoon";
 import { generateId } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { ContestPhase } from "@/lib/contest";
 interface Props {
   problemsStatus: Record<string, string>;
   setProblemsStatus: Dispatch<SetStateAction<Record<string, string>>>;
+  contestPhase?: ContestPhase;
 }
 
 const Problem_Statement_card = ({
   problemsStatus,
   setProblemsStatus,
+  contestPhase = "practice",
 }: Props) => {
   const schema = z.object({
     // TODO: Add checkers for submission guioelines
@@ -66,31 +64,44 @@ const Problem_Statement_card = ({
   const problemCore = useProblems(
     (state) => state.problems[shownProblemId]?.core,
   );
+  const coreLoading = useProblems(
+    (state) => state.problems[shownProblemId]?.coreLoading ?? false,
+  );
+  const router = useRouter();
   const updateSubmission = useProblems(
     (state) => state.updateProblemSubmissions,
   );
+  const submissionsClosed = contestPhase === "upcoming";
   const saveInputToLocalStorage = (value: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`input-problem-${problemCore?.id}`, value);
     }
   };
 
-  const onSubmit = ({ answer: user_answer }: z.infer<typeof schema>) => {
+  const onSubmit = async ({ answer: user_answer }: z.infer<typeof schema>) => {
     if (user_answer) {
       saveInputToLocalStorage(user_answer);
       // validation
-      if (problemCore?.answer && problemCore.id && userProfile?.id) {
-        let status: ProblemStatus = "idle";
-        if (user_answer === problemCore.answer) {
-          status = "success";
-        } else {
-          status = "failure";
-        }
+      // TODO: Make this a pop up
+      if (!userProfile?.id) {
+        toast("You need to sign up first before completing this action", {
+          action: {
+            label: "Signup",
+            onClick: () => router.push("/sign_up"),
+          },
+          cancel: {
+            label: "Login",
+            onClick: () => router.push("/sign_in"),
+          },
+        });
+      } else if (submissionsClosed) {
+        toast.error("Submissions are closed for this contest.");
+      } else if (problemCore?.id) {
         const submission_data = {
           display_id: generateId(),
           problem_id: shownProblemId,
           user_answer,
-          status,
+          status: "idle" as ProblemStatus,
           profiles: {
             username: userProfile.username,
           },
@@ -99,35 +110,52 @@ const Problem_Statement_card = ({
           },
           created_at: new Date(),
         };
-        updateSubmission(submission_data);
-        axios
-          .post(
+        try {
+          const res = await axios.post(
             `/api/problems/${problemCore.id}/submissions/${userProfile.id}`,
-            submission_data,
-          )
-          .then((res) => {
-            if (res) {
-              if (
-                status === "success" ||
-                problemsStatus[problemCore.id] === "success"
-              ) {
-                status = "success";
-              }
-              setProblemsStatus((prev) => {
-                return { ...prev, [problemCore.id]: status };
-              });
-              console.log("submission was sucessful, your status is: ", status);
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            toast.error(
-              "An Error has occured while submitting pls submit again, or try reconnecting",
-            );
+            {
+              display_id: submission_data.display_id,
+              user_answer: submission_data.user_answer,
+            },
+          );
+
+          let status = res.data?.data?.status as ProblemStatus;
+
+          updateSubmission({
+            ...submission_data,
+            ...res.data?.data,
+            profiles: submission_data.profiles,
+            problems: submission_data.problems,
           });
+
+          setProblemsStatus((prev) => {
+            const updated = {
+              ...prev,
+              [problemCore.id]: status,
+            };
+            return updated;
+          });
+          console.log("submission was successful, your status is: ", status);
+        } catch (err) {
+          console.error(err);
+          if (axios.isAxiosError<{ error?: string }>(err)) {
+            const message = err.response?.data?.error;
+            if (message) {
+              toast.error(message);
+            } else {
+              toast.error(
+                "An error occurred while submitting. Please submit again, or try reconnecting.",
+              );
+            }
+          } else {
+            toast.error(
+              "An error occurred while submitting. Please submit again, or try reconnecting.",
+            );
+          }
+        }
       } else {
         toast.error(
-          "Couldn't get the problem answer. Try refreshing or reconnecting",
+          "Couldn't get the problem statement. Try refreshing or reconnecting",
         );
       }
     }
@@ -142,7 +170,7 @@ const Problem_Statement_card = ({
         getCore();
       }
     }
-  }, [shownProblemId]);
+  }, [problemCore, shownProblemId]);
 
   useEffect(() => {
     if (problemCore) {
@@ -160,7 +188,7 @@ const Problem_Statement_card = ({
       };
       getInputFromLocalStorage();
     }
-  }, [problemCore]);
+  }, [form, problemCore]);
 
   if (!shownProblemId) return null;
 
@@ -168,52 +196,78 @@ const Problem_Statement_card = ({
     <ScrollArea className="h-full">
       <TabsContent
         value="problemStatement"
-        className="w-150 h-full mx-auto p-4 my-2 flex-col gap-4 flex items-center"
+        className="w-full max-w-3xl h-full mx-auto p-3 sm:p-4 my-0 sm:my-2 flex-col gap-4 flex items-center"
         key={problemCore?.id}
       >
         {/* Problem Header */}
         <div className="flex flex-col gap-2 mb-2 w-full">
-          <h1 className="text-2xl font-bold text-center">
-            Problem {problemCore?.name ?? "UNKNOWN"}
-          </h1>
-
-          {/* Methods to access problem */}
-          <div className="flex items-center gap-40 mx-auto text-primary">
-            {/* PDF access */}
-            <button className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <FaRegFilePdf />
-                <span>PDF</span>
+          {coreLoading && !problemCore ? (
+            <div className="flex flex-col items-center gap-2">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
               </div>
-              <FaExternalLinkAlt className="w-3 h-3" />
-            </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-center">
+                Problem {problemCore?.name ?? "UNKNOWN"}
+              </h1>
 
-            {/* Latex access */}
-            <button className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <LuFileText />
-                <span>Latex</span>
+              {/* Methods to access problem */}
+              <div className="flex items-center justify-between gap-6 w-full max-w-sm mx-auto text-primary">
+                {/* PDF access */}
+                <ComingSoon>
+                  <button className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <FaRegFilePdf />
+                      <span>PDF</span>
+                    </div>
+                    <FaExternalLinkAlt className="w-3 h-3" />
+                  </button>
+                </ComingSoon>
+
+                {/* Latex access */}
+                <ComingSoon>
+                  <button className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <LuFileText />
+                      <span>Latex</span>
+                    </div>
+                    <FaExternalLinkAlt className="w-3 h-3" />
+                  </button>
+                </ComingSoon>
               </div>
-              <FaExternalLinkAlt className="w-3 h-3" />
-            </button>
-          </div>
+            </>
+          )}
         </div>
+
         <Separator className="bg-bg-light h-0.5! w-full" />
 
         {/* Problem Description & Submission */}
         <MathJaxContent className="flex flex-col gap-5 w-full">
           {/* Problem Description */}
-          <div className="">
-            <p className="text-text text-sm">
-              {parse(problemCore?.description_html || "")}
-            </p>
-          </div>
+          {coreLoading && !problemCore ? (
+            <div className="flex flex-col gap-3 w-full">
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-11/12" />
+              <Skeleton className="h-5 w-4/5" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-3/4" />
+            </div>
+          ) : (
+            <LatexStatement
+              className="problem-statement-latex text-text text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words"
+              value={problemCore?.description_latex || ""}
+            />
+          )}
         </MathJaxContent>
         {/* Problem Submission */}
         <form
           action=""
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full max-w-2xl flex gap-4"
+          className="w-full max-w-2xl flex flex-col sm:flex-row gap-3 sm:gap-4"
         >
           <Controller
             name="answer"
@@ -226,6 +280,7 @@ const Problem_Statement_card = ({
                   aria-invalid={fieldState.invalid}
                   placeholder="Answer here..."
                   className="flex-1 border-none bg-bg-light! text-text-muted"
+                  disabled={submissionsClosed || form.formState.isSubmitting}
                   onChange={(e) => {
                     field.onChange(e);
                   }}
@@ -240,7 +295,12 @@ const Problem_Statement_card = ({
               </Field>
             )}
           />
-          <Button type="submit" className="w-25 text-text" variant="primary">
+          <Button
+            type="submit"
+            className="w-full sm:w-25 text-text"
+            variant="primary"
+            disabled={submissionsClosed || form.formState.isSubmitting}
+          >
             Submit
           </Button>
         </form>
@@ -249,7 +309,9 @@ const Problem_Statement_card = ({
         {/* Help */}
         <div className="w-full flex flex-col items-start gap-4 ">
           {/* Show calculator */}
-          <button className="text-primary underline">Show calculator</button>
+          <ComingSoon>
+            <button className="text-primary underline">Show calculator</button>
+          </ComingSoon>
           {/* How to submit */}
           <Collapsible className="flex flex-col gap-1">
             <CollapsibleTrigger className="" asChild>

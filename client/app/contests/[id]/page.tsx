@@ -1,10 +1,7 @@
 "use client";
-import { Fragment, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gauge, AlertCircle } from "lucide-react";
 import { useIsMobile } from "@/hook/useIsMobile";
 import {
   ResizableHandle,
@@ -12,7 +9,6 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import ContestHeader from "@/components/Contest/Header";
-import { BsTag } from "react-icons/bs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { MainTaps, ProblemsTap } from "@/data/Contest_Content";
@@ -20,50 +16,124 @@ import GraphCalculator from "@/components/Tools/Graph_Calc";
 import Problem_Statement_card from "@/components/Contest/Problem_Statement_card";
 import { GrUploadOption } from "react-icons/gr";
 import axios from "axios";
-import { Contest, contestProblem, FullProblem } from "@/types/types";
+import { Contest, ContestProblem } from "@/types/types";
 import Loading from "@/components/ui/Loading";
-import ProblemCard from "@/components/Contest/Problem_Card";
 import ContestSubmissions from "./submissions";
 import ContestProblems from "./problems";
 import ContestNotFound from "./contest_404";
 import ContestError from "./contest_error";
-import { useShownProblemId } from "@/app/store";
+import { useShownProblemId, useProfile } from "@/app/store";
 import ContestStandings from "./standings";
 import ScientificCalc from "@/components/Contest/scientificCalc";
+import ComingSoon from "@/components/comingSoon";
+import { getContestMode, getContestPhase } from "@/lib/contest";
+
+const bottomBarTabs = [
+  {
+    value: "submissions",
+    label: "Submissions",
+    icon: GrUploadOption,
+    color: "text-secondary",
+  },
+];
 
 export default function Page() {
   const isMobile = useIsMobile();
   const { id: contest_id } = useParams();
   const router = useRouter();
   const contestParams = useSearchParams();
-  const [showLevels, setShowLevels] = useState(false);
+
+  const user = useProfile((state) => state.user);
 
   const [contest, setContest] = useState<Contest | null>(null);
 
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<contestProblem[]>([]);
+  const [problems, setProblems] = useState<ContestProblem[]>([]);
   const { shownProblemId, setShownProblemId } = useShownProblemId();
-  const problemId = contestParams.get("problemId") || null;
+  const problemId = contestParams.get("problemId") ?? null;
+  const previousProblemIdParam = useRef<string | null>(null);
   const [problemsStatus, setProblemsStatus] = useState<Record<string, string>>(
     {},
   );
-
-  const bottomBarTabs = [
-    {
-      value: "submissions",
-      label: "Submissions",
-      icon: GrUploadOption,
-      color: "text-secondary",
-    },
-  ];
 
   const [leftBarActiveTab, setLeftBarActiveTab] = useState("problems");
   const [bottomBarActiveTab, setBottomBarActiveTab] = useState("submissions");
   const [rightBarActiveTab, setRightBarActiveTab] =
     useState("problemStatement");
-  const [expressions, setExpressions] = useState<any>(null);
+  const [mobileActiveTab, setMobileActiveTab] = useState("problemStatement");
+  const [expressions, setExpressions] = useState<unknown>(null);
+  const [now, setNow] = useState(() => new Date());
+  const activeTabParam = contestParams.get("tab");
+  const leftBarTabValues = useMemo(
+    () =>
+      ProblemsTap.filter((tab) => tab.status !== "coming soon").map(
+        (tab) => tab.value,
+      ),
+    [],
+  );
+  const rightBarTabValues = useMemo(
+    () =>
+      MainTaps.filter((tab) => tab.status !== "coming soon").map(
+        (tab) => tab.value,
+      ),
+    [],
+  );
+  const bottomBarTabValues = useMemo(
+    () => bottomBarTabs.map((tab) => tab.value),
+    [],
+  );
+  const mobileTabValues = useMemo(
+    () => [
+      "problemStatement",
+      ...leftBarTabValues,
+      ...rightBarTabValues,
+      ...bottomBarTabValues,
+    ],
+    [bottomBarTabValues, leftBarTabValues, rightBarTabValues],
+  );
+  const prevLocalStorage = useRef<Record<string, string> | null>(null);
+  const contestPhase = contest
+    ? getContestPhase(contest, now)
+    : "practice";
+  const contestMode = getContestMode(contest);
+  const needsAuth = contestMode === "live" && contestPhase === "live";
+  const canLoadContestProblems =
+    contestMode === "practice" || (contestPhase === "live" && !!user) || contestPhase === "ended";
+
+  const pushTabParam = (tab: string) => {
+    const params = new URLSearchParams(contestParams.toString());
+    params.set("tab", tab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const changeLeftBarTab = (tab: string) => {
+    setLeftBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeRightBarTab = (tab: string) => {
+    setRightBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeBottomBarTab = (tab: string) => {
+    setBottomBarActiveTab(tab);
+    pushTabParam(tab);
+  };
+
+  const changeMobileTab = (tab: string) => {
+    setMobileActiveTab(tab);
+    pushTabParam(tab);
+  };
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (axios.isAxiosError<{ message?: string; error?: string }>(err)) {
+      return err.response?.data?.message || err.response?.data?.error || fallback;
+    }
+
+    return fallback;
+  };
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -72,11 +142,10 @@ export default function Page() {
 
         const response = await axios.get(`/api/contests/${contest_id}`);
         setContest(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching contest:", err);
         setError(
-          err.response?.data?.message ||
-            "Failed to load contest. Please try again.",
+          getErrorMessage(err, "Failed to load contest. Please try again."),
         );
       } finally {
         setLoading(false);
@@ -84,57 +153,123 @@ export default function Page() {
     };
 
     fetchContest();
+  }, [contest_id]);
+
+  useEffect(() => {
+    if (!contest || contestMode !== "live") return;
+
+    if (needsAuth && !user) {
+      router.push("/sign_in");
+    }
+
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [contest, contestMode, needsAuth, user, router]);
+
+  useEffect(() => {
+    if (!contest || !canLoadContestProblems) return;
+
+    let ignore = false;
 
     const fetchProblems = async () => {
       try {
-        setLoading(true);
         setError(null);
 
         const response = await axios.get(
           `/api/contests/${contest_id}/problems`,
         );
-        if (response && response.data) {
-          if (!shownProblemId) {
-            setShownProblemId(response.data[0].id);
-          }
-          const problemsTemp = response.data as contestProblem[];
-          problemsTemp.sort((a: contestProblem, b: contestProblem) => {
-            return a.index_in_contest - b.index_in_contest;
-          });
-          setProblems(problemsTemp);
+        if (!ignore && response?.data) {
+          setProblems(response.data as ContestProblem[]);
         }
-      } catch (err: any) {
-        console.error("Error fetching problems:", err);
-        setError(
-          err.response?.data?.message ||
-            "Failed to load problems. Please try again.",
-        );
+      } catch (err: unknown) {
+        if (!ignore) {
+          console.error("Error fetching problems:", err);
+          setError(
+            getErrorMessage(err, "Failed to load problems. Please try again."),
+          );
+        }
       }
     };
     fetchProblems();
-  }, [contest_id]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [canLoadContestProblems, contest, contest_id]);
+
+
 
   useEffect(() => {
-    if (showLevels) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
+    if (!canLoadContestProblems || problems.length === 0) return;
+
+    const hasProblem = (id: string | null) =>
+      Boolean(id && problems.some((problem) => problem.id === id));
+    const problemIdParamChanged = previousProblemIdParam.current !== problemId;
+    previousProblemIdParam.current = problemId;
+
+    const urlProblemId = hasProblem(problemId) ? problemId : null;
+    const selectedProblemId = hasProblem(shownProblemId)
+      ? shownProblemId
+      : null;
+    const nextProblemId =
+      problemIdParamChanged && urlProblemId
+        ? urlProblemId
+        : selectedProblemId ?? urlProblemId ?? problems[0].id;
+
+    if (!nextProblemId) return;
+
+    if (shownProblemId !== nextProblemId) {
+      setShownProblemId(nextProblemId);
     }
-  }, [showLevels]);
+
+    if (problemId !== nextProblemId) {
+      const params = new URLSearchParams(contestParams.toString());
+      params.set("problemId", nextProblemId);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [
+    canLoadContestProblems,
+    contestParams,
+    problemId,
+    problems,
+    router,
+    setShownProblemId,
+    shownProblemId,
+  ]);
 
   useEffect(() => {
-    if (shownProblemId) {
-      if (shownProblemId != contestParams.get("problemId")) {
-        router.push(`?problemId=${shownProblemId}`);
-      }
+    if (!activeTabParam) return;
+
+    if (mobileTabValues.includes(activeTabParam)) {
+      setMobileActiveTab(activeTabParam);
     }
-  }, [shownProblemId]);
+
+    if (leftBarTabValues.includes(activeTabParam)) {
+      setLeftBarActiveTab(activeTabParam);
+    }
+
+    if (rightBarTabValues.includes(activeTabParam)) {
+      setRightBarActiveTab(activeTabParam);
+    }
+
+    if (bottomBarTabValues.includes(activeTabParam)) {
+      setBottomBarActiveTab(activeTabParam);
+    }
+  }, [
+    activeTabParam,
+    bottomBarTabValues,
+    leftBarTabValues,
+    mobileTabValues,
+    rightBarTabValues,
+  ]);
 
   // logging and importing problemsStatement to and from Local Storage
-  let prevLocalStorage: Record<string, string> | null = null;
   useEffect(() => {
     if (Object.keys(problemsStatus).length > 0) {
-      if (problemsStatus === prevLocalStorage) return;
+      if (problemsStatus === prevLocalStorage.current) return;
       if (contest && typeof window !== "undefined") {
         localStorage.setItem(
           `problemsStatus-${contest.id}`,
@@ -145,7 +280,7 @@ export default function Page() {
       if (contest) {
         const data = localStorage.getItem(`problemsStatus-${contest.id}`);
         if (data) {
-          prevLocalStorage = JSON.parse(data);
+          prevLocalStorage.current = JSON.parse(data);
           setProblemsStatus(JSON.parse(data));
         }
       }
@@ -162,101 +297,168 @@ export default function Page() {
     return <ContestNotFound />;
   }
 
+  // For live upcoming contests, show a waiting state
+  if (contestMode === "live" && contestPhase === "upcoming") {
+    return (
+      <main className="h-[100svh] w-full flex flex-col overflow-hidden">
+        <ContestHeader contest={contest} />
+        <section className="flex flex-1 items-center justify-center rounded-sm bg-card">
+          <div className="max-w-md text-center space-y-2">
+            <h1 className="text-2xl font-bold">{contest.name}</h1>
+            <p className="text-muted-foreground">
+              This live contest has not started yet.
+            </p>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <main className="h-[100svh] w-full flex flex-col overflow-hidden">
+        <ContestHeader contest={contest} />
+
+        <Tabs
+          value={mobileActiveTab}
+          onValueChange={changeMobileTab}
+          className="min-h-0 flex-1 flex flex-col rounded-sm bg-card"
+        >
+          <ScrollArea className="w-full shrink-0 border-b border-border/50">
+            <TabsList className="flex h-11 w-max min-w-full justify-start rounded-none bg-bg-light px-1">
+              <TabsTrigger value="problemStatement" className="h-9 shrink-0">
+                Statement
+              </TabsTrigger>
+              <TabsTrigger value="problems" className="h-9 shrink-0">
+                Problems
+              </TabsTrigger>
+              <TabsTrigger value="standings" className="h-9 shrink-0">
+                Standings
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="h-9 shrink-0">
+                Submissions
+              </TabsTrigger>
+              <ComingSoon disabled={false}>
+                <TabsTrigger
+                  value="graphingCalculator"
+                  className="h-9 shrink-0"
+                  disabled
+                >
+                  Graph
+                </TabsTrigger>
+              </ComingSoon>
+              <ComingSoon disabled={false}>
+                <TabsTrigger
+                  value="scientificCalculator"
+                  className="h-9 shrink-0"
+                  disabled
+                >
+                  Calc
+                </TabsTrigger>
+              </ComingSoon>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {mobileActiveTab == "problemStatement" && (
+              <Problem_Statement_card
+                setProblemsStatus={setProblemsStatus}
+                problemsStatus={problemsStatus}
+                contestPhase={contestPhase}
+              />
+            )}
+
+            {mobileActiveTab == "problems" && (
+              <ScrollArea className="h-full">
+                <ContestProblems
+                  contest={contest}
+                  problems={problems}
+                  problemsStatus={problemsStatus}
+                  onProblemSelect={() => changeMobileTab("problemStatement")}
+                />
+              </ScrollArea>
+            )}
+
+            {mobileActiveTab == "standings" && (
+                    <ContestStandings contestId={contest.id} problems={problems} contestStartDate={contest.start_date as unknown as string} />
+            )}
+
+            <ContestSubmissions contestPhase={contestPhase} />
+
+            <TabsContent value="graphingCalculator" className="h-full m-0">
+              <GraphCalculator
+                expressions={expressions}
+                setExpressions={setExpressions}
+              />
+            </TabsContent>
+
+            <TabsContent value="scientificCalculator" className="h-full m-0">
+              <ScientificCalc />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </main>
+    );
+  }
+
   return (
     <main className="h-screen! max-h-screen! max-w-full! px-1 flex flex-col py-1">
       {/* Contest Header */}
-      <ContestHeader />
-
-      {/* Problems Navigator for phones */}
-      {isMobile && (
-        <div className="fixed top-32 left-4 w-fit flex justify-center mb-3 z-50">
-          <Button
-            variant="primary"
-            onClick={() => setShowLevels((prev) => !prev)}
-          >
-            Problems
-            <Gauge size={35} strokeWidth={3} />
-          </Button>
-        </div>
-      )}
-
-      {/* Problems List Screen for phones */}
-      <div
-        className={`fixed top-0 left-0 bg-background px-4  rounded-2xl w-full mb-4 flex flex-col justify-center items-center gap-3 h-screen duration-150 ${
-          isMobile && showLevels ? "opacity-100 z-10" : "opacity-0 -z-10"
-        }`}
-      >
-        <h2 className="font-semibold text-center mb-2 flex justify-center items-center gap-2">
-          <Gauge size={25} strokeWidth={3} className="text-primary" /> Levels
-        </h2>
-        <div className="flex flex-wrap justify-center gap-4">
-          {problems.map((problem) => (
-            <Button
-              key={problem.id}
-              onClick={() => {
-                setShowLevels(false);
-              }}
-              className="justify-start text-2xl"
-            >
-              {problem.name}
-            </Button>
-          ))}
-        </div>
-      </div>
+      <ContestHeader contest={contest} />
 
       <ResizablePanelGroup direction="horizontal" className="flex flex-1">
         {/* Left Sidebar for Desktop  */}
         {!isMobile && (
           <>
             <ResizablePanel defaultSize={30}>
-              <section className="w-full h-full rounded-sm bg-card">
-                <ScrollArea className="h-full" type="always">
-                  <div className="h-full rounded-2xl w-full space-y-3">
-                    <Tabs
-                      defaultValue="problems"
-                      className="w-full"
-                      value={leftBarActiveTab}
-                      onValueChange={setLeftBarActiveTab}
-                    >
-                      <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
-                        {ProblemsTap.map((tab, i) => (
-                          <Fragment key={tab.value}>
-                            <TabsTrigger
-                              value={tab.value}
-                              className="h-full rounded-none bg-transparent! max-w-fit"
-                            >
-                              <tab.icon className={`${tab.color} w-4 h-4`} />
-                              <span className="hidden md:inline text-xs xl:text-sm">
-                                {tab.label}
-                              </span>
-                            </TabsTrigger>
+              <section className="w-full h-full rounded-sm bg-card flex flex-col min-h-0">
+                <Tabs
+                  defaultValue="problems"
+                  className="w-full flex flex-col min-h-0"
+                  value={leftBarActiveTab}
+                  onValueChange={changeLeftBarTab}
+                >
+                  <TabsList className="flex w-full h-10 shrink-0 justify-start bg-bg-light rounded-b-none">
+                    {ProblemsTap.map((tab, i) => (
+                      <Fragment key={tab.value}>
+                        <ComingSoon disabled={tab.status != "coming soon"}>
+                          <TabsTrigger
+                            value={tab.value}
+                            className="h-full rounded-none bg-transparent! max-w-fit"
+                            disabled={tab.status == "coming soon"}
+                          >
+                            <tab.icon className={`${tab.color} w-4 h-4`} />
+                            <span className="hidden md:inline text-xs xl:text-sm">
+                              {tab.label}
+                            </span>
+                          </TabsTrigger>
+                        </ComingSoon>
+                        {i < ProblemsTap.length - 1 && (
+                          <Separator
+                            orientation="vertical"
+                            className="h-4! bg-foreground/20"
+                          />
+                        )}
+                      </Fragment>
+                    ))}
+                  </TabsList>
 
-                            {i < ProblemsTap.length - 1 && (
-                              <Separator
-                                orientation="vertical"
-                                className="h-4! bg-foreground/20"
-                              />
-                            )}
-                          </Fragment>
-                        ))}
-                      </TabsList>
+                  {/* Problems */}
+                  {leftBarActiveTab == "problems" && (
+                    <div className="flex-1 min-h-0 overflow-auto">
+                      <ContestProblems
+                        contest={contest}
+                        problems={problems}
+                        problemsStatus={problemsStatus}
+                      />
+                    </div>
+                  )}
 
-                      {/* Problems */}
-                      {leftBarActiveTab == "problems" && (
-                        <ContestProblems
-                          contest={contest}
-                          problems={problems}
-                          problemsStatus={problemsStatus}
-                        />
-                      )}
-
-                      {leftBarActiveTab == "standings" && (
-                        <ContestStandings contestId={contest.id} />
-                      )}
-                    </Tabs>
-                  </div>
-                  <ScrollBar />
-                </ScrollArea>
+                  {leftBarActiveTab == "standings" && (
+              <ContestStandings contestId={contest.id} problems={problems} contestStartDate={contest.start_date as unknown as string} />
+                  )}
+                </Tabs>
               </section>
             </ResizablePanel>
             <ResizableHandle className="w-2 bg-transparent hover:bg-sidebar-border/60" />
@@ -273,26 +475,29 @@ export default function Page() {
                   defaultValue="problemStatement"
                   className="w-full h-full"
                   value={rightBarActiveTab}
-                  onValueChange={setRightBarActiveTab}
+                  onValueChange={changeRightBarTab}
                 >
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {MainTaps.map((tab, i) => (
                       <Fragment key={tab.value}>
-                        <TabsTrigger
-                          value={tab.value}
-                          className="h-full rounded-none bg-transparent! max-w-fit"
-                        >
-                          <tab.icon className={`${tab.color} w-4 h-4`} />
-                          <span className="hidden md:inline text-xs xl:text-sm">
-                            {tab.label}
-                          </span>
-                        </TabsTrigger>
-                        {i < MainTaps.length - 1 && (
-                          <Separator
-                            orientation="vertical"
-                            className="h-4! bg-foreground/20"
-                          />
-                        )}
+                        <ComingSoon disabled={tab.status != "coming soon"}>
+                          <TabsTrigger
+                            value={tab.value}
+                            className="h-full rounded-none bg-transparent! max-w-fit"
+                            disabled={tab.status == "coming soon"}
+                          >
+                            <tab.icon className={`${tab.color} w-4 h-4`} />
+                            <span className="hidden md:inline text-xs xl:text-sm">
+                              {tab.label}
+                            </span>
+                          </TabsTrigger>
+                          {i < MainTaps.length - 1 && (
+                            <Separator
+                              orientation="vertical"
+                              className="h-4! bg-foreground/20"
+                            />
+                          )}
+                        </ComingSoon>
                       </Fragment>
                     ))}
                   </TabsList>
@@ -300,6 +505,7 @@ export default function Page() {
                   <Problem_Statement_card
                     setProblemsStatus={setProblemsStatus}
                     problemsStatus={problemsStatus}
+                    contestPhase={contestPhase}
                   />
 
                   <TabsContent value="graphingCalculator">
@@ -324,7 +530,7 @@ export default function Page() {
                   defaultValue="submissions"
                   className="w-full h-full"
                   value={bottomBarActiveTab}
-                  onValueChange={setBottomBarActiveTab}
+                  onValueChange={changeBottomBarTab}
                 >
                   <TabsList className="flex w-full h-10 justify-start bg-bg-light rounded-b-none">
                     {bottomBarTabs.map((tab, i) => (
@@ -347,7 +553,7 @@ export default function Page() {
                       </Fragment>
                     ))}
                   </TabsList>
-                  <ContestSubmissions />
+                  <ContestSubmissions contestPhase={contestPhase} />
                 </Tabs>
               </section>
             </ResizablePanel>

@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import Proivders from "./providers";
-import { redirect } from "next/navigation";
 import NavigationListener from "@/components/navigationListener";
 import localFont from "next/font/local";
 import ContentLayout from "@/components/contentLayout";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -116,7 +116,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${rawkner.variable} ${satoshi.variable}`}
+      className={`${rawkner.variable} ${satoshi.variable} dark`}
     >
       <head>
         {/* MathJax v4 Configuration */}
@@ -141,7 +141,7 @@ export default function RootLayout({
           chtml: {
             // font variant
             scale: 1,
-            mtextInheritFont: true
+            mtextInheritFont: false
           },
           startup: {
             pageReady() {
@@ -162,15 +162,21 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
           strategy="afterInteractive"
         />
+
+        {/* Deployment components */}
+        <Analytics />
+        <SpeedInsights />
+
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <Proivders>
             <NavigationListener />
-            <ContentLayout children={children} />
+            <ContentLayout>{children}</ContentLayout>
             <Toaster />
             <Footer />
           </Proivders>

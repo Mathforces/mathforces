@@ -9,6 +9,17 @@ import { useProfile } from "@/app/store";
 import { Input } from "./ui/input";
 import { HeaderType } from "@/types/types";
 import { IoSearch } from "react-icons/io5";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
+import UserIcon from "./header/userIcon";
+import { useIsMobile } from "@/hook/useIsMobile";
+import ComingSoon from "./comingSoon";
 interface Props {
   type: HeaderType;
 }
@@ -16,19 +27,19 @@ const Navbar = ({ type }: Props) => {
   const pathName = usePathname();
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const userProfile = useProfile((state) => state.userProfile);
-  useEffect(() => {
-    console.log("userprofile: ", userProfile);
-  }, [userProfile]);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const isMobile = useIsMobile();
   const handleSearch = () => {
     router.push(`/problemset?query=${searchQuery}`);
   };
   return (
     <nav
-      className={`fixed top-0 left-0 w-full px-4 py-2 flex  ${type === "short" ? "justify-around" : type === "long" ? "justify-between" : ""} items-center gap-5 z-50 bg-bg-dark`}
+      className={`fixed top-0 left-0 w-full px-4 py-4 flex  ${type === "short" || isMobile ? "justify-around" : type === "long" ? "justify-between" : ""} items-center gap-5 z-50 bg-bg-dark`}
     >
+      {/* Right Side */}
       <div className="flex items-center gap-3">
+        {/* Logo */}
         <Link href="/">
           <h5 className="font-bold! flex items-end justify-end z-50">
             <div className="flex justify-end items-end">
@@ -45,6 +56,7 @@ const Navbar = ({ type }: Props) => {
           </h5>
         </Link>
 
+        {/* Nav links */}
         <div className="hidden md:flex">
           {MainLinks.map((link) => (
             <Link
@@ -62,61 +74,47 @@ const Navbar = ({ type }: Props) => {
         </div>
       </div>
 
+      {/* Left side */}
       <div className="hidden lg:flex items-center gap-4">
-        <form className="relative" onSubmit={() => handleSearch()}>
-          <Input
-            placeholder="Search for something..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {/* TODO: Replace with search icon  */}
-          <button
-            type="submit"
-            className="bg-primary flex items-center justify-center rounded-md absolute right-0 top-0 p-2  h-full"
-          >
-            <IoSearch className="" />
+        {/* Search bar */}
+        {/* <form className="relative" onSubmit={() => handleSearch()}> */}
+        {/*   <Input */}
+        {/*     placeholder="Search for something..." */}
+        {/*     value={searchQuery} */}
+        {/*     onChange={(e) => setSearchQuery(e.target.value)} */}
+        {/*   /> */}
+        {/*   <button */}
+        {/*     type="submit" */}
+        {/*     className="bg-primary flex items-center justify-center rounded-md absolute right-0 top-0 p-2  h-full" */}
+        {/*   > */}
+        {/*     <IoSearch className="" /> */}
+        {/*   </button> */}
+        {/* </form> */}
+
+        {/* Settings */}
+        <ComingSoon>
+          <button disabled>
+            <Settings className="w-4 h-4" />
           </button>
-        </form>
-        <button disabled>
-          <Settings className="w-4 h-4" />
-        </button>
-        {userProfile?.id ? (
-          <div className="w-10 h-10 rounded-full bg-primary flex justify-center items-center uppercase text-white text-sm font-bold cursor-pointer">
-            {userProfile.username
-              ? userProfile.username.charAt(0).toUpperCase()
-              : ""}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button
-              variant={"primary"}
-              link="/sign_up"
-              className="text-xs py-0"
-            >
-              Sign Up
-            </Button>
-            <Button
-              variant={"outline"}
-              link="/sign_in"
-              className="text-xs py-2"
-            >
-              Sign in
-            </Button>
-          </div>
-        )}
-        <Button
-          variant={"outline"}
-          onClick={() => setOpenMenu(!openMenu)}
-          className="text-primary hover:text-primary/80 md:hidden"
-        >
-          <Logs size={35} strokeWidth={3} />
-        </Button>
+        </ComingSoon>
+
+        {/* Icon && Logins */}
+        <UserIcon />
       </div>
+
+      {/* Mobile Menu button  */}
+      <Button
+        variant={"outline"}
+        onClick={() => setOpenMenu(!openMenu)}
+        className="text-primary absolute top-1/2 -translate-y-1/2 right-5 focus:text-primary/80 md:hidden !px-2 py-1 "
+      >
+        <Logs size={10} strokeWidth={3} />
+      </Button>
 
       {/* for mobile */}
       <div
         className={`absolute top-20 left-0 w-full bg-white/10 backdrop-blur-xs flex flex-col items-center md:hidden py-5
-    transition-all duration-300 ease-out 
+    transition-all duration-300 ease-out
     ${
       openMenu
         ? "opacity-100 translate-y-0"

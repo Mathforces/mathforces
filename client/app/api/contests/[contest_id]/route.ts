@@ -1,87 +1,57 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { protectApiEndpoint, rateLimitPublic } from "@/lib/api/auth";
+import { json, apiError, handleSupabaseError } from "@/lib/api/response";
+import { getContestPhase, getContestMode } from "@/lib/contest";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ contest_id: string }> }
 ) {
-  try {
-    // Rate limit public GET requests
-    const rateLimitError = rateLimitPublic(request);
-    if (rateLimitError) {
-      return rateLimitError;
-    }
+  const rateLimitError = rateLimitPublic(request);
+  if (rateLimitError) return rateLimitError;
 
-    const supabase = await createSupabaseServerClient();
-    const contestId = (await params).contest_id;
-    const { data: contest, error } = await supabase
-      .from("contests")
-      .select("*")
-      .eq("id", contestId)
-      .single();
+  const supabase = await createSupabaseServerClient();
+  const contestId = (await params).contest_id;
 
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+  const { data, error } = await supabase
+    .from("contests")
+    .select("*")
+    .eq("id", contestId)
+    .single();
 
-    return new Response(JSON.stringify(contest), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const err = handleSupabaseError(error, "contest");
+  if (err) return err;
+
+  const serverNow = new Date();
+
+  return json({
+    ...data,
+    mode: getContestMode(data),
+    contest_phase: getContestPhase(data, serverNow),
+    server_time: serverNow.toISOString(),
+  });
 }
 
 export async function POST(request: Request) {
-  try {
-    // Require API key for POST requests
-    const authError = protectApiEndpoint(request);
-    if (authError) {
-      return authError;
-    }
+  const authError = protectApiEndpoint(request);
+  if (authError) return authError;
 
-    // Use service role client for authenticated operations
-    const supabase = createSupabaseServiceClient();
-    
-    // Parse request body
-    const body = await request.json();
+  const supabase = createSupabaseServiceClient();
+  const body = await request.json();
 
-    const { data, error } = await supabase
-      .from("contests")
-      .insert([body])
-      .select()
-      .single();
-
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("POST error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
+  const { data, error } = await supabase
+    .from("contests")
+    .insert([
       {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+        ...body,
+        mode: body.mode === "live" ? "live" : "practice",
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) return apiError(error.message, 500);
+
+  return json(data, 201);
 }

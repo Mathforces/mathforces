@@ -1,9 +1,18 @@
 import axios from "axios";
-import { toast } from "sonner";
 
 export const signIn = async (provider: "google" | "x") => {
   try {
-    const res = await axios.post("/api/auth/signin/oauth", { provider });
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    const redirectPath = ["/sign_in", "/sign_up"].includes(
+      window.location.pathname,
+    )
+      ? "/"
+      : currentPath;
+
+    const res = await axios.post("/api/auth/signin/oauth", {
+      provider,
+      redirectPath,
+    });
     if (res) {
       window.open(res.data.url)?.focus();
     }
@@ -20,11 +29,16 @@ const isUsernameUnique = async (value: string): Promise<boolean> => {
     });
     const isUnique = !res.data.exists;
     return isUnique;
-  } catch (err: any) {
-    console.error(err.response?.data?.error);
+  } catch (err: unknown) {
+    console.error(
+      axios.isAxiosError<{ error?: string }>(err)
+        ? err.response?.data?.error
+        : err,
+    );
     return false;
   }
 };
+
 export const debouncedIsUsernameUnique = () => {
   let timeoutId: NodeJS.Timeout;
   let lastPromise: Promise<boolean>;
@@ -38,4 +52,4 @@ export const debouncedIsUsernameUnique = () => {
       }, 500);
     });
   };
-}
+};

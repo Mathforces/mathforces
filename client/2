@@ -1,0 +1,34 @@
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type Props = {};
+
+const SKEW_VALUE = "-skew-x-50";
+function RegionalRanking({}: Props) {
+  return (
+    <div className="px-5">
+      <div className="relative">
+        <div
+          className={`absolute top-0 left-0 ${SKEW_VALUE} w-50 h-full rounded-sm bg-bg-light `}
+        ></div>
+        <Tabs className="w-full items-center">
+          <TabsList className="bg-transparent space-x-3 py-1 px-2">
+            <TabsTrigger
+              value="global"
+              className="px-5 relative bg-transparent data-[state=active]:*:!bg-primary"
+            >
+              <div
+                className={`absolute top-0 left-0 ${SKEW_VALUE} w-full h-full rounded-sm `}
+              ></div>
+
+              <span className="z-50">Global</span>
+            </TabsTrigger>
+            {/* TODO: Apply local user region */}
+            <TabsTrigger value="my_region">Middle East</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
+
+export default RegionalRanking;

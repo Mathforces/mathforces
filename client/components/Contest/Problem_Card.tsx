@@ -1,116 +1,78 @@
 "use client";
 
-import { Dispatch, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { MessageSquare, ThumbsUp } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { contestProblem } from "@/types/types";
-import { cn } from "@/lib/utils";
+import { ContestProblem } from "@/types/types";
+import { cn, safeNumber, safePercent } from "@/lib/utils";
 import { useShownProblemId } from "@/app/store";
 
 interface Props {
-  problem: contestProblem;
+  problem: ContestProblem;
   problemsStatus: Record<string, string>;
+  onProblemSelect?: () => void;
 }
 
-const Problem_Card = ({
-  problem,
-  problemsStatus,
-}: Props) => {
-  const {shownProblemId, setShownProblemId} = useShownProblemId();
-  const pathName = usePathname();
-  const isInContest = pathName.includes(`/contests/${problem.id}`);
+const Problem_Card = ({ problem, problemsStatus, onProblemSelect }: Props) => {
+  const { shownProblemId, setShownProblemId } = useShownProblemId();
+  const submissionCount = safeNumber(problem.submission_count);
+  const correctSubmissionCount = safeNumber(problem.correct_submission_count);
+  const solvedPercentage = safePercent(correctSubmissionCount, submissionCount);
+  const handleProblemSelect = () => {
+    setShownProblemId(problem.id);
+    onProblemSelect?.();
+  };
 
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [isTiny, setIsTiny] = useState(false);
-  const [isSoTiny, setIsSoTiny] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const RO = (window as any).ResizeObserver;
-    if (!RO) return;
-
-    let raf = 0;
-    const observer = new RO((entries: ResizeObserverEntry[]) => {
-      const entry = entries[0];
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const w = Math.round(entry.contentRect.width);
-        setIsTiny(w < 380);
-        setIsSoTiny(w < 300);
-      });
-    });
-
-    observer.observe(el);
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-    };
-  }, []);
   return (
     <div
       key={`${problem.name}-${problem.id}`}
-      onClick={() => {}}
+      onClick={handleProblemSelect}
       className={cn(
-        ` group w-full flex justify-between items-center gap-4 rounded-md text-xs p-4 bg-muted cursor-default`,
+        `group w-full flex flex-col gap-3 rounded-md bg-muted p-3 text-xs cursor-pointer sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4`,
         ` ${shownProblemId == problem.id && "outline outline-border-muted/40 shadow-xs shadow-border"}`,
         ` ${problemsStatus[problem.id] === "success" ? "border border-success/30" : problemsStatus[problem.id] === "failure" ? "border border-destructive/30" : ""}`,
       )}
     >
       {/* Left section of problem */}
-      <div className="flex flex-col justify-between gap-2 ">
+      <div className="min-w-0 flex flex-1 flex-col justify-between gap-2">
         {/* Problem.name */}
         <h3
-          className={`text-lg ${shownProblemId == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
+          className={`break-words text-base sm:text-lg ${shownProblemId == problem.id ? "font-semibold text-text" : "text-muted-foreground"}`}
         >
           Problem {problem.name}
         </h3>
 
         {/* Lower-left part (Problem details) */}
-        <div className="pl-1 flex items-center gap-3">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 sm:pl-1">
           {/* likess & commentss */}
-          <div className="flex justify-between items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* likes */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <ThumbsUp className="w-4 h-4" />{" "}
-              <span className="text-sm font-medium">{problem.likes ?? 0}</span>
+              <span className="text-sm font-medium">
+                {safeNumber(problem.likes_count)}
+              </span>
             </div>
 
             {/* comments */}
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
               <MessageSquare className="w-4 h-4" />{" "}
               <span className="text-sm font-medium">
-                {problem.comments_num ?? 0}
+                {safeNumber(problem.comments_count)}
               </span>
             </div>
           </div>
 
           {/* People answered */}
-          <div className="flex items-center">
+          <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:flex-row sm:items-center">
             <Progress
-              value={
-                ((problem.num_correct_submissions ?? 0) /
-                  (problem.num_submissions ?? 1)) *
-                100
-              }
-              className="bg-background w-24 h-[3px] *:bg-success/50"
+              value={solvedPercentage}
+              className="h-[3px] w-full bg-background *:bg-success/50 sm:w-24"
             />
-            <div className="flex gap-1 items-center text-xs">
-              <span>
-                {Math.round(
-                  ((problem.num_correct_submissions ?? 0) /
-                    (problem.num_submissions ?? 1)) *
-                    100,
-                )}
-                %
-              </span>
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
+              <span>{solvedPercentage}%</span>
               <span className="text-muted-foreground/70">
-                ({problem.num_correct_submissions ?? 0} /{" "}
-                {problem.num_submissions ?? 0} submissions)
+                ({correctSubmissionCount} / {submissionCount} submissions)
               </span>
             </div>
           </div>
@@ -121,24 +83,33 @@ const Problem_Card = ({
       {problemsStatus[problem.id] === "success" ? (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Review
         </Button>
       ) : problemsStatus[problem.id] === "failure" ? (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Try again
         </Button>
       ) : (
         <Button
           variant={"secondary"}
-          className="bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60"
-          onClick={() => setShownProblemId(problem.id)}
+          className="h-9 w-full bg-card text-muted-foreground hover:bg-card/70 hover:text-foreground/60 sm:w-auto"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleProblemSelect();
+          }}
         >
           Try out
         </Button>

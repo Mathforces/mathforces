@@ -1,23 +1,24 @@
-import { useShownProblemId } from "@/app/store";
 import Problem_Card from "@/components/Contest/Problem_Card";
 import { TabsContent } from "@/components/ui/tabs";
-import { Contest, contestProblem } from "@/types/types";
+import { Contest, ContestProblem } from "@/types/types";
+import { safeNumber } from "@/lib/utils";
 import Image from "next/image";
 import * as React from "react";
 import { BsTag } from "react-icons/bs";
 
 interface ContestProblemsProps {
   contest: Contest;
-  problems: contestProblem[];
+  problems: ContestProblem[];
   problemsStatus: Record<string, string>;
+  onProblemSelect?: () => void;
 }
 
 const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
   contest,
   problems,
   problemsStatus,
+  onProblemSelect,
 }) => {
-  const {shownProblemId, setShownProblemId} = useShownProblemId();
   return (
     <div>
       <TabsContent value="problems" className="p-4 flex flex-col gap-3 w-full">
@@ -27,7 +28,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
             <div className="bg-muted px-3 py-1 rounded-lg flex items-center justify-center">
               {/* TODO: Customize this to have multiple colors according to the difficulty */}
               <span className="text-destructive">
-                {contest.difficulty ?? "Unset"}
+                {safeNumber(contest.difficulty)}
               </span>
             </div>
             <div className="bg-muted px-2 py-1 rounded-lg flex items-center gap-1 justify-center">
@@ -39,11 +40,11 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
 
         <div className="flex flex-col items-center gap-3 w-full py-2 pr-2">
           {problems.map((problem) => (
-            <div onClick={() => setShownProblemId(problem.id)} className="w-full">
+            <div key={problem.id} className="w-full">
               <Problem_Card
-                key={problem.id}
                 problem={problem}
                 problemsStatus={problemsStatus}
+                onProblemSelect={onProblemSelect}
               />
             </div>
           ))}
@@ -53,7 +54,7 @@ const ContestProblems: React.FunctionComponent<ContestProblemsProps> = ({
         <section className="flex flex-col justify-center items-center gap-2">
           <div className="flex items-center text-xs">
             <Image
-              src="/Logo.png"
+              src="/logo_mini_light_transparent.svg"
               alt="Logo"
               width={200}
               height={200}

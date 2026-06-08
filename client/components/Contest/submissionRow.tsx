@@ -1,124 +1,293 @@
-import { useProblems, useProfile } from "@/app/store";
-import { cn } from "@/lib/utils";
+import { useProblems, useProfile, useShownProblemId } from "@/app/store";
+import { cn, safeNumber } from "@/lib/utils";
+import { ContestPhase } from "@/lib/contest";
 import {
   defaultFormattedDate,
   Submission,
   SubmissionsTypes,
 } from "@/types/types";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import { Button } from "../ui/button";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   type: SubmissionsTypes;
-  problemId: string;
+  setSubmissionType: Dispatch<SetStateAction<string>>;
+  contestId?: string;
+  contestPhase?: ContestPhase;
+  officialOnly?: boolean;
 }
 
-function SubmissionsTable({ type, problemId }: Props) {
+function SubmissionsTable({ type, setSubmissionType, contestId, contestPhase, officialOnly }: Props) {
   const userProfile = useProfile((state) => state.userProfile);
+  const userProfileLoading = useProfile((state) => state.loading);
   const submissionsFetch = useProblems(
     (state) => state.fetchProblemSubmissions,
   );
   const EMPTY_ARRAY: Submission[] = [];
+  const problemId = useShownProblemId((state) => state.shownProblemId);
   const submissions = useProblems((state) => {
     const submissions = state.problems[problemId]?.submissions;
     return (submissions && submissions[type]) ?? EMPTY_ARRAY;
   });
-  const loading = useProblems(
+  const SubmissionsLoading = useProblems(
     (state) => state.problems[problemId]?.submissions?.loading ?? true,
   );
+
+  const filteredSubmissions = officialOnly
+    ? submissions.filter((s) => s.is_official !== false)
+    : submissions;
+
   useEffect(() => {
-    if (type && problemId && userProfile.id) {
-      submissionsFetch(userProfile.id, problemId, type);
+    if (type && problemId) {
+      submissionsFetch(problemId, type, userProfile?.id, contestId);
     }
-  }, [type, problemId, userProfile]);
-  useEffect(() => {
-    if (submissions) {
-      console.log("submissions changed!!!");
-      console.log("new submissions be: ", submissions);
-    }
-  }, [submissions]);
+  }, [type, problemId, userProfile?.id, submissionsFetch, contestId]);
+
   return (
     <>
-      {submissions.length > 0 ? (
-        submissions?.map((submission, i) => {
-          const { date, time, timezone } =
-            submission?.formattedDate ?? defaultFormattedDate;
-          return (
-            <div
-              className={cn(
-                i % 2 === 0 && "bg-bg-light",
-                "rounded-md flex gap-10 h-12 items-center px-3",
-              )}
-            >
-              {/* Submission Id  */}
-              <div className="border border-muted-foreground/20 px-2 text-center rounded-md w-22">
-                <span className="underline text-primary text-sm">
-                  {submission.display_id}
-                </span>
-              </div>
+      {filteredSubmissions.length > 0 ? (
+        <div className="flex flex-col gap-1 sm:gap-0">
+          {/* Desktop header row */}
+          <div className="hidden sm:flex gap-10 h-8 items-center px-3 text-xs text-muted-foreground font-medium">
+            <div className="w-22">ID</div>
+            <div className="w-20">Date & Time</div>
+            <div className="w-30">User</div>
+            <div className="w-20">Problem</div>
+            <div className="flex-1">Answer</div>
+            <div className="w-16 text-right">Score</div>
+          </div>
 
-              {/* Submission Date */}
-              <div className="flex items-center flex-col text-xs text-text/60 w-20 truncate">
-                {/* Date */}
-                <span>{date}</span>
+          {filteredSubmissions?.map((submission, i) => {
+            const { date, time, timezone } =
+              submission?.formattedDate ?? defaultFormattedDate;
+            const username =
+              submission.profiles?.username ??
+              (submission.user_id === userProfile?.id
+                ? userProfile?.username
+                : undefined);
+            const score = safeNumber(submission.score);
+            const isSuccess = submission.status === "success";
+            const isFailure = submission.status === "failure";
+            const isLiveContest = contestPhase === "live";
+            const isOwnSubmission = submission.user_id === userProfile?.id;
+            const hideAnswer = isLiveContest && !isOwnSubmission;
+            const isUnofficial = submission.is_official === false;
 
-                {/* Time */}
-                <span className="flex gap-[2px]">
-                  {time}
-                  {/* Local time zone */}
-                  <span className="text-[8px]">{timezone}</span>
-                </span>
-              </div>
-
-              {/* username */}
-              {/* TODO: Add user based styling */}
-              <span className="text-text/60 w-30 truncate">
-                {submission?.profiles?.username?.charAt(0)}
-                <span className="text-orange-500">
-                  {submission?.profiles?.username?.slice(1)}
-                </span>
-              </span>
-
-              {/* problem title */}
-              <span className="text-text/60 w-20 truncate">
-                {submission.problems?.name}
-              </span>
-
-              {/* Ans */}
-              <span
+            return (
+              <div
+                key={submission.id ?? submission.display_id ?? i}
                 className={cn(
-                  submission.status === "success" && "text-success",
-                  submission.status === "failure" && "text-destructive",
-                  "font-medium",
+                  i % 2 === 0 && "bg-bg-light",
+                  "rounded-sm shadow-sm px-2 py-1.5 sm:h-12 sm:flex sm:gap-10 sm:items-center sm:px-3 sm:py-2",
+                  isSuccess &&
+                    "border-l-[3px] border-l-success sm:border-l-0 sm:border-l-transparent",
+                  isFailure &&
+                    "border-l-[3px] border-l-destructive sm:border-l-0 sm:border-l-transparent",
                 )}
               >
-                Ans: {submission.user_answer}
-              </span>
+                {/* Mobile compact layout */}
+                <div className="flex flex-col sm:hidden min-w-0">
+                  {/* Line 1: status + username + answer + score */}
+                  <div className="flex items-center gap-1 min-w-0">
+                    {isSuccess ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-success" />
+                    ) : isFailure ? (
+                      <XCircle className="w-3.5 h-3.5 shrink-0 text-destructive" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="text-xs font-medium truncate min-w-0 text-foreground">
+                      {username?.charAt(0)}
+                      <span className="text-orange-500">
+                        {username?.slice(1)}
+                      </span>
+                    </span>
+                    {!hideAnswer && submission.user_answer && (
+                      <span className="text-[11px] text-muted-foreground/60 shrink-0">·</span>
+                    )}
+                    <span
+                      className={cn(
+                        "text-[11px] font-mono truncate min-w-0",
+                        !hideAnswer && isSuccess && "text-success",
+                        !hideAnswer && isFailure && "text-destructive",
+                      )}
+                    >
+                      {hideAnswer ? "?" : (submission.user_answer ?? "")}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-xs font-semibold shrink-0 ml-auto",
+                        isSuccess && "text-success",
+                        isFailure && "text-destructive",
+                      )}
+                    >
+                      {score > 0 ? `+${score}` : score}
+                    </span>
+                  </div>
+                  {/* Line 2: problem + date (subtle) */}
+                  <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                    <span className="text-[10px] text-muted-foreground/50 truncate">
+                      {submission.problems?.name ?? "Unknown"}
+                    </span>
+                    {isUnofficial && (
+                      <span className="text-[9px] px-1 rounded bg-yellow-500/20 text-yellow-600 shrink-0">
+                        Unofficial
+                      </span>
+                    )}
+                    <span className="text-[10px] text-muted-foreground/50 shrink-0">
+                      {date} {time}
+                    </span>
+                  </div>
+                </div>
 
-              {/* score */}
-              <span
-                className={cn(
-                  submission.status === "success" && "text-success",
-                  submission.status === "failure" && "text-destructive",
-                  "font-semibold",
-                )}
-              >
-                {submission.score &&
-                  (submission?.score > 0
-                    ? "+"
-                    : submission.score < 0
-                      ? "-"
-                      : "") + submission.score}
-              </span>
-            </div>
-          );
-        })
+                {/* Desktop row layout */}
+                <div className="hidden sm:flex sm:items-center sm:gap-10 sm:w-full">
+                  {/* Submission Id */}
+                  <div className="border border-muted-foreground/20 px-2 text-center rounded-md w-22">
+                    <span className="underline text-primary text-sm">
+                      {submission.display_id}
+                    </span>
+                  </div>
+
+                  {/* Submission Date */}
+                  <div className="flex items-center flex-col text-xs text-text/60 w-20 truncate">
+                    <span>{date}</span>
+                    <span className="flex gap-[2px]">
+                      {time}
+                      <span className="text-[8px]">{timezone}</span>
+                    </span>
+                  </div>
+
+                  {/* Username */}
+                  <span className="text-text/60 w-30 truncate">
+                    {username?.charAt(0)}
+                    <span className="text-orange-500">
+                      {username?.slice(1)}
+                    </span>
+                  </span>
+
+                  {/* Problem title */}
+                  <span className="text-text/60 w-20 truncate">
+                    {submission.problems?.name}
+                  </span>
+                  {isUnofficial && (
+                    <span className="text-[9px] px-1 rounded bg-yellow-500/20 text-yellow-600 shrink-0">
+                      Unofficial
+                    </span>
+                  )}
+
+                  {/* Answer */}
+                  <span
+                    className={cn(
+                      "flex-1 truncate font-medium",
+                      !hideAnswer && isSuccess && "text-success",
+                      !hideAnswer && isFailure && "text-destructive",
+                    )}
+                  >
+                    Ans: {hideAnswer ? "?" : submission.user_answer}
+                  </span>
+
+                  {/* Score */}
+                  <span
+                    className={cn(
+                      "w-16 text-right font-semibold",
+                      isSuccess && "text-success",
+                      isFailure && "text-destructive",
+                    )}
+                  >
+                    {score > 0 ? `+${score}` : score}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
-        <div className="flex items-center justify-center w-full h-full my-5">
-          {loading ? (
-            <p>loading...</p>
+        <div className="flex items-center justify-center w-full h-full my-5 px-4">
+          {!userProfileLoading &&
+          !userProfile &&
+          (type === "your_submissions" || type === "friends_submissions") ? (
+            <div className="flex items-center text-center flex-col gap-3 max-w-sm">
+              <div className="space-y-2">
+                <h4 className="text-base">You&apos;re not Signed in</h4>
+                <p className="text-sm text-muted-foreground">
+                  Please login or sign up to view your own submissions{" "}
+                  <button
+                    className="underline text-primary cursor-pointer"
+                    onClick={() => setSubmissionType("general_submissions")}
+                  >
+                    or go to general submissions
+                  </button>
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={"primary"}
+                  link="/sign_up"
+                  className="text-xs py-0"
+                >
+                  Sign Up
+                </Button>
+                <Button
+                  variant={"outline"}
+                  link="/sign_in"
+                  className="text-xs py-2"
+                >
+                  Sign in
+                </Button>
+              </div>
+            </div>
+          ) : SubmissionsLoading ? (
+            <div className="flex flex-col gap-2 sm:gap-0 w-full">
+              {/* Desktop header row */}
+              <div className="hidden sm:flex gap-10 h-8 items-center px-3 text-xs text-muted-foreground font-medium">
+                <Skeleton className="w-22 h-4" />
+                <Skeleton className="w-20 h-4" />
+                <Skeleton className="w-30 h-4" />
+                <Skeleton className="w-20 h-4" />
+                <Skeleton className="flex-1 h-4" />
+                <Skeleton className="w-16 h-4" />
+              </div>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="hidden sm:flex gap-10 h-12 items-center px-3 py-2">
+                  <Skeleton className="w-22 h-6 rounded-md" />
+                  <Skeleton className="w-20 h-8" />
+                  <Skeleton className="w-30 h-4" />
+                  <Skeleton className="w-20 h-4" />
+                  <Skeleton className="flex-1 h-4" />
+                  <Skeleton className="w-16 h-4" />
+                </div>
+              ))}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={`m-${i}`}
+                  className={cn(
+                    i % 2 === 0 && "bg-bg-light",
+                    "rounded-sm shadow-sm px-2 py-1.5",
+                  )}
+                >
+                  <div className="flex items-center gap-1 min-w-0">
+                    <Skeleton className="w-3.5 h-3.5 rounded-full shrink-0" />
+                    <Skeleton className="h-3.5 w-16" />
+                    <span className="text-[11px] text-muted-foreground/60 shrink-0">·</span>
+                    <Skeleton className="h-3.5 flex-1" />
+                    <Skeleton className="h-3.5 w-6" />
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Skeleton className="h-2.5 w-20" />
+                    <Skeleton className="h-2.5 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <p>There are no submissins for this problem yet!</p>
+            <div className="flex flex-col items-center gap-2 text-center">
+              <p className="text-sm text-muted-foreground">
+                There are no submissions for this problem yet!
+              </p>
+            </div>
           )}
         </div>
       )}

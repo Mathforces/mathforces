@@ -1,6 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+    outputFileTracingRoot: process.cwd(),
     webpack: (config) => {
         // Handle MathJax static assets
         config.module.rules.push({

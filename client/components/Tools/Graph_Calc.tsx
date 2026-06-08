@@ -2,8 +2,8 @@
 
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 interface props {
-  expressions: any;
-  setExpressions: Dispatch<SetStateAction<any>>;
+  expressions: unknown;
+  setExpressions: Dispatch<SetStateAction<unknown>>;
 }
 export default function GraphCalculator({
   expressions,
@@ -19,7 +19,7 @@ export default function GraphCalculator({
     script.async = true;
 
     script.onload = () => {
-      // @ts-ignore
+      // @ts-expect-error Desmos is loaded from the calculator script.
       const calculator = Desmos.GraphingCalculator(calculatorRef.current, {
         expressions: true,
         settingsMenu: true,
@@ -32,7 +32,7 @@ export default function GraphCalculator({
         setExpressions(calculator.getExpressions());
       });
 
-      let prevExp: any = null;
+      let prevExp: unknown = null;
       setInterval(() => {
         const curExp = calculator.getExpressions();
         console.log("prevExp:", prevExp);
